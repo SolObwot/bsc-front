@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { UserPlusIcon } from '@heroicons/react/24/outline';
 import { PencilSquareIcon, TrashIcon, ArrowPathIcon } from '@heroicons/react/20/solid';
 import { userService } from '../../services/user.service';
 import FilterBox from '../ui/FilterBox';
 import Button from '../ui/Button';
 import { useToast } from "../../hooks/useToast";
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '../ui/AlertDialog';
 import { Table, TableHead, TableHeader, TableBody, TableRow, TableCell } from '../ui/Tables';
+import DeleteUser from './DeleteUser';
 
 const UsersList = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -50,24 +52,9 @@ const UsersList = () => {
     }
   };
 
-  const handleDelete = async () => {
-    if (!userToDelete) return;
-    try {
-      await userService.deleteUser(userToDelete.id);
-      setUsers(users.filter(user => user.id !== userToDelete.id));
-      toast({
-        title: "Success",
-        description: "User deleted successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete user",
-        variant: "destructive",
-      });
-    } finally {
-      setUserToDelete(null);
-    }
+  const handleDeleteSuccess = (userId) => {
+    setUsers(users.filter(user => user.id !== userId));
+    setFilteredUsers(filteredUsers.filter(user => user.id !== userId));
   };
 
   const handleSearch = () => {
@@ -143,13 +130,15 @@ const UsersList = () => {
 
       <div className="bg-gray-50 p-4 rounded-lg mb-4 shadow-sm">
         <div className="flex justify-between items-center mb-4">
-          <button
+          <Button
             type="button"
-            className="flex items-center gap-2 rounded-md bg-green-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
+            variant="pride"
+            className="flex items-center gap-2"
+            onClick={() => navigate('/admin/user/add')}
           >
             <UserPlusIcon className="h-5 w-5" aria-hidden="true" />
             Add user
-          </button>
+          </Button>
           <span className="text-sm text-gray-700">
             {filteredUsers.length > 0 ? `(${filteredUsers.length}) Records Found` : 'No Records Found'}
           </span>
@@ -212,22 +201,11 @@ const UsersList = () => {
         </Table>
       </div>
 
-      <AlertDialog open={!!userToDelete} onOpenChange={() => setUserToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the user
-              {userToDelete && ` ${userToDelete.first_name} ${userToDelete.last_name}`}
-              's account and remove their data from our servers.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteUser 
+        userToDelete={userToDelete} 
+        setUserToDelete={setUserToDelete} 
+        onDeleteSuccess={handleDeleteSuccess} 
+      />
     </div>
   );
 };
