@@ -4,7 +4,7 @@ import { Input } from './Input';
 import { Select } from './Select';
 import Button from './Button';
 
-const FilterBox = ({ title, filters, buttons }) => {
+const FilterBox = ({ title, filters, buttons, children }) => {
   return (
     <div className="bg-gray-50 p-4 rounded-lg mb-4 shadow-sm">
       <h1 className="text-base font-semibold text-gray-900 pb-4">{title}</h1>
@@ -38,6 +38,7 @@ const FilterBox = ({ title, filters, buttons }) => {
           </Field>
         ))}
       </div>
+      {children}
       <div className="mt-4 flex justify-end space-x-2">
         {buttons.map((button, index) => (
           <Button key={index} variant={button.variant} onClick={button.onClick}>

@@ -11,6 +11,7 @@ import LeaveRequests from './pages/LeaveRequests';
 import LeaveApprovals from './pages/LeaveApprovals';
 import LeaveReports from './pages/LeaveReports';
 import LeaveSettings from './pages/LeaveSettings';
+import AddUser from './components/users/AddUser';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           <Route path="/pim/employees" element={<div>Employee List</div>} />
           <Route path="/pim/employees/add" element={<div>Add Employee</div>} />
           <Route path="/admin/users" element={<UsersList />} />
+          <Route path="/admin/user/add" element={< AddUser />} />
           <Route path="/admin/job-titles" element={<div>Job Titles</div>} />
           <Route path="/admin/organization" element={<div>Organization</div>} />
           <Route path="/performance" element={<Performance />}>
