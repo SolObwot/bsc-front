@@ -152,7 +152,6 @@ const UsersList = () => {
               <TableHeader>Job Title</TableHeader>
               <TableHeader>Email</TableHeader>
               <TableHeader>User Role</TableHeader>
-              <TableHeader>Update</TableHeader>
               <TableHeader>Edit</TableHeader>
               <TableHeader>Delete</TableHeader>
             </TableRow>
@@ -165,16 +164,6 @@ const UsersList = () => {
                 <TableCell>{user.title || 'Employee Job Title'}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{user.role || 'System Role'}</TableCell>
-                <TableCell className="text-right">
-                  <button
-                    onClick={() => {}} 
-                    className="text-blue-600 hover:text-blue-900 inline-flex items-center gap-x-1.5"
-                  >
-                    <ArrowPathIcon className="h-5 w-5" aria-hidden="true" />
-                    <span>Update</span>
-                    <span className="sr-only">, {`${user.first_name} ${user.last_name}`}</span>
-                  </button>
-                </TableCell>
                 <TableCell className="text-right">
                   <button
                     onClick={() => {}} 
