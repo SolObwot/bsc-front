@@ -10,12 +10,12 @@ const AddUser = () => {
 
   const handleFormSubmit = async (userData) => {
     try {
-      await userService.addUser(userData);
+      await userService.createUser(userData);
       toast({
         title: "Success",
         description: "User added successfully",
       });
-      navigate('/users');
+      navigate('/admin/users');
     } catch (error) {
       toast({
         title: "Error",

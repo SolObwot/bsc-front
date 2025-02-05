@@ -1,7 +1,8 @@
 const Button = ({ 
   children, 
   variant = 'primary', 
-  className = '', 
+  className = '',
+  type = 'button', 
   ...props 
   }) => {
   const baseClasses = 'px-4 py-2 rounded-lg font-medium transition-colors duration-200 cursor-pointer';
@@ -16,6 +17,7 @@ const Button = ({
   return (
     <button 
     className={`${baseClasses} ${variants[variant]} ${className}`}
+    type={type}
     {...props}
     >
     {children}

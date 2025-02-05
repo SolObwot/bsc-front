@@ -1,27 +1,38 @@
 import React, { useState } from 'react';
 import FilterBox from '../ui/FilterBox';
 
-const UserForm = ({ onSubmit }) => {
-  const [formData, setFormData] = useState({
+const UserForm = ({ onSubmit, initialData = {}, onCancel }) => {
+  const [formData, setFormData] = useState(() => ({
     first_name: '',
     last_name: '',
     email: '',
     phone: '',
     address: '',
-    roles: '',
+    roles: [],
     username: '',
     employee_id: '',
     date_of_birth: '',
     gender: '',
     status: 'enabled',
-  });
+    ...initialData,
+  }));
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    const { name, value, multiple, options } = e.target;
+    if (multiple) {
+      const selectedValues = Array.from(options)
+        .filter(option => option.selected)
+        .map(option => option.value);
+      setFormData({
+        ...formData,
+        [name]: selectedValues,
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
   };
 
   const handleSubmit = (e) => {
@@ -30,7 +41,9 @@ const UserForm = ({ onSubmit }) => {
   };
 
   const handleCancel = () => {
-    
+    if (onCancel) {
+      onCancel();
+    }
   };
 
   const filters = [
@@ -38,12 +51,9 @@ const UserForm = ({ onSubmit }) => {
     { id: 'last_name', label: 'Last Name', type: 'text', value: formData.last_name, onChange: handleChange },
     { id: 'email', label: 'Email', type: 'email', value: formData.email, onChange: handleChange },
     { id: 'employee_id', label: 'Employee ID', type: 'text', value: formData.employee_id, onChange: handleChange },
-    { id: 'roles', label: 'Roles', type: 'select', value: formData.roles, onChange: handleChange, options: [
-      { value: '', label: '-- Select --' },
-      { value: 'superadmin', label: 'Superadmin' },
-      { value: 'manager', label: 'Manager' },
-      { value: 'head_of_department', label: 'Head of Department' },
-      { value: 'officer', label: 'Officer' },
+    { id: 'roles', label: 'System Role', type: 'select', value: formData.roles, multiple: true, onChange: handleChange, options: [
+      { value: 'manager', label: 'Superadmin' },
+      { value: 'officer', label: 'HR' },
     ]},
     { id: 'status', label: 'Status', type: 'select', value: formData.status, onChange: handleChange, options: [
       { value: 'enabled', label: 'Enabled' },
@@ -52,7 +62,7 @@ const UserForm = ({ onSubmit }) => {
   ];
 
   const buttons = [
-    { label: 'Save', variant: 'pride', onClick: handleSubmit },
+    { label: 'Save', variant: 'pride', onClick: handleSubmit, type: 'submit' }, 
     { label: 'Cancel', variant: 'secondary', onClick: handleCancel },
   ];
 
