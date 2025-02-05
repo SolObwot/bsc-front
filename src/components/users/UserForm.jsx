@@ -37,22 +37,13 @@ const UserForm = ({ onSubmit }) => {
     { id: 'first_name', label: 'First Name', type: 'text', value: formData.first_name, onChange: handleChange },
     { id: 'last_name', label: 'Last Name', type: 'text', value: formData.last_name, onChange: handleChange },
     { id: 'email', label: 'Email', type: 'email', value: formData.email, onChange: handleChange },
-    { id: 'phone', label: 'Phone', type: 'text', value: formData.phone, onChange: handleChange },
-    { id: 'address', label: 'Address', type: 'text', value: formData.address, onChange: handleChange },
+    { id: 'employee_id', label: 'Employee ID', type: 'text', value: formData.employee_id, onChange: handleChange },
     { id: 'roles', label: 'Roles', type: 'select', value: formData.roles, onChange: handleChange, options: [
       { value: '', label: '-- Select --' },
       { value: 'superadmin', label: 'Superadmin' },
       { value: 'manager', label: 'Manager' },
       { value: 'head_of_department', label: 'Head of Department' },
       { value: 'officer', label: 'Officer' },
-    ]},
-    { id: 'username', label: 'Username', type: 'text', value: formData.username, onChange: handleChange },
-    { id: 'employee_id', label: 'Employee ID', type: 'text', value: formData.employee_id, onChange: handleChange },
-    { id: 'date_of_birth', label: 'Date of Birth', type: 'date', value: formData.date_of_birth, onChange: handleChange },
-    { id: 'gender', label: 'Gender', type: 'select', value: formData.gender, onChange: handleChange, options: [
-      { value: '', label: '-- Select --' },
-      { value: 'male', label: 'Male' },
-      { value: 'female', label: 'Female' },
     ]},
     { id: 'status', label: 'Status', type: 'select', value: formData.status, onChange: handleChange, options: [
       { value: 'enabled', label: 'Enabled' },
@@ -61,12 +52,12 @@ const UserForm = ({ onSubmit }) => {
   ];
 
   const buttons = [
-    { label: 'Add User', variant: 'pride', onClick: handleSubmit },
+    { label: 'Save', variant: 'pride', onClick: handleSubmit },
     { label: 'Cancel', variant: 'secondary', onClick: handleCancel },
   ];
 
   return (
-    <FilterBox title="Add New System User" filters={filters} buttons={buttons}>
+    <FilterBox title="System Users" filters={filters} buttons={buttons}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Form fields are now managed by FilterBox */}
       </form>
