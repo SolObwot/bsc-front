@@ -15,6 +15,7 @@ const UsersList = () => {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [userToEdit, setUserToEdit] = useState(null);
   const [filterText, setFilterText] = useState('');
   const [filterRole, setFilterRole] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
@@ -67,12 +68,20 @@ const UsersList = () => {
     setFilterStatus('');
   };
 
+  const handleEdit = (id) => {
+    navigate(`/admin/users/edit/${id}`);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
       </div>
     );
+  }
+
+  if (userToEdit) {
+    return <UpdateUser user={userToEdit} onCancel={() => setUserToEdit(null)} />;
   }
 
   return (
@@ -166,7 +175,7 @@ const UsersList = () => {
                 <TableCell>{user.role || 'System Role'}</TableCell>
                 <TableCell className="text-right">
                   <button
-                    onClick={() => {}} 
+                    onClick={() => handleEdit(user.id)} 
                     className="text-indigo-600 hover:text-indigo-900 inline-flex items-center gap-x-1.5"
                   >
                     <PencilSquareIcon className="h-5 w-5" aria-hidden="true" />

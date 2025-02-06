@@ -12,6 +12,7 @@ import LeaveApprovals from './pages/LeaveApprovals';
 import LeaveReports from './pages/LeaveReports';
 import LeaveSettings from './pages/LeaveSettings';
 import AddUser from './components/users/AddUser';
+import EditUser from './components/users/EditUser';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
           <Route path="/pim/employees/add" element={<div>Add Employee</div>} />
           <Route path="/admin/users" element={<UsersList />} />
           <Route path="/admin/user/add" element={< AddUser />} />
+          <Route path="/admin/users/edit/:id" element={<EditUser />} />
           <Route path="/admin/job-titles" element={<div>Job Titles</div>} />
           <Route path="/admin/organization" element={<div>Organization</div>} />
           <Route path="/performance" element={<Performance />}>
