@@ -25,9 +25,13 @@ const AddUser = () => {
     }
   };
 
+  const handleCancel = () => {
+    navigate('/admin/users');
+  };
+
   return (
     <div className="w-full p-4 mt-8">
-      <UserForm onSubmit={handleFormSubmit} />
+      <UserForm onSubmit={handleFormSubmit} onCancel={handleCancel}/>
     </div>
   );
 };
