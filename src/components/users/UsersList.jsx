@@ -19,6 +19,8 @@ const UsersList = () => {
   const [filterText, setFilterText] = useState('');
   const [filterRole, setFilterRole] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [recordsPerPage, setRecordsPerPage] = useState(5);
+  const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -71,6 +73,17 @@ const UsersList = () => {
   const handleEdit = (id) => {
     navigate(`/admin/users/edit/${id}`);
   };
+
+  const handleRecordsPerPageChange = (e) => {
+    setRecordsPerPage(Number(e.target.value));
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const paginatedUsers = filteredUsers.slice((currentPage - 1) * recordsPerPage, currentPage * recordsPerPage);
 
   if (loading) {
     return (
@@ -148,6 +161,19 @@ const UsersList = () => {
             <UserPlusIcon className="h-5 w-5" aria-hidden="true" />
             Add user
           </Button>
+          <div className="flex items-center gap-2">
+            <label htmlFor="recordsPerPage" className="text-sm text-gray-700">Records per page:</label>
+            <select
+              id="recordsPerPage"
+              value={recordsPerPage}
+              onChange={handleRecordsPerPageChange}
+              className="border border-gray-300 rounded-md p-1"
+            >
+              {[5, 10, 15, 20, 50].map((num) => (
+                <option key={num} value={num}>{num}</option>
+              ))}
+            </select>
+          </div>
           <span className="text-sm text-gray-700">
             {filteredUsers.length > 0 ? `(${filteredUsers.length}) Records Found` : 'No Records Found'}
           </span>
@@ -166,7 +192,7 @@ const UsersList = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredUsers.map((user, userIdx) => (
+            {paginatedUsers.map((user, userIdx) => (
               <TableRow key={user.email}>
                 <TableCell>{user.id}</TableCell>
                 <TableCell>{`${user.first_name} ${user.last_name}`}</TableCell>
@@ -197,6 +223,36 @@ const UsersList = () => {
             ))}
           </TableBody>
         </Table>
+
+        {filteredUsers.length > recordsPerPage && (
+          <div className="flex justify-center mt-4">
+            <nav className="inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50"
+              >
+                Previous
+              </button>
+              {Array.from({ length: Math.ceil(filteredUsers.length / recordsPerPage) }, (_, i) => (
+                <button
+                  key={i + 1}
+                  onClick={() => handlePageChange(i + 1)}
+                  className={`relative inline-flex items-center px-4 py-2 text-sm font-medium ${currentPage === i + 1 ? 'bg-indigo-600 text-white' : 'bg-white text-gray-500'} border border-gray-300 hover:bg-gray-50`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === Math.ceil(filteredUsers.length / recordsPerPage)}
+                className="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50"
+              >
+                Next
+              </button>
+            </nav>
+          </div>
+        )}
       </div>
 
       <DeleteUser 
