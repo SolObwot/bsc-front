@@ -45,6 +45,20 @@ const DashboardLayout = () => {
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
+      <style>
+        {`
+          /* Hide scrollbar for Chrome, Safari and Opera */
+          .no-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+
+          /* Hide scrollbar for IE, Edge and Firefox */
+          .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+          }
+        `}
+      </style>
       {/* Mobile Sidebar Overlay */}
       {mobileMenuOpen && (
         <div
@@ -69,16 +83,16 @@ const DashboardLayout = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden h-full w-full">
         <Navbar
           breadcrumbs={generateBreadcrumbs()}
           onMenuClick={() => setMobileMenuOpen(true)}
           user={user}
         />
         
-        <main className="flex flex-1 flex-col overflow-y-auto bg-sky-50">
+        <main className="flex flex-1 flex-col overflow-y-auto no-scrollbar bg-sky-50 ">
           <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="h-full">
+            <div className="h-full flex flex-col">
               <Outlet />
             </div>
           </div>

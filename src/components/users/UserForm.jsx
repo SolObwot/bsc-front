@@ -13,26 +13,16 @@ const UserForm = ({ onSubmit, initialData = {}, onCancel }) => {
     employee_id: '',
     date_of_birth: '',
     gender: '',
-    status: 'enabled',
+    status: '',
     ...initialData,
   }));
 
   const handleChange = (e) => {
-    const { name, value, multiple, options } = e.target;
-    if (multiple) {
-      const selectedValues = Array.from(options)
-        .filter(option => option.selected)
-        .map(option => option.value);
-      setFormData({
-        ...formData,
-        [name]: selectedValues,
-      });
-    } else {
-      setFormData({
-        ...formData,
-        [name]: value,
-      });
-    }
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: name === 'roles' ? [value] : value,
+    });
   };
 
   const handleSubmit = (e) => {
@@ -51,7 +41,7 @@ const UserForm = ({ onSubmit, initialData = {}, onCancel }) => {
     { id: 'last_name', label: 'Last Name', type: 'text', value: formData.last_name, onChange: handleChange },
     { id: 'email', label: 'Email', type: 'email', value: formData.email, onChange: handleChange },
     { id: 'employee_id', label: 'Employee ID', type: 'text', value: formData.employee_id, onChange: handleChange },
-    { id: 'roles', label: 'System Role', type: 'select', value: formData.roles, multiple: true, onChange: handleChange, options: [
+    { id: 'roles', label: 'System Role', type: 'select', value: formData.roles[0] || '', onChange: handleChange, options: [
       { value: 'manager', label: 'Superadmin' },
       { value: 'officer', label: 'HR' },
     ]},
@@ -70,6 +60,7 @@ const UserForm = ({ onSubmit, initialData = {}, onCancel }) => {
     <FilterBox title="System Users" filters={filters} buttons={buttons}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Form fields are now managed by FilterBox */}
+        <input type="hidden" name="roles" value={formData.roles.join(',')} />
       </form>
     </FilterBox>
   );
