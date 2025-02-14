@@ -58,9 +58,6 @@ AlertDialogFooter.displayName = "AlertDialogFooter";
 
 const AlertDialogTitle = React.forwardRef(({ className, ...props }, ref) => (
   <div className="flex items-center space-x-2">
-    <div className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:size-10">
-      <ExclamationTriangleIcon aria-hidden="true" className="size-6 text-red-600" />
-    </div>
     <AlertDialogPrimitive.Title
       ref={ref}
       className={clsx("text-lg font-semibold", className)}
@@ -95,7 +92,7 @@ const AlertDialogCancel = React.forwardRef(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Cancel
     ref={ref}
     className={clsx(
-      "inline-flex h-10 items-center justify-center rounded-md border border-slate-200 bg-gray-500 px-4 py-2 text-sm font-semibold text-white transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
+      "inline-flex h-10 items-center justify-center rounded-md border border-slate-200 bg-gray-200  px-4 py-2 text-sm font-semibold text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
       className
     )}
     {...props}
