@@ -29,9 +29,9 @@ const UsersList = () => {
 
   useEffect(() => {
     const filtered = users.filter(user => 
-      (user.first_name.toLowerCase().includes(filterText.toLowerCase()) ||
-      user.last_name.toLowerCase().includes(filterText.toLowerCase()) ||
-      user.email.toLowerCase().includes(filterText.toLowerCase()) ||
+      (user.first_name?.toLowerCase().includes(filterText.toLowerCase()) ||
+      user.last_name?.toLowerCase().includes(filterText.toLowerCase()) ||
+      user.email?.toLowerCase().includes(filterText.toLowerCase()) ||
       user.title?.toLowerCase().includes(filterText.toLowerCase())) &&
       (filterRole ? user.role === filterRole : true) &&
       (filterStatus ? user.status === filterStatus : true)
@@ -131,8 +131,8 @@ const UsersList = () => {
             onChange: (e) => setFilterStatus(e.target.value),
             options: [
               { value: '', label: '-- Select --' },
-              { value: 'enabled', label: 'Enabled' },
-              { value: 'disabled', label: 'Disabled' },
+              { value: 'enabled', label: 'Active' },
+              { value: 'disabled', label: 'Inactive' },
             ],
           },
         ]}
@@ -156,10 +156,10 @@ const UsersList = () => {
             type="button"
             variant="pride"
             className="flex items-center gap-2"
-            onClick={() => navigate('/admin/user/add')}
+            onClick={() => navigate('/admin/users/add')}
           >
             <UserPlusIcon className="h-5 w-5" aria-hidden="true" />
-            Add user
+            Add User
           </Button>
           <div className="flex items-center gap-2">
             <label htmlFor="recordsPerPage" className="text-sm text-gray-700">Records per page:</label>

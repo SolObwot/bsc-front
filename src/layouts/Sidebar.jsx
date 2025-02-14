@@ -39,8 +39,7 @@ const navigationItems = [
     href: '/',
     children: [
       { label: 'User Management', href: '/admin/users' },
-      { label: 'Job Titles', href: '/admin/job-titles' },
-      { label: 'Organization', href: '/admin/organization' },
+      { label: 'Roles & Permissions', href: '/admin/roles'},
     ]
   },
   { 
@@ -48,7 +47,7 @@ const navigationItems = [
     icon: ChartBarIcon, 
     href: '/',
     children: [
-      { label: 'Balance Score Card', href: '/performance/balance-score-card' },
+      { label: 'Balanced Scorecard', href: '/performance/balance-score-card' },
       // Add more performance-related items as needed
     ]
   },
