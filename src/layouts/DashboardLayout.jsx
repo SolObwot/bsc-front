@@ -90,7 +90,7 @@ const DashboardLayout = () => {
           user={user}
         />
         
-        <main className="flex flex-1 flex-col overflow-y-auto no-scrollbar bg-sky-50 ">
+        <main className="flex flex-1 flex-col overflow-y-auto bg-sky-100 ">
           <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="h-full flex flex-col">
               <Outlet />
