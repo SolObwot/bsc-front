@@ -5,6 +5,7 @@ const UserForm = ({ onSubmit, initialData = {}, onCancel }) => {
   const [formData, setFormData] = useState(() => ({
     first_name: '',
     last_name: '',
+    username: '',
     email: '',
     roles: [],
     staff_number: '',
@@ -21,14 +22,28 @@ const UserForm = ({ onSubmit, initialData = {}, onCancel }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
+    const updatedData = {
       ...formData,
       [name]: name === 'roles' ? [value] : value,
-    });
+    };
+
+    // Auto-generate username when first_name or last_name changes
+    if (name === 'first_name' || name === 'last_name') {
+      const firstName = name === 'first_name' ? value : formData.first_name;
+      const lastName = name === 'last_name' ? value : formData.last_name;
+      
+      if (firstName && lastName) {
+        const generatedUsername = `${firstName.charAt(0).toLowerCase()}.${lastName.toLowerCase()}`;
+        updatedData.username = generatedUsername;
+      }
+    }
+
+    setFormData(updatedData);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log('Submit Triggered', formData);
     onSubmit(formData);
   };
 
@@ -64,7 +79,7 @@ const UserForm = ({ onSubmit, initialData = {}, onCancel }) => {
   return (
     <FilterBox title="System Users" filters={filters} buttons={buttons}>
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Form fields are now managed by FilterBox */}
+        <input type="hidden" name="username" value={formData.username || ''} />
         <input type="hidden" name="roles" value={formData.roles.join(',')} />
       </form>
     </FilterBox>

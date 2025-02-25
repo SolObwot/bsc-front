@@ -23,6 +23,7 @@ const AddEmployee = () => {
             });
             navigate('/pim/employees');
         } catch (error) {
+            console.error('Error creating employee:', error.response || error.message);
             // Handle error
             toast({
               title: "Error",
@@ -66,7 +67,11 @@ const AddEmployee = () => {
             content: () => (
                 <div className="p-6">
                     <h2 className="text-xl font-medium text-gray-700 mb-4">Emergency Contacts</h2>
-                    {/* Emergency contacts content here */}
+                    <EmployeeForm 
+                        section="emergencyContacts"
+                        initialData={employee}
+                        onSubmit={handleSubmit}
+                    /> 
                 </div>
             )
         },

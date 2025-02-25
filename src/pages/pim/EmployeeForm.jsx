@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FilterBox from '../../components/ui/FilterBox';
+
 
 const EmployeeForm = ({ section, onSubmit, initialData = {}, onCancel }) => {
   const [formData, setFormData] = useState(() => {
@@ -8,6 +9,7 @@ const EmployeeForm = ({ section, onSubmit, initialData = {}, onCancel }) => {
       // Personal Details
       first_name: initialData?.first_name || '',
       last_name: initialData?.last_name || '',
+      email: initialData?.email || '',
       username: initialData?.username || '',
       staff_number: initialData?.staff_number || '',
       dob: initialData?.dob || '',
@@ -19,13 +21,16 @@ const EmployeeForm = ({ section, onSubmit, initialData = {}, onCancel }) => {
       marital_status: initialData?.marital_status || '',
       status: initialData?.status || '',
       
-      // Contact Details
-      email: initialData?.email || '',
-      phone: initialData?.phone || '',
-      address: initialData?.address || '',
-      city: initialData?.city || '',
-      country: initialData?.country || '',
-      
+      // Contact Details - Updated to handle multiple records
+      phone: initialData?.contacts?.[0]?.phone || initialData?.phone || '',
+      email: initialData?.contacts?.[0]?.email || initialData?.email || '',
+      address: initialData?.contacts?.[0]?.address || initialData?.address || '',
+      district: initialData?.contacts?.[0]?.district || initialData?.district || '',
+
+      // Emergency Contacts - Updated to handle multiple records
+      emergency_contact_name: initialData?.emergency_contacts?.[0]?.name || initialData?.emergency_contact_name || '',
+      emergency_contact_phone: initialData?.emergency_contacts?.[0]?.phone || initialData?.emergency_contact_phone || '',
+      emergency_contact_relations: initialData?.emergency_contacts?.[0]?.relations || initialData?.emergency_contact_relations || '',
       // System Access
       roles: initialData?.roles || [],
     };
@@ -51,6 +56,12 @@ const EmployeeForm = ({ section, onSubmit, initialData = {}, onCancel }) => {
         id: 'last_name', 
         label: 'Last Name', 
         type: 'text',
+        required: true 
+      },
+      { 
+        id: 'email', 
+        label: 'Email', 
+        type: 'email',
         required: true 
       },
       { 
@@ -121,26 +132,52 @@ const EmployeeForm = ({ section, onSubmit, initialData = {}, onCancel }) => {
     ],
     contactDetails: [
       { 
-        id: 'email', 
-        label: 'Email', 
-        type: 'email',
-        required: true 
-      },
-      { 
         id: 'phone', 
         label: 'Phone Number', 
         type: 'tel',
-        required: true 
+        required: false 
+      },
+      { 
+        id: 'email', 
+        label: 'Personal Email', 
+        type: 'email',
+        required: false 
       },
       { 
         id: 'address', 
         label: 'Address', 
         type: 'text',
-        required: true 
+        required: false 
       },
-      { id: 'city', label: 'City', type: 'text' },
-      { id: 'country', label: 'Country', type: 'text' },
+      { 
+        id: 'district', 
+        label: 'District', 
+        type: 'text',
+        required: false 
+      },
+
     ],
+    emergencyContacts: [
+      { 
+        id: 'emergency_contact_name', 
+        label: 'Emergency Contact Name', 
+        type: 'text',
+        required: false  
+      },
+      { 
+        id: 'emergency_contact_phone', 
+        label: 'Emergency Contact Phone', 
+        type: 'tel',
+        required: false 
+      },
+      { 
+        id: 'emergency_contact_relations', 
+        label: 'Emergency Contact Relations', 
+        type: 'text',
+        required: false 
+      },
+    ],
+    
     // Add more sections as needed
   };
 
@@ -167,7 +204,7 @@ const EmployeeForm = ({ section, onSubmit, initialData = {}, onCancel }) => {
       }))}
       buttons={[
         { label: 'Save', variant: 'pride', onClick: handleSubmit, type: 'submit' },
-        { label: 'Cancel', variant: 'secondary', onClick: onCancel },
+        // { label: 'Cancel', variant: 'secondary', onClick: onCancel },
       ]}
     >
       <form onSubmit={handleSubmit} className="space-y-4">

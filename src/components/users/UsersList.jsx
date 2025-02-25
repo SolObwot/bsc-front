@@ -42,8 +42,14 @@ const UsersList = () => {
   const fetchUsers = async () => {
     try {
       const response = await userService.getUsers();
-      setUsers(response.data);
-      setFilteredUsers(response.data);
+      
+      // Filter out users who have the 'employee' role
+      const nonEmployeeUsers = response.data.filter(user => 
+        !user.roles.some(role => role.name === 'employee')
+      );
+  
+      setUsers(nonEmployeeUsers);
+      setFilteredUsers(nonEmployeeUsers);
     } catch (error) {
       toast({
         title: "Error",
@@ -54,6 +60,7 @@ const UsersList = () => {
       setLoading(false);
     }
   };
+  
 
   const handleDeleteSuccess = (userId) => {
     setUsers(users.filter(user => user.id !== userId));
@@ -150,7 +157,7 @@ const UsersList = () => {
         ]}
       />
 
-      <div className="bg-gray-50 p-4 rounded-lg mb-4 shadow-sm">
+      <div className="bg-gray-100 p-4 rounded-lg mb-4 shadow-sm">
         <div className="flex justify-between items-center mb-4">
           <Button
             type="button"
@@ -198,7 +205,9 @@ const UsersList = () => {
                 <TableCell>{`${user.first_name} ${user.last_name}`}</TableCell>
                 <TableCell>{user.title || 'Employee Job Title'}</TableCell>
                 <TableCell>{user.email}</TableCell>
-                <TableCell>{user.role || 'System Role'}</TableCell>
+                <TableCell >
+                  {user.roles?.map(role => role.name).join(', ') || 'System Role'}
+                </TableCell>
                 <TableCell className="text-right">
                   <button
                     onClick={() => handleEdit(user.id)} 

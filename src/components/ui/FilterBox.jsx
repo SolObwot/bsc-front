@@ -6,7 +6,7 @@ import Button from './Button';
 
 const FilterBox = ({ title, filters, buttons, children }) => {
   return (
-    <div className="bg-gray-50 p-4 rounded-lg mb-4 shadow-sm">
+    <div className="bg-gray-100 p-4 rounded-lg mb-4 shadow-sm">
       <h1 className="text-base font-semibold text-gray-900 pb-4">{title}</h1>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {filters.map((filter, index) => (

@@ -178,7 +178,7 @@ const Sidebar = ({ isMobile, setMobileMenuOpen }) => {
               <Link to="/info" className="block p-2 text-sm text-white hover:bg-gray-100 hover:text-[#009a44] rounded-lg">
                 My Info
               </Link>
-              <Link to="/info" className="block p-2 text-sm text-white hover:bg-gray-100 hover:text-[#009a44] rounded-lg">
+              <Link to="/change-password" className="block p-2 text-sm text-white hover:bg-gray-100 hover:text-[#009a44] rounded-lg">
                 Change Password
               </Link>
               <button
