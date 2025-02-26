@@ -49,32 +49,32 @@ const AddEmployee = () => {
                 );
             }
         },
-        contactDetails: {
-            label: "Contact Details",
-            content: () => (
-                <div className="p-6">
-                    <h2 className="text-xl font-medium text-gray-700 mb-4">Contact Details</h2>
-                    <EmployeeForm 
-                        section="contactDetails"
-                        initialData={employee}
-                        onSubmit={handleSubmit}
-                    />
-                </div>
-            )
-        },
-        emergencyContacts: {
-            label: "Emergency Contacts",
-            content: () => (
-                <div className="p-6">
-                    <h2 className="text-xl font-medium text-gray-700 mb-4">Emergency Contacts</h2>
-                    <EmployeeForm 
-                        section="emergencyContacts"
-                        initialData={employee}
-                        onSubmit={handleSubmit}
-                    /> 
-                </div>
-            )
-        },
+        // contactDetails: {
+        //     label: "Contact Details",
+        //     content: () => (
+        //         <div className="p-6">
+        //             <h2 className="text-xl font-medium text-gray-700 mb-4">Contact Details</h2>
+        //             <EmployeeForm 
+        //                 section="contactDetails"
+        //                 initialData={employee}
+        //                 onSubmit={handleSubmit}
+        //             />
+        //         </div>
+        //     )
+        // },
+        // emergencyContacts: {
+        //     label: "Emergency Contacts",
+        //     content: () => (
+        //         <div className="p-6">
+        //             <h2 className="text-xl font-medium text-gray-700 mb-4">Emergency Contacts</h2>
+        //             <EmployeeForm 
+        //                 section="emergencyContacts"
+        //                 initialData={employee}
+        //                 onSubmit={handleSubmit}
+        //             /> 
+        //         </div>
+        //     )
+        // },
         // Add more tabs as needed...
     };
 
