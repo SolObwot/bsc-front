@@ -119,9 +119,13 @@ const EmployeeProfile = () => {
                     {loading ? (
                         <div>Loading employee data...</div>
                     ) : (
-                        <EmployeeForm 
+                        <EmployeeForm
                             section="contactDetails"
-                            initialData={mergedEmployeeData}
+                            initialData={
+                                employeeContacts !== null && employeeContacts.length > 0
+                                    ? { ...mergedEmployeeData, ...employeeContacts[0] }
+                                    : mergedEmployeeData
+                            }
                             onSubmit={handleSubmit}
                         />
                     )}
