@@ -18,15 +18,15 @@ Installation
 
 1. Clone the repository via Git. Make sure you fork the repository first to your account and clone the copy of your forked
     ```sh
-    git clone <url>.git
+    git clone git@github.com:Pride-Innovation/BSC-HRMS-Front-End.git
     ```
 2. Navigate to the project directory
     ```sh
-    cd bsc-front-end
+    cd BSC-HRMS-Front-End
     ```
 3. Set Up the Upstream Remote
     ```sh
-    git remote add upstream <original-repo-url>
+    git remote add upstream git@github.com:Pride-Innovation/BSC-HRMS-Front-End.git
     ```
 
 #### Step 2: Installing Dependencies
@@ -67,9 +67,9 @@ Authors
 ------------
 * **Solomon Obwot** - [Software Developer](https://github.com/SolObwot/)  
 * **Sunday Odong** - [Software Developer](https://github.com/OdongAlican)  
-* **Joseph Gibusiwa** - [Software Developer](https://www.pridemicrofinance.co.ug/)  
-* **Derrick Katamba** - [Supervisor IT Projects](https://www.pridemicrofinance.co.ug/) 
-* **John Aogon** - [Innovation & Business Automation Manager](https://www.pridemicrofinance.co.ug//) 
+* **Joseph Gibusiwa** - [Software Developer](https://github.com/gibsjoseph)  
+* **Derrick Katamba** - [Supervisor IT Projects](https://github.com/derricking) 
+* **John Aogon** - [Innovation & Business Automation Manager](https://github.com/jaogon2025) 
 
 ## License
 
