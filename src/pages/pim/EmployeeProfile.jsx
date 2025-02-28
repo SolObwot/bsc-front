@@ -98,7 +98,24 @@ const EmployeeProfile = () => {
             label: "Personal Details",
             content: () => (
                 <div className="p-6">
-                    <h2 className="text-xl font-medium text-gray-700 mb-4">Personal Details</h2>
+                    <h2 className="text-xl font-medium text-gray-700 mb-4">{tabs.personalDetails.label}</h2>
+                    {loading ? (
+                        <div>Loading employee data...</div>
+                    ) : (
+                        <EmployeeForm 
+                            section="personalDetails"
+                            initialData={mergedEmployeeData}
+                            onSubmit={handleSubmit}
+                        />
+                    )}
+                </div>
+            )
+        },
+        employementDetails: {
+            label: "Employment Details",
+            content: () => (
+                <div className="p-6">
+                    <h2 className="text-xl font-medium text-gray-700 mb-4">{tabs.employementDetails.label}</h2>
                     {loading ? (
                         <div>Loading employee data...</div>
                     ) : (
@@ -115,7 +132,7 @@ const EmployeeProfile = () => {
             label: "Contact Details",
             content: () => (
                 <div className="p-6">
-                    <h2 className="text-xl font-medium text-gray-700 mb-4">Contact Details</h2>
+                    <h2 className="text-xl font-medium text-gray-700 mb-4">{tabs.contactDetails.label}</h2>
                     {loading ? (
                         <div>Loading employee data...</div>
                     ) : (
@@ -137,7 +154,487 @@ const EmployeeProfile = () => {
             content: () => (
                 <div className="p-6">
                     <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-medium text-gray-700">Emergency Contacts</h2>
+                        <h2 className="text-xl font-medium text-gray-700">{tabs.emergencyContacts.label}</h2>
+                    </div>
+                    
+                    {!loading && !showEmergencyContactForm && (
+                        <Button 
+                            variant="pride" 
+                            className="mb-4"
+                            onClick={() => {
+                                setShowEmergencyContactForm(true);
+                                setEditingContactIndex(null);
+                            }}
+                        >
+                            Add Emergency Contact
+                        </Button>
+                    )}
+        
+                    {!loading && showEmergencyContactForm && (
+                        <>
+                            <div className="mb-4">
+                                <h3 className="text-lg font-medium text-gray-700 mb-2">
+                                    {editingContactIndex !== null ? 'Edit' : 'Add'} Emergency Contact
+                                </h3>
+                                <EmployeeForm 
+                                    section="emergencyContacts"
+                                    initialData={editingContactIndex !== null 
+                                        ? mergedEmployeeData[editingContactIndex] 
+                                        : {}}
+                                    onSubmit={(formData) => {
+                                        handleSubmit(formData);
+                                        setShowEmergencyContactForm(false);
+                                    }}
+                                />
+                                <Button 
+                                    variant="secondary" 
+                                    className="mt-2"
+                                    onClick={() => setShowEmergencyContactForm(false)}
+                                >
+                                    Cancel
+                                </Button>
+                            </div>
+                        </>
+                    )}
+                 
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableHeader>Name</TableHeader>
+                                <TableHeader>Relationship</TableHeader>
+                                <TableHeader>Phone</TableHeader>
+                                <TableHeader>Action</TableHeader>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {mergedEmployeeData ? (
+                                Object.values(mergedEmployeeData).map((contact, index) => (
+                                    contact?.emergency_contact_name && (
+                                        <TableRow key={index}>
+                                            <TableCell>{contact.emergency_contact_name}</TableCell>
+                                            <TableCell>{contact.emergency_contact_relations}</TableCell>
+                                            <TableCell>{contact.emergency_contact_phone}</TableCell>
+                                            <TableCell>
+                                                <button 
+                                                    className="text-indigo-600 hover:text-indigo-900 inline-flex items-center gap-x-1.5 mr-2 cursor-pointer"
+                                                    onClick={() => {
+                                                        setEditingContactIndex(index);
+                                                        setShowEmergencyContactForm(true);
+                                                    }}
+                                                >
+                                                    <PencilSquareIcon className="h-5 w-5" aria-hidden="true" />
+                                                    <span>Edit</span>
+                                                </button>
+                                                <button className="text-red-600 hover:text-red-900 inline-flex items-center gap-x-1.5 cursor-pointer">
+                                                    <TrashIcon className="h-5 w-5" aria-hidden="true" />
+                                                    <span>Delete</span>
+                                                </button>
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan="4" className="text-center py-4">
+                                        No emergency contacts found
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+            )
+        },
+        dependantDetails: {
+            label: "Dependants",
+            content: () => (
+                <div className="p-6">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-xl font-medium text-gray-700">{tabs.dependantDetails.label}</h2>
+                    </div>
+                    
+                    {!loading && !showEmergencyContactForm && (
+                        <Button 
+                            variant="pride" 
+                            className="mb-4"
+                            onClick={() => {
+                                setShowEmergencyContactForm(true);
+                                setEditingContactIndex(null);
+                            }}
+                        >
+                            Add Emergency Contact
+                        </Button>
+                    )}
+        
+                    {!loading && showEmergencyContactForm && (
+                        <>
+                            <div className="mb-4">
+                                <h3 className="text-lg font-medium text-gray-700 mb-2">
+                                    {editingContactIndex !== null ? 'Edit' : 'Add'} Emergency Contact
+                                </h3>
+                                <EmployeeForm 
+                                    section="emergencyContacts"
+                                    initialData={editingContactIndex !== null 
+                                        ? mergedEmployeeData[editingContactIndex] 
+                                        : {}}
+                                    onSubmit={(formData) => {
+                                        handleSubmit(formData);
+                                        setShowEmergencyContactForm(false);
+                                    }}
+                                />
+                                <Button 
+                                    variant="secondary" 
+                                    className="mt-2"
+                                    onClick={() => setShowEmergencyContactForm(false)}
+                                >
+                                    Cancel
+                                </Button>
+                            </div>
+                        </>
+                    )}
+                 
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableHeader>Name</TableHeader>
+                                <TableHeader>Relationship</TableHeader>
+                                <TableHeader>Phone</TableHeader>
+                                <TableHeader>Action</TableHeader>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {mergedEmployeeData ? (
+                                Object.values(mergedEmployeeData).map((contact, index) => (
+                                    contact?.emergency_contact_name && (
+                                        <TableRow key={index}>
+                                            <TableCell>{contact.emergency_contact_name}</TableCell>
+                                            <TableCell>{contact.emergency_contact_relations}</TableCell>
+                                            <TableCell>{contact.emergency_contact_phone}</TableCell>
+                                            <TableCell>
+                                                <button 
+                                                    className="text-indigo-600 hover:text-indigo-900 inline-flex items-center gap-x-1.5 mr-2 cursor-pointer"
+                                                    onClick={() => {
+                                                        setEditingContactIndex(index);
+                                                        setShowEmergencyContactForm(true);
+                                                    }}
+                                                >
+                                                    <PencilSquareIcon className="h-5 w-5" aria-hidden="true" />
+                                                    <span>Edit</span>
+                                                </button>
+                                                <button className="text-red-600 hover:text-red-900 inline-flex items-center gap-x-1.5 cursor-pointer">
+                                                    <TrashIcon className="h-5 w-5" aria-hidden="true" />
+                                                    <span>Delete</span>
+                                                </button>
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan="4" className="text-center py-4">
+                                        No emergency contacts found
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+            )
+        },
+        educationDetails: {
+            label: "Education ",
+            content: () => (
+                <div className="p-6">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-xl font-medium text-gray-700">{tabs.educationDetails.label}</h2>
+                    </div>
+                    
+                    {!loading && !showEmergencyContactForm && (
+                        <Button 
+                            variant="pride" 
+                            className="mb-4"
+                            onClick={() => {
+                                setShowEmergencyContactForm(true);
+                                setEditingContactIndex(null);
+                            }}
+                        >
+                            Add Emergency Contact
+                        </Button>
+                    )}
+        
+                    {!loading && showEmergencyContactForm && (
+                        <>
+                            <div className="mb-4">
+                                <h3 className="text-lg font-medium text-gray-700 mb-2">
+                                    {editingContactIndex !== null ? 'Edit' : 'Add'} Emergency Contact
+                                </h3>
+                                <EmployeeForm 
+                                    section="emergencyContacts"
+                                    initialData={editingContactIndex !== null 
+                                        ? mergedEmployeeData[editingContactIndex] 
+                                        : {}}
+                                    onSubmit={(formData) => {
+                                        handleSubmit(formData);
+                                        setShowEmergencyContactForm(false);
+                                    }}
+                                />
+                                <Button 
+                                    variant="secondary" 
+                                    className="mt-2"
+                                    onClick={() => setShowEmergencyContactForm(false)}
+                                >
+                                    Cancel
+                                </Button>
+                            </div>
+                        </>
+                    )}
+                 
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableHeader>Name</TableHeader>
+                                <TableHeader>Relationship</TableHeader>
+                                <TableHeader>Phone</TableHeader>
+                                <TableHeader>Action</TableHeader>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {mergedEmployeeData ? (
+                                Object.values(mergedEmployeeData).map((contact, index) => (
+                                    contact?.emergency_contact_name && (
+                                        <TableRow key={index}>
+                                            <TableCell>{contact.emergency_contact_name}</TableCell>
+                                            <TableCell>{contact.emergency_contact_relations}</TableCell>
+                                            <TableCell>{contact.emergency_contact_phone}</TableCell>
+                                            <TableCell>
+                                                <button 
+                                                    className="text-indigo-600 hover:text-indigo-900 inline-flex items-center gap-x-1.5 mr-2 cursor-pointer"
+                                                    onClick={() => {
+                                                        setEditingContactIndex(index);
+                                                        setShowEmergencyContactForm(true);
+                                                    }}
+                                                >
+                                                    <PencilSquareIcon className="h-5 w-5" aria-hidden="true" />
+                                                    <span>Edit</span>
+                                                </button>
+                                                <button className="text-red-600 hover:text-red-900 inline-flex items-center gap-x-1.5 cursor-pointer">
+                                                    <TrashIcon className="h-5 w-5" aria-hidden="true" />
+                                                    <span>Delete</span>
+                                                </button>
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan="4" className="text-center py-4">
+                                        No emergency contacts found
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+            )
+        },
+        workHistory: {
+            label: "Work History ",
+            content: () => (
+                <div className="p-6">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-xl font-medium text-gray-700">{tabs.workHistory.label}</h2>
+                    </div>
+                    
+                    {!loading && !showEmergencyContactForm && (
+                        <Button 
+                            variant="pride" 
+                            className="mb-4"
+                            onClick={() => {
+                                setShowEmergencyContactForm(true);
+                                setEditingContactIndex(null);
+                            }}
+                        >
+                            Add Emergency Contact
+                        </Button>
+                    )}
+        
+                    {!loading && showEmergencyContactForm && (
+                        <>
+                            <div className="mb-4">
+                                <h3 className="text-lg font-medium text-gray-700 mb-2">
+                                    {editingContactIndex !== null ? 'Edit' : 'Add'} Emergency Contact
+                                </h3>
+                                <EmployeeForm 
+                                    section="emergencyContacts"
+                                    initialData={editingContactIndex !== null 
+                                        ? mergedEmployeeData[editingContactIndex] 
+                                        : {}}
+                                    onSubmit={(formData) => {
+                                        handleSubmit(formData);
+                                        setShowEmergencyContactForm(false);
+                                    }}
+                                />
+                                <Button 
+                                    variant="secondary" 
+                                    className="mt-2"
+                                    onClick={() => setShowEmergencyContactForm(false)}
+                                >
+                                    Cancel
+                                </Button>
+                            </div>
+                        </>
+                    )}
+                 
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableHeader>Name</TableHeader>
+                                <TableHeader>Relationship</TableHeader>
+                                <TableHeader>Phone</TableHeader>
+                                <TableHeader>Action</TableHeader>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {mergedEmployeeData ? (
+                                Object.values(mergedEmployeeData).map((contact, index) => (
+                                    contact?.emergency_contact_name && (
+                                        <TableRow key={index}>
+                                            <TableCell>{contact.emergency_contact_name}</TableCell>
+                                            <TableCell>{contact.emergency_contact_relations}</TableCell>
+                                            <TableCell>{contact.emergency_contact_phone}</TableCell>
+                                            <TableCell>
+                                                <button 
+                                                    className="text-indigo-600 hover:text-indigo-900 inline-flex items-center gap-x-1.5 mr-2 cursor-pointer"
+                                                    onClick={() => {
+                                                        setEditingContactIndex(index);
+                                                        setShowEmergencyContactForm(true);
+                                                    }}
+                                                >
+                                                    <PencilSquareIcon className="h-5 w-5" aria-hidden="true" />
+                                                    <span>Edit</span>
+                                                </button>
+                                                <button className="text-red-600 hover:text-red-900 inline-flex items-center gap-x-1.5 cursor-pointer">
+                                                    <TrashIcon className="h-5 w-5" aria-hidden="true" />
+                                                    <span>Delete</span>
+                                                </button>
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan="4" className="text-center py-4">
+                                        No emergency contacts found
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+            )
+        },
+        salaryDetails: {
+            label: "Salary ",
+            content: () => (
+                <div className="p-6">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-xl font-medium text-gray-700">{tabs.salaryDetails.label}</h2>
+                    </div>
+                    
+                    {!loading && !showEmergencyContactForm && (
+                        <Button 
+                            variant="pride" 
+                            className="mb-4"
+                            onClick={() => {
+                                setShowEmergencyContactForm(true);
+                                setEditingContactIndex(null);
+                            }}
+                        >
+                            Add Emergency Contact
+                        </Button>
+                    )}
+        
+                    {!loading && showEmergencyContactForm && (
+                        <>
+                            <div className="mb-4">
+                                <h3 className="text-lg font-medium text-gray-700 mb-2">
+                                    {editingContactIndex !== null ? 'Edit' : 'Add'} Emergency Contact
+                                </h3>
+                                <EmployeeForm 
+                                    section="emergencyContacts"
+                                    initialData={editingContactIndex !== null 
+                                        ? mergedEmployeeData[editingContactIndex] 
+                                        : {}}
+                                    onSubmit={(formData) => {
+                                        handleSubmit(formData);
+                                        setShowEmergencyContactForm(false);
+                                    }}
+                                />
+                                <Button 
+                                    variant="secondary" 
+                                    className="mt-2"
+                                    onClick={() => setShowEmergencyContactForm(false)}
+                                >
+                                    Cancel
+                                </Button>
+                            </div>
+                        </>
+                    )}
+                 
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableHeader>Name</TableHeader>
+                                <TableHeader>Relationship</TableHeader>
+                                <TableHeader>Phone</TableHeader>
+                                <TableHeader>Action</TableHeader>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {mergedEmployeeData ? (
+                                Object.values(mergedEmployeeData).map((contact, index) => (
+                                    contact?.emergency_contact_name && (
+                                        <TableRow key={index}>
+                                            <TableCell>{contact.emergency_contact_name}</TableCell>
+                                            <TableCell>{contact.emergency_contact_relations}</TableCell>
+                                            <TableCell>{contact.emergency_contact_phone}</TableCell>
+                                            <TableCell>
+                                                <button 
+                                                    className="text-indigo-600 hover:text-indigo-900 inline-flex items-center gap-x-1.5 mr-2 cursor-pointer"
+                                                    onClick={() => {
+                                                        setEditingContactIndex(index);
+                                                        setShowEmergencyContactForm(true);
+                                                    }}
+                                                >
+                                                    <PencilSquareIcon className="h-5 w-5" aria-hidden="true" />
+                                                    <span>Edit</span>
+                                                </button>
+                                                <button className="text-red-600 hover:text-red-900 inline-flex items-center gap-x-1.5 cursor-pointer">
+                                                    <TrashIcon className="h-5 w-5" aria-hidden="true" />
+                                                    <span>Delete</span>
+                                                </button>
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan="4" className="text-center py-4">
+                                        No emergency contacts found
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+            )
+        },
+        documentDetails: {
+            label: "Documents ",
+            content: () => (
+                <div className="p-6">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-xl font-medium text-gray-700">{tabs.documentDetails.label}</h2>
                     </div>
                     
                     {!loading && !showEmergencyContactForm && (
