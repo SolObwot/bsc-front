@@ -8,6 +8,7 @@ import { PencilSquareIcon, TrashIcon, PaperClipIcon, ArrowDownTrayIcon } from '@
 import EmployeeForm from './EmployeeForm';
 import { Table, TableHead, TableHeader, TableBody, TableRow, TableCell } from '../../components/ui/Tables';
 import Button from '../../components/ui/Button';
+import SensitiveData from '../../components/ui/SensitiveData';
 
 const EmployeeProfile = () => {
     const { id } = useParams();
@@ -213,7 +214,9 @@ const EmployeeProfile = () => {
                                         <TableRow key={index}>
                                             <TableCell>{contact.emergency_contact_name}</TableCell>
                                             <TableCell>{contact.emergency_contact_relations}</TableCell>
-                                            <TableCell>{contact.emergency_contact_phone}</TableCell>
+                                            <TableCell>
+                                                <SensitiveData data={contact.emergency_contact_phone} />  
+                                            </TableCell>
                                             <TableCell>
                                                 <button 
                                                     className="text-indigo-600 hover:text-indigo-900 inline-flex items-center gap-x-1.5 mr-2 cursor-pointer"
@@ -595,7 +598,9 @@ const EmployeeProfile = () => {
                                 Object.values(mergedEmployeeData).map((contact, index) => (
                                     contact?.emergency_contact_name && (
                                         <TableRow key={index}>
-                                            <TableCell>{contact.emergency_contact_name}</TableCell>
+                                            <TableCell>
+                                                <SensitiveData data={contact.emergency_contact_phone} />   
+                                            </TableCell>
                                             <TableCell>{contact.emergency_contact_relations}</TableCell>
                                             <TableCell>{contact.emergency_contact_phone}</TableCell>
                                             <TableCell>
@@ -643,7 +648,7 @@ const EmployeeProfile = () => {
                         <PaperClipIcon aria-hidden="true" className="size-5 shrink-0 text-white mr-2" />
                         Add Attachments
                     </Button>
-                    
+
                     <Table>
                         <TableHead>
                             <TableRow>
