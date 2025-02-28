@@ -4,7 +4,7 @@ import { userService } from '../../services/user.service';
 import {employeeService} from '../../services/employee.service';
 import Tabs from '../../components/ui/Tabs';
 import { Avatar } from '../../components/ui/avatar';
-import { PencilSquareIcon, TrashIcon } from '@heroicons/react/20/solid';
+import { PencilSquareIcon, TrashIcon, PaperClipIcon, ArrowDownTrayIcon } from '@heroicons/react/20/solid';
 import EmployeeForm from './EmployeeForm';
 import { Table, TableHead, TableHeader, TableBody, TableRow, TableCell } from '../../components/ui/Tables';
 import Button from '../../components/ui/Button';
@@ -637,52 +637,20 @@ const EmployeeProfile = () => {
                         <h2 className="text-xl font-medium text-gray-700">{tabs.documentDetails.label}</h2>
                     </div>
                     
-                    {!loading && !showEmergencyContactForm && (
-                        <Button 
-                            variant="pride" 
-                            className="mb-4"
-                            onClick={() => {
-                                setShowEmergencyContactForm(true);
-                                setEditingContactIndex(null);
-                            }}
-                        >
-                            Add Emergency Contact
-                        </Button>
-                    )}
-        
-                    {!loading && showEmergencyContactForm && (
-                        <>
-                            <div className="mb-4">
-                                <h3 className="text-lg font-medium text-gray-700 mb-2">
-                                    {editingContactIndex !== null ? 'Edit' : 'Add'} Emergency Contact
-                                </h3>
-                                <EmployeeForm 
-                                    section="emergencyContacts"
-                                    initialData={editingContactIndex !== null 
-                                        ? mergedEmployeeData[editingContactIndex] 
-                                        : {}}
-                                    onSubmit={(formData) => {
-                                        handleSubmit(formData);
-                                        setShowEmergencyContactForm(false);
-                                    }}
-                                />
-                                <Button 
-                                    variant="secondary" 
-                                    className="mt-2"
-                                    onClick={() => setShowEmergencyContactForm(false)}
-                                >
-                                    Cancel
-                                </Button>
-                            </div>
-                        </>
-                    )}
-                 
+                    <Button 
+                        variant="pride" 
+                        className="mb-2 flex items-center"> 
+                        <PaperClipIcon aria-hidden="true" className="size-5 shrink-0 text-white mr-2" />
+                        Add Attachments
+                    </Button>
+                    
                     <Table>
                         <TableHead>
                             <TableRow>
-                                <TableHeader>Name</TableHeader>
-                                <TableHeader>Relationship</TableHeader>
-                                <TableHeader>Phone</TableHeader>
+                                <TableHeader>File Name</TableHeader>
+                                <TableHeader>Description</TableHeader>
+                                <TableHeader>Size</TableHeader>
+                                <TableHeader>Date Added</TableHeader>
                                 <TableHeader>Action</TableHeader>
                             </TableRow>
                         </TableHead>
@@ -691,9 +659,10 @@ const EmployeeProfile = () => {
                                 Object.values(mergedEmployeeData).map((contact, index) => (
                                     contact?.emergency_contact_name && (
                                         <TableRow key={index}>
-                                            <TableCell>{contact.emergency_contact_name}</TableCell>
-                                            <TableCell>{contact.emergency_contact_relations}</TableCell>
-                                            <TableCell>{contact.emergency_contact_phone}</TableCell>
+                                            <TableCell>coverletter_back_end_developer.pdf</TableCell>
+                                            <TableCell>ACCA</TableCell>
+                                            <TableCell><span className="shrink-0 text-gray-400">4.5mb</span></TableCell>
+                                            <TableCell>12/09/2024</TableCell>
                                             <TableCell>
                                                 <button 
                                                     className="text-indigo-600 hover:text-indigo-900 inline-flex items-center gap-x-1.5 mr-2 cursor-pointer"
@@ -705,9 +674,13 @@ const EmployeeProfile = () => {
                                                     <PencilSquareIcon className="h-5 w-5" aria-hidden="true" />
                                                     <span>Edit</span>
                                                 </button>
-                                                <button className="text-red-600 hover:text-red-900 inline-flex items-center gap-x-1.5 cursor-pointer">
+                                                <button className="text-red-600 hover:text-red-900 inline-flex items-center gap-x-1.5 mr-2 cursor-pointer">
                                                     <TrashIcon className="h-5 w-5" aria-hidden="true" />
                                                     <span>Delete</span>
+                                                </button>
+                                                <button className="text-indigo-600 hover:text-indigo-900 inline-flex items-center gap-x-1.5 mr-2 cursor-pointer">
+                                                    <ArrowDownTrayIcon className="h-5 w-5" aria-hidden="true" />
+                                                    <span>Download</span>
                                                 </button>
                                             </TableCell>
                                         </TableRow>
@@ -722,6 +695,7 @@ const EmployeeProfile = () => {
                             )}
                         </TableBody>
                     </Table>
+                   
                 </div>
             )
         }
