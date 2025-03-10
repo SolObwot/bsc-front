@@ -16,7 +16,7 @@ const Tabs = ({ tabs, activeTab, setActiveTab, renderContent, sidebarHeader }) =
                 'w-full text-left px-4 py-3 transition-colors',
                 'hover:bg-gray-100 focus:outline-none focus:ring-green-500',
                 {
-                  'bg-white border-l-4 border-green-500 font-medium': activeTab === tabKey,
+                  'bg-white border-l-4 border-[#00A7B5] font-medium': activeTab === tabKey,
                   'border-l-4 border-transparent': activeTab !== tabKey
                 }
               )}

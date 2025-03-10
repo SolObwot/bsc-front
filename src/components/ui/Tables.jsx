@@ -2,14 +2,14 @@ import React from 'react';
 
 export const Table = ({ children }) => (
   <div className="overflow-x-auto">
-    <table className="min-w-full border-separate border-spacing-0 rounded-lg border border-gray-300">
+    <table className="min-w-full items-cente border-separate border-spacing-0 rounded-lg border border-gray-300">
       {children}
     </table>
   </div>
 );
 
 export const TableHead = ({ children }) => (
-  <thead className="bg-green-600 text-white">
+  <thead className="bg-[#00A7B5]  text-white">
     {children}
   </thead>
 );

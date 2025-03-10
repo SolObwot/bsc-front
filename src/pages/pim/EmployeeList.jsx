@@ -25,7 +25,7 @@ const UsersList = () => {
   const [filterDepartment, setFilterDepartment] = useState('');
   const [filterUnit, setFilterUnit] = useState('');
   const [filterJobTitle, setFilterJobTitle] = useState('');
-  const [recordsPerPage, setRecordsPerPage] = useState(10);
+  const [recordsPerPage, setRecordsPerPage] = useState(20);
   const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
 

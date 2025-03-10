@@ -82,7 +82,7 @@ const Sidebar = ({ isMobile, setMobileMenuOpen }) => {
 
   const NavItem = ({ item }) => {
     const Icon = item.icon;
-    const activeClass = isActive(item.href) ? 'text-[#009a44]' : '';
+    const activeClass = isActive(item.href) ? 'text-[#c69214]' : '';
     const hasChildren = item.children?.length > 0;
     const isOpen = openMenus[item.label];
     
@@ -91,8 +91,8 @@ const Sidebar = ({ isMobile, setMobileMenuOpen }) => {
         <div
           className={`flex items-center justify-between w-full p-2 ${
             isActive(item.href)
-              ? 'bg-blue-50 text-[#009a44]'
-              : 'text-white hover:bg-gray-100 hover:text-[#009a44]'
+              ? 'bg-blue-50 text-[#c69214 ]'
+              : 'text-white hover:bg-gray-100 hover:text-[#c69214]'
           } rounded-lg cursor-pointer`}
           onClick={() => hasChildren ? toggleSubmenu(item.label) : null}
         >
@@ -121,8 +121,8 @@ const Sidebar = ({ isMobile, setMobileMenuOpen }) => {
                 to={child.href}
                 className={`block p-2 text-sm ${
                   isActive(child.href)
-                    ? 'text-[#009a44] bg-blue-50'
-                    : 'text-white hover:bg-gray-100 hover:text-[#009a44]'
+                    ? 'text-[#c69214] bg-blue-50'
+                    : 'text-white hover:bg-gray-100 hover:text-[#c69214]'
                 } rounded-lg`}
                 onClick={() => isMobile && setMobileMenuOpen(false)}
               >
@@ -138,7 +138,7 @@ const Sidebar = ({ isMobile, setMobileMenuOpen }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 w-64 border-r border-gray-200 overflow-y-auto bg-[#009a44]">
+    <aside className="fixed inset-y-0 left-0 z-40 w-64 border-r border-gray-200 overflow-y-auto bg-[#00A7B5]">
       <div className="h-full flex flex-col">
         {/* Logo */}
         <div className="px-4 py-5 border-b border-gray-200">
