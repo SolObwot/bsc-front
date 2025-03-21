@@ -9,7 +9,7 @@ export const Table = ({ children }) => (
 );
 
 export const TableHead = ({ children }) => (
-  <thead className="bg-[#00A7B5]  text-white">
+  <thead className="bg-[#08796c]  text-white">
     {children}
   </thead>
 );

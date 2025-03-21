@@ -138,7 +138,7 @@ const Sidebar = ({ isMobile, setMobileMenuOpen }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 w-64 border-r border-gray-200 overflow-y-auto bg-[#00A7B5]">
+    <aside className="fixed inset-y-0 left-0 z-40 w-64 border-r border-gray-200 overflow-y-auto bg-[#08796c]">
       <div className="h-full flex flex-col">
         {/* Logo */}
         <div className="px-4 py-5 border-b border-gray-200">
