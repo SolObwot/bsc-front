@@ -21,6 +21,7 @@ import ResetPasswordForm from './components/auth/ResetPasswordForm';
 import ChangePasswordForm from './components/auth/ChangePasswordForm';
 import EmployeeList from './pages/pim/EmployeeList';
 import EmployeeProfile from './pages/pim/EmployeeProfile';
+import UpdateProfile from './pages/pim/UpdateProfile';
 import AddEmployee from './pages/pim/AddEmployee';
 
 function App() {
@@ -40,6 +41,7 @@ function App() {
             <Route path="/pim/employees" element={<EmployeeList />} />
             <Route path="/pim/employees/add" element={<AddEmployee />} />
             <Route path="/pim/employees/profile/:id" element={<EmployeeProfile />} />
+            <Route path="/pim/employees/profile/edit/:id" element={<UpdateProfile />} />
             <Route path="/admin/users" element={<UsersList />} />
             <Route path="/admin/users/add" element={< AddUser />} />
             <Route path="/admin/users/edit/:id" element={<EditUser />} />

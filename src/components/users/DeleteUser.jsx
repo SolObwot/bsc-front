@@ -33,7 +33,7 @@ const DeleteUser = ({ userToDelete, setUserToDelete, onDeleteSuccess }) => {
           <AlertDialogTitle> Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
             This action cannot be undone. This will permanently delete the user
-            {userToDelete && ` ${userToDelete.first_name} ${userToDelete.last_name}`}
+            {userToDelete && ` ${userToDelete.surname} ${userToDelete.last_name}`}
             's account and remove their data. Alternatively you can disabled the account instead
           </AlertDialogDescription>
         </AlertDialogHeader>

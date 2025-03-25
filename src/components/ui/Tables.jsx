@@ -2,7 +2,7 @@ import React from 'react';
 
 export const Table = ({ children }) => (
   <div className="overflow-x-auto">
-    <table className="min-w-full items-cente border-separate border-spacing-0 rounded-lg border border-gray-300">
+    <table className="min-w-full items-center border-separate border-spacing-0 rounded-lg border border-gray-300">
       {children}
     </table>
   </div>

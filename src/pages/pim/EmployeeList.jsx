@@ -25,7 +25,7 @@ const UsersList = () => {
   const [filterDepartment, setFilterDepartment] = useState('');
   const [filterUnit, setFilterUnit] = useState('');
   const [filterJobTitle, setFilterJobTitle] = useState('');
-  const [recordsPerPage, setRecordsPerPage] = useState(20);
+  const [recordsPerPage, setRecordsPerPage] = useState(50);
   const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
 
@@ -35,7 +35,7 @@ const UsersList = () => {
 
   useEffect(() => {
     const filtered = users.filter(user => 
-      (user.first_name?.toLowerCase().includes(filterText.toLowerCase()) ||
+      (user.surname?.toLowerCase().includes(filterText.toLowerCase()) ||
       user.last_name?.toLowerCase().includes(filterText.toLowerCase()) ||
       user.email?.toLowerCase().includes(filterText.toLowerCase()) ||
       user.title?.toLowerCase().includes(filterText.toLowerCase())) &&
@@ -46,18 +46,37 @@ const UsersList = () => {
     setFilteredUsers(filtered);
   }, [filterText, filterStaffNumber, filterRole, filterStatus, users]);
 
+  const truncateText = (text, showChars = 10, suffix = '...') => {
+    if (!text) return 'N/A';
+    return text.length > showChars ? `${text.slice(0, showChars)}${suffix}` : text;
+  };
+
   const fetchUsers = async () => {
     try {
       const response = await userService.getUsers();
+      console.log("API Response:", response.data);
       
-      // Filter out users who have the 'employee' role
+      // Filter out users who have the 'employee' role or have an empty roles array
       const EmployeeUsers = response.data.filter(user => 
-        user.roles.some(role => role.name === 'employee')
-      );
+        user.roles.some(role => role.name === 'employee') || user.roles.length === 0
+      ).map(user => {
+        const department = truncateText(user.unit_or_branch?.department?.name);
+        const unit = truncateText(user.unit_or_branch?.name);
+        console.log(`User: ${user.email}, Department: ${department}, Unit: ${unit}`);
+        return {
+          ...user,
+          department,
+          unit,
+          fullDepartment: user.unit_or_branch?.department?.name || 'N/A',
+          fullUnit: user.unit_or_branch?.name || 'N/A'
+        };
+      });
   
+      console.log("Filtered Employee Users:", EmployeeUsers);
       setUsers(EmployeeUsers);
       setFilteredUsers(EmployeeUsers);
     } catch (error) {
+      console.error("Error fetching users:", error);
       toast({
         title: "Error",
         description: "Failed to fetch users. Please try again later.",
@@ -225,17 +244,17 @@ const UsersList = () => {
       />
 
       <div className="bg-gray-100 p-4 rounded-lg mb-4 shadow-sm">
-        <div className="flex justify-between items-end mb-4">
+        <div className="flex flex-col sm:flex-row justify-between items-end mb-4">
           <Button
             type="button"
             variant="pride"
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 mb-4 sm:mb-0"
             onClick={() => navigate('/pim/employees/add')}
           >
             <UserPlusIcon className="h-5 w-5" aria-hidden="true" />
             Add New Employee
           </Button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mb-4 sm:mb-0">
             <label htmlFor="recordsPerPage" className="text-sm text-gray-700">Records per page:</label>
             <select
               id="recordsPerPage"
@@ -269,9 +288,9 @@ const UsersList = () => {
             {paginatedUsers.map((user, userIdx) => (
               <TableRow key={user.email}>
                 <TableCell>{user.staff_number}</TableCell>
-                <TableCell>{`${user.first_name} ${user.last_name}`}</TableCell>
-                <TableCell>{user.department || 'Set Department'}</TableCell>
-                <TableCell>{user.unit || 'Set Unit'}</TableCell>
+                <TableCell>{`${user.surname} ${user.last_name}`}</TableCell>
+                <TableCell title={user.fullDepartment}>{user.department || 'Set Department'}</TableCell>
+                <TableCell title={user.fullUnit}>{user.unit || 'Set Unit'}</TableCell>
                 <TableCell>
                   <EmailTruncator email={user.email} showChars={8} />
                 </TableCell>
@@ -296,7 +315,7 @@ const UsersList = () => {
                   >
                     <PencilSquareIcon className="h-5 w-5" aria-hidden="true" />
                     <span>Edit</span>
-                    <span className="sr-only">, {`${user.first_name} ${user.last_name}`}</span>
+                    <span className="sr-only">, {`${user.surname} ${user.last_name}`}</span>
                   </button>
                   <button 
                     onClick={() => setUserToDelete(user)} 

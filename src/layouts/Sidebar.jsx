@@ -162,7 +162,7 @@ const Sidebar = ({ isMobile, setMobileMenuOpen }) => {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">
-                {`${user?.first_name} ${user?.last_name}` || 'Full Name'}
+                {`${user?.surname} ${user?.last_name}` || 'Full Name'}
               </p>
               <p className="text-sm text-gray-300 truncate">
                 {user?.email || 'email@example.com'}

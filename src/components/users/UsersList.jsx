@@ -29,7 +29,7 @@ const UsersList = () => {
 
   useEffect(() => {
     const filtered = users.filter(user => 
-      (user.first_name?.toLowerCase().includes(filterText.toLowerCase()) ||
+      (user.surname?.toLowerCase().includes(filterText.toLowerCase()) ||
       user.last_name?.toLowerCase().includes(filterText.toLowerCase()) ||
       user.email?.toLowerCase().includes(filterText.toLowerCase()) ||
       user.title?.toLowerCase().includes(filterText.toLowerCase())) &&
@@ -43,9 +43,9 @@ const UsersList = () => {
     try {
       const response = await userService.getUsers();
       
-      // Filter out users who have the 'employee' role
+      // Filter out users who have the 'employee' role or have an empty roles array
       const nonEmployeeUsers = response.data.filter(user => 
-        !user.roles.some(role => role.name === 'employee')
+        !user.roles.some(role => role.name === 'employee') && user.roles.length > 0
       );
   
       setUsers(nonEmployeeUsers);
@@ -60,7 +60,6 @@ const UsersList = () => {
       setLoading(false);
     }
   };
-  
 
   const handleDeleteSuccess = (userId) => {
     setUsers(users.filter(user => user.id !== userId));
@@ -202,7 +201,7 @@ const UsersList = () => {
             {paginatedUsers.map((user, userIdx) => (
               <TableRow key={user.email}>
                 <TableCell>{user.id}</TableCell>
-                <TableCell>{`${user.first_name} ${user.last_name}`}</TableCell>
+                <TableCell>{`${user.surname} ${user.last_name}`}</TableCell>
                 <TableCell>{user.title || 'Employee Job Title'}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell >
@@ -215,7 +214,7 @@ const UsersList = () => {
                   >
                     <PencilSquareIcon className="h-5 w-5" aria-hidden="true" />
                     <span>Edit</span>
-                    <span className="sr-only">, {`${user.first_name} ${user.last_name}`}</span>
+                    <span className="sr-only">, {`${user.surname} ${user.last_name}`}</span>
                   </button>
                 </TableCell>
                 <TableCell className="text-right">
@@ -225,7 +224,7 @@ const UsersList = () => {
                   >
                     <TrashIcon className="h-5 w-5" aria-hidden="true" />
                     <span>Delete</span>
-                    <span className="sr-only">, {`${user.first_name} ${user.last_name}`}</span>
+                    <span className="sr-only">, {`${user.surname} ${user.last_name}`}</span>
                   </button>
                 </TableCell>
               </TableRow>
