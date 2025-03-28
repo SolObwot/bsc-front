@@ -110,7 +110,7 @@ const EmployeeProfile = () => {
                         <div>Loading employee data...</div>
                     ) : (
                         <EmployeeForm 
-                            section="personalDetails"
+                            section="employementDetails"
                             initialData={mergedEmployeeData}
                             onSubmit={handleSubmit}
                         />
