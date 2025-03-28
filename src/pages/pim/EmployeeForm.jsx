@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import FilterBox from '../../components/ui/FilterBox';
+import SensitiveData from '../../components/ui/SensitiveData';
 
 const EmployeeForm = ({ section, onSubmit, initialData = {}, onCancel }) => {
   const [formData, setFormData] = useState(() => {
@@ -163,8 +164,8 @@ const EmployeeForm = ({ section, onSubmit, initialData = {}, onCancel }) => {
       { id: 'last_name', label: 'Last Name', type: 'text', required: true },
       { id: 'email', label: 'Email', type: 'email', required: true },
       { id: 'username', label: 'Username', type: 'text', required: true },
-      { id: 'staff_number', label: 'Employee ID', type: 'text', required: true },
-      { id: 'nin', label: 'National ID Number', type: 'text', required: true },
+      { id: 'staff_number', label: 'Employee ID', type: 'text'},
+      { id: 'nin', label: 'National ID Number', type: 'text', required: true, sensitive: true },
       { id: 'dob', label: 'Date of Birth', type: 'date', required: true },
       { id: 'gender', label: 'Gender', type: 'select', required: true, options: [
         { value: '', label: '-- Select --' },
@@ -187,7 +188,7 @@ const EmployeeForm = ({ section, onSubmit, initialData = {}, onCancel }) => {
         { value: 'Traditional', label: 'Traditional' },
         { value: 'Other', label: 'Other' },
       ]},
-      { id: 'tribe', label: 'Tribe', type: 'text' },
+      { id: 'tribe', label: 'Tribe', type: 'text', sensitive: true },
       { id: 'place_of_birth', label: 'Place of Birth', type: 'text' },
     ],
     otherDetails: [
@@ -338,12 +339,12 @@ const EmployeeForm = ({ section, onSubmit, initialData = {}, onCancel }) => {
         { value: '', label: '-- Select --' },
         { value: 'credit transfer', label: 'Credit Transfer' },
       ]},
-      { id: 'basic_pay', label: 'Basic Pay', type: 'number' },
+      { id: 'basic_pay', label: 'Basic Pay', type: 'text', required: true, sensitive: true },
       { id: 'account_type', label: 'Account Type', type: 'select', options: [ 
         { value: '', label: '-- Select --' },
         { value: 'savings', label: 'Savings' },
       ]},
-      { id: 'account_number', label: 'Account Number', type: 'text' },
+      { id: 'account_number', label: 'Account Number', type: 'text', sensitive: true },
       { id: 'is_nssf', label: 'NSSF', type: 'checkbox' },
       { id: 'nssf_number', label: 'NSSF Number', type: 'text' },
       { id: 'is_tin', label: 'TIN', type: 'checkbox' },
@@ -402,12 +403,12 @@ const EmployeeForm = ({ section, onSubmit, initialData = {}, onCancel }) => {
             <span className="text-red-500 ml-1">*</span>
           </span>
         ) : field.label,
-        value: formData[field.id],
+        value: formData[field.id], // Pass raw value as a string
+        sensitive: field.sensitive || false, // Pass sensitive flag
         onChange: handleChange,
       }))}
       buttons={[
         { label: 'Save', variant: 'pride', onClick: handleSubmit, type: 'submit' },
-        // { label: 'Cancel', variant: 'secondary', onClick: onCancel },
       ]}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
