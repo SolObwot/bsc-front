@@ -23,6 +23,18 @@ import EmployeeList from './pages/pim/EmployeeList';
 import EmployeeProfile from './pages/pim/EmployeeProfile';
 import UpdateProfile from './pages/pim/UpdateProfile';
 import AddEmployee from './pages/pim/AddEmployee';
+import QualificationList from './pages/qualification/QualificationList';
+import QualificationForm from './pages/qualification/QualificationForm';
+import CourseList from './pages/admin/qualification/CourseList';
+import CourseForm from './pages/admin/qualification/CourseForm';
+// import AwardsList from './pages/admin/qualification/AwardsList';
+// import AwardsForm from './pages/admin/qualification/AwardsForm';
+// import UniversityList from './pages/admin/qualification/UniversityList';
+// import UniversityForm from './pages/admin/qualification/UniversityForm';
+// import JobList from './pages/job/JobList';
+// import JobForm from './pages/job/JobForm';
+// import LocationList from './pages/location/LocationList';
+// import LocationForm from './pages/location/LocationForm';
 
 function App() {
   return (
@@ -49,6 +61,18 @@ function App() {
             <Route path="/admin/organization" element={<div>Organization</div>} />
             <Route path="/admin/roles" element={<RoleList />} />
             <Route path="/admin/roles/edit/:id" element={<RoleEdit />} />
+            <Route path="/admin/qualification/:type" element={<QualificationList />} />
+            <Route path="/admin/qualification/:type/add" element={<QualificationForm />} />
+            <Route path="/admin/qualification/course" element={<CourseList />} />
+            <Route path="/admin/qualification/course/add" element={<CourseForm />} />
+            {/* <Route path="/admin/qualification/awards" element={<AwardsList />} />
+            <Route path="/admin/qualification/awards/add" element={<AwardsForm />} />
+            <Route path="/admin/qualification/university" element={<UniversityList />} />
+            <Route path="/admin/qualification/university/add" element={<UniversityForm />} /> */}
+            {/* <Route path="/admin/job/:type" element={<JobList />} />
+            <Route path="/admin/job/:type/add" element={<JobForm />} />
+            <Route path="/admin/location/:type" element={<LocationList />} />
+            <Route path="/admin/location/:type/add" element={<LocationForm />} /> */}
             <Route path="/performance" element={<Performance />}>
               <Route path="balance-score-card" element={<BalanceScoreCard />} />
               {/* Add more performance-related routes as needed */}

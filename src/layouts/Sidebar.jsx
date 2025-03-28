@@ -39,7 +39,41 @@ const navigationItems = [
     href: '/',
     children: [
       { label: 'User Management', href: '/admin/users' },
-      { label: 'Roles & Permissions', href: '/admin/roles'},
+      { label: 'Roles & Permissions', href: '/admin/roles' },
+      { 
+        label: 'Qualification', 
+        href: '/',
+        children: [
+          { label: 'Course', href: '/admin/qualification/course' },
+          { label: 'Awards', href: '/admin/qualification/awards' },
+          { label: 'University', href: '/admin/qualification/university' },
+        ]
+      },
+      { 
+        label: 'Job', 
+        href: '/',
+        children: [
+          { label: 'Job Title', href: '/admin/job/job-title' },
+          { label: 'Grade or Scale', href: '/admin/job/grade-scale' },
+          { label: 'Employment Status', href: '/admin/job/employment-status' },
+          { label: 'Departments', href: '/admin/job/departments' },
+          { label: 'Relation', href: '/admin/job/relation' },
+          { label: 'Unit or Branch', href: '/admin/job/unit-branch' },
+        ]
+      },
+      { 
+        label: 'Location', 
+        href: '/',
+        children: [
+          { label: 'Districts', href: '/admin/location/districts' },
+          { label: 'Counties', href: '/admin/location/counties' },
+          { label: 'Subcounties', href: '/admin/location/subcounties' },
+          { label: 'Parish', href: '/admin/location/parish' },
+          { label: 'Village', href: '/admin/location/village' },
+          { label: 'Regions', href: '/admin/location/regions' },
+          { label: 'Tribes', href: '/admin/location/tribes' },
+        ]
+      },
     ]
   },
   { 
@@ -70,9 +104,9 @@ const Sidebar = ({ isMobile, setMobileMenuOpen }) => {
   const [openMenus, setOpenMenus] = useState({});
 
   const toggleSubmenu = (label) => {
-    setOpenMenus(prev => ({
+    setOpenMenus((prev) => ({
       ...prev,
-      [label]: !prev[label]
+      [label]: !prev[label],
     }));
   };
 
@@ -82,16 +116,15 @@ const Sidebar = ({ isMobile, setMobileMenuOpen }) => {
 
   const NavItem = ({ item }) => {
     const Icon = item.icon;
-    const activeClass = isActive(item.href) ? 'text-[#c69214]' : '';
     const hasChildren = item.children?.length > 0;
     const isOpen = openMenus[item.label];
-    
+
     return (
       <>
         <div
           className={`flex items-center justify-between w-full p-2 ${
             isActive(item.href)
-              ? 'bg-blue-50 text-[#c69214 ]'
+              ? 'bg-blue-50 text-[#c69214]'
               : 'text-white hover:bg-gray-100 hover:text-[#c69214]'
           } rounded-lg cursor-pointer`}
           onClick={() => hasChildren ? toggleSubmenu(item.label) : null}
@@ -101,7 +134,7 @@ const Sidebar = ({ isMobile, setMobileMenuOpen }) => {
             className="flex items-center flex-1"
             onClick={() => isMobile && setMobileMenuOpen(false)}
           >
-            <Icon className="w-5 h-5 mr-3" />
+            {Icon && <Icon className="w-5 h-5 mr-3" />}
             <span className="text-sm font-medium">{item.label}</span>
           </Link>
           {hasChildren && (
@@ -112,22 +145,56 @@ const Sidebar = ({ isMobile, setMobileMenuOpen }) => {
             />
           )}
         </div>
-        
+
         {hasChildren && isOpen && (
           <div className="ml-6 mt-1 space-y-1">
             {item.children.map((child, index) => (
-              <Link
-                key={index}
-                to={child.href}
-                className={`block p-2 text-sm ${
-                  isActive(child.href)
-                    ? 'text-[#c69214] bg-blue-50'
-                    : 'text-white hover:bg-gray-100 hover:text-[#c69214]'
-                } rounded-lg`}
-                onClick={() => isMobile && setMobileMenuOpen(false)}
-              >
-                {child.label}
-              </Link>
+              <div key={index}>
+                <div
+                  className={`flex items-center justify-between w-full p-2 ${
+                    isActive(child.href)
+                      ? 'bg-blue-50 text-[#c69214]'
+                      : 'text-white hover:bg-gray-100 hover:text-[#c69214]'
+                  } rounded-lg cursor-pointer`}
+                  onClick={() =>
+                    child.children ? toggleSubmenu(child.label) : null
+                  }
+                >
+                  <Link
+                    to={child.href}
+                    className="flex items-center flex-1"
+                    onClick={() => isMobile && setMobileMenuOpen(false)}
+                  >
+                    <span className="text-sm font-medium">{child.label}</span>
+                  </Link>
+                  {child.children && (
+                    <ChevronDownIcon
+                      className={`w-4 h-4 transition-transform ${
+                        openMenus[child.label] ? 'transform rotate-180' : ''
+                      }`}
+                    />
+                  )}
+                </div>
+
+                {child.children && openMenus[child.label] && (
+                  <div className="ml-4 mt-1 space-y-1">
+                    {child.children.map((nestedChild, nestedIndex) => (
+                      <Link
+                        key={nestedIndex}
+                        to={nestedChild.href}
+                        className={`block p-2 text-sm ${
+                          isActive(nestedChild.href)
+                            ? 'text-[#c69214] bg-blue-50'
+                            : 'text-white hover:bg-gray-100 hover:text-[#c69214]'
+                        } rounded-lg`}
+                        onClick={() => isMobile && setMobileMenuOpen(false)}
+                      >
+                        {nestedChild.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         )}
