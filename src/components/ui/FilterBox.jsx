@@ -7,7 +7,7 @@ import { EyeIcon, EyeSlashIcon } from '@heroicons/react/20/solid';
 import { Checkbox as CheckBox } from './CheckBox'; // Add missing import
 
 const FilterBox = ({ title, filters, buttons, children }) => {
-  console.log('Rendering FilterBox with filters:', filters); // Log to confirm rendering
+  // console.log('Rendering FilterBox with filters:', filters); // Log to confirm rendering
 
   // Centralized state for visibility of sensitive fields
   const [visibilityState, setVisibilityState] = useState({});
@@ -22,7 +22,7 @@ const FilterBox = ({ title, filters, buttons, children }) => {
             ...prevState,
             [fieldId]: false, // Auto-hide the field
           }));
-          console.log(`Auto-hid visibility for ${fieldId}`);
+          // console.log(`Auto-hid visibility for ${fieldId}`);
         }, autoHideTimeout);
       }
       return null;
@@ -38,7 +38,7 @@ const FilterBox = ({ title, filters, buttons, children }) => {
       ...prevState,
       [fieldId]: !prevState[fieldId], // Toggle visibility for the specific field
     }));
-    console.log(`Toggled visibility for ${fieldId}:`, !visibilityState[fieldId]); // Log visibility toggle
+    // console.log(`Toggled visibility for ${fieldId}:`, !visibilityState[fieldId]); // Log visibility toggle
   };
 
   return (
@@ -59,7 +59,7 @@ const FilterBox = ({ title, filters, buttons, children }) => {
               : '' // Fallback to an empty string for unsupported types
             : stringValue;
 
-          console.log(`Processed Value for ${filter.id}:`, processedValue); // Log processed value
+          // console.log(`Processed Value for ${filter.id}:`, processedValue); // Log processed value
 
           return (
             <Field key={index}>
