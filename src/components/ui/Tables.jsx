@@ -1,41 +1,48 @@
-import React from 'react';
+import React from "react";
 
-export const Table = ({ children }) => (
-  <div className="overflow-x-auto">
-    <table className="min-w-full items-center border-separate border-spacing-0 rounded-lg border border-gray-300">
+export const Table = ({ children, className }) => (
+  <div className="overflow-x-auto md:overflow-x-visible">
+    <table className={`min-w-full border-separate border-spacing-0 rounded-lg border border-gray-300 ${className}`}>
       {children}
     </table>
   </div>
 );
 
 export const TableHead = ({ children }) => (
-  <thead className="bg-[#08796c]  text-white">
-    {children}
-  </thead>
+  <thead className="bg-[#08796c] text-white">{children}</thead>
 );
 
-export const TableHeader = ({ children }) => (
-  <th className="sticky top-0 z-10 border border-gray-300 py-3.5 pr-3 pl-4 text-left text-sm font-semibold backdrop-blur-sm backdrop-filter sm:pl-6 lg:pl-8">
+export const TableHeader = ({ children, align = "left", className }) => (
+  <th
+    scope="col"
+    className={`sticky top-0 z-10 border border-gray-300 py-3.5 px-4 text-${align} text-sm font-semibold whitespace-normal ${className}`}
+  >
     {children}
   </th>
 );
 
-export const TableBody = ({ children }) => (
-  <tbody>
-    {children}
-  </tbody>
+export const TableBody = ({ children, className }) => (
+  <tbody className={`[&>*:nth-child(odd)]:bg-gray-50 ${className}`}>{children}</tbody>
 );
 
-export const TableRow = ({ children }) => (
-  <tr>
+export const TableRow = ({ children, onClick, className }) => (
+  <tr
+    onClick={onClick}
+    className={`${onClick ? "cursor-pointer hover:bg-gray-100" : ""} ${className}`}
+  >
     {children}
   </tr>
 );
 
-export const TableCell = ({ children, className }) => (
-  <td className={`border border-gray-300 py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-6 lg:pl-8 ${className}`}>
-    {children}
-  </td>
-);
+export const TableCell = ({ children, align = "left", className, as = "td" }) => {
+  const Component = as;
+  return (
+    <Component
+      className={`border border-gray-300 py-4 px-4 text-sm font-normal whitespace-normal text-${align} ${className}`}
+    >
+      {children}
+    </Component>
+  );
+};
 
 export default Table;

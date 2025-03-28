@@ -8,6 +8,7 @@ import Button from '../../components/ui/Button';
 import { useToast } from "../../hooks/useToast";
 import { Table, TableHead, TableHeader, TableBody, TableRow, TableCell } from '../../components/ui/Tables';
 import DeleteUser from '../../components/users/DeleteUser';
+import EmailTruncator from '../../components/ui/EmailTruncator'; // Import reusable EmailTruncator
 
 const UsersList = () => {
   const navigate = useNavigate();
@@ -54,15 +55,12 @@ const UsersList = () => {
   const fetchUsers = async () => {
     try {
       const response = await userService.getUsers();
-      console.log("API Response:", response.data);
-      
       // Filter out users who have the 'employee' role or have an empty roles array
       const EmployeeUsers = response.data.filter(user => 
         user.roles.some(role => role.name === 'employee') || user.roles.length === 0
       ).map(user => {
         const department = truncateText(user.unit_or_branch?.department?.name);
         const unit = truncateText(user.unit_or_branch?.name);
-        console.log(`User: ${user.email}, Department: ${department}, Unit: ${unit}`);
         return {
           ...user,
           department,
@@ -71,8 +69,6 @@ const UsersList = () => {
           fullUnit: user.unit_or_branch?.name || 'N/A'
         };
       });
-  
-      console.log("Filtered Employee Users:", EmployeeUsers);
       setUsers(EmployeeUsers);
       setFilteredUsers(EmployeeUsers);
     } catch (error) {
@@ -86,25 +82,6 @@ const UsersList = () => {
       setLoading(false);
     }
   };
-
-  const EmailTruncator = ({ email, showChars = 8, suffix = '...' }) => {
-    const truncateEmail = (email) => {
-      const [username, domain] = email.split('@');
-      if (!domain) return email;
-
-      const truncatedUsername = username.length > showChars 
-        ? `${username.slice(0, showChars)}${suffix}`
-        : username;
-
-      const [domainName, extension] = domain.split('.');
-      const truncatedDomain = `${domainName.charAt(0)}${suffix}`;
-
-      return `${truncatedUsername}@${truncatedDomain}${extension ? `.${extension}` : ''}`;
-    };
-
-    return <span title={email}>{truncateEmail(email)}</span>;
-  };
-  
 
   const handleDeleteSuccess = (userId) => {
     setUsers(users.filter(user => user.id !== userId));
