@@ -182,10 +182,10 @@ const EmployeeProfile = () => {
                         <TableBody>
                             {mergedEmployeeData?.qualification?.map((qualification, index) => (
                                 <TableRow key={index}>
-                                    <TableCell>{qualification.award || 'N/A'}</TableCell>
+                                    <TableCell className="capitalize">{qualification.award || 'N/A'}</TableCell>
                                     <TableCell>{qualification.institution?.name || qualification.institution || 'N/A'}</TableCell>
                                     <TableCell>{qualification.course?.name || qualification.course || 'N/A'}</TableCell>
-                                    <TableCell>{qualification.class || 'N/A'}</TableCell>
+                                    <TableCell className="capitalize">{qualification.class || 'N/A'}</TableCell>
                                     <TableCell>{qualification.year_of_award || 'N/A'}</TableCell>
                                     <TableCell>{qualification.is_proof_of_award ? 'Yes' : 'No'}</TableCell>
                                     <TableCell>{qualification.is_proof_of_transcripts ? 'Yes' : 'No'}</TableCell>
@@ -491,7 +491,7 @@ const EmployeeProfile = () => {
                             {mergedEmployeeData?.dependents?.map((dependent, index) => (
                                 <TableRow key={index}>
                                     <TableCell>{dependent.name}</TableCell>
-                                    <TableCell>{dependent.gender}</TableCell>
+                                    <TableCell className="capitalize">{dependent.gender}</TableCell>
                                     <TableCell>
                                         {dependent.dob || 'N/A'}
                                         {dependent.dob && (
@@ -607,7 +607,7 @@ const EmployeeProfile = () => {
                                 return (
                                     <TableRow key={index}>
                                         <TableCell>{work.company_name}</TableCell>
-                                        <TableCell>{work.business_type}</TableCell>
+                                        <TableCell className="capitalize">{work.business_type}</TableCell>
                                         <TableCell>{work.last_designation}</TableCell>
                                         <TableCell>{work.start_date}</TableCell>
                                         <TableCell>
