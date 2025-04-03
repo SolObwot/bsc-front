@@ -23,74 +23,91 @@ import EmployeeList from './pages/pim/EmployeeList';
 import EmployeeProfile from './pages/pim/EmployeeProfile';
 import UpdateProfile from './pages/pim/UpdateProfile';
 import AddEmployee from './pages/pim/AddEmployee';
-import QualificationList from './pages/qualification/QualificationList';
-import QualificationForm from './pages/qualification/QualificationForm';
-import CourseList from './pages/admin/qualification/CourseList';
-import CourseForm from './pages/admin/qualification/CourseForm';
-// import AwardsList from './pages/admin/qualification/AwardsList';
-// import AwardsForm from './pages/admin/qualification/AwardsForm';
-// import UniversityList from './pages/admin/qualification/UniversityList';
-// import UniversityForm from './pages/admin/qualification/UniversityForm';
-// import JobList from './pages/job/JobList';
-// import JobForm from './pages/job/JobForm';
-// import LocationList from './pages/location/LocationList';
-// import LocationForm from './pages/location/LocationForm';
+import AwardsList from './pages/qualification/awards/AwardsList';
+import UniversityList from './pages/qualification/university/UniversityList';
+import AddUniversity from './pages/qualification/university/AddUniversity';
+import EditUniversity from './pages/qualification/university/EditUniversity';
+import RelationList from './pages/job/relation/RelationList';
+import JobTitleList from './pages/job/jobtitle/JobTitleList';
+import EmploymentStatusList from './pages/job/empstatus/EmploymentStatusList';
+import DeparmentList from './pages/job/department/DeparmentList';
+import UnitOrBranchList from './pages/job/unitorbranch/UnitOrBranchList';
+import DistrictList from './pages/location/districts/DistrictList';
+import CountyList from './pages/location/counties/CountyList';
+import SubCountiesList from './pages/location/subcounties/SubCountiesList';
+import ParishList from './pages/location/parish/ParishList';
+import VillageList from './pages/location/village/VillageList';
+import RegionList from './pages/location/regions/RegionList';
+import TribeList from './pages/location/tribes/TribeList';
+import CourseList from './pages/qualification/course/CourseList';
+import AddCourse from './pages/qualification/course/AddCourse';
+import EditCourse from './pages/qualification/course/EditCourse';
+import React, { useEffect } from "react";
+import { ToastContainer } from 'react-toastify';
 
 function App() {
   return (
-    <AuthProvider>
-      <RoleProvider>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={<LoginForm />} />
-          <Route path="/forgot-password" element={<ForgotPasswordForm />} />
-          <Route path="/reset-password" element={<ResetPasswordForm />} />
-          
-          {/* Protected routes */}
-          <Route element={<DashboardLayout />}>
-            <Route path="/dashboard" element={<div>Dashboard Content</div>} />
-            <Route path="/directory" element={<div>Directory Content</div>} />
-            <Route path="/pim/employees" element={<EmployeeList />} />
-            <Route path="/pim/employees/add" element={<AddEmployee />} />
-            <Route path="/pim/employees/profile/:id" element={<EmployeeProfile />} />
-            <Route path="/pim/employees/profile/edit/:id" element={<UpdateProfile />} />
-            <Route path="/admin/users" element={<UsersList />} />
-            <Route path="/admin/users/add" element={< AddUser />} />
-            <Route path="/admin/users/edit/:id" element={<EditUser />} />
-            <Route path="/admin/job-titles" element={<div>Job Titles</div>} />
-            <Route path="/admin/organization" element={<div>Organization</div>} />
-            <Route path="/admin/roles" element={<RoleList />} />
-            <Route path="/admin/roles/edit/:id" element={<RoleEdit />} />
-            <Route path="/admin/qualification/:type" element={<QualificationList />} />
-            <Route path="/admin/qualification/:type/add" element={<QualificationForm />} />
-            <Route path="/admin/qualification/course" element={<CourseList />} />
-            <Route path="/admin/qualification/course/add" element={<CourseForm />} />
-            {/* <Route path="/admin/qualification/awards" element={<AwardsList />} />
-            <Route path="/admin/qualification/awards/add" element={<AwardsForm />} />
-            <Route path="/admin/qualification/university" element={<UniversityList />} />
-            <Route path="/admin/qualification/university/add" element={<UniversityForm />} /> */}
-            {/* <Route path="/admin/job/:type" element={<JobList />} />
-            <Route path="/admin/job/:type/add" element={<JobForm />} />
-            <Route path="/admin/location/:type" element={<LocationList />} />
-            <Route path="/admin/location/:type/add" element={<LocationForm />} /> */}
-            <Route path="/performance" element={<Performance />}>
-              <Route path="balance-score-card" element={<BalanceScoreCard />} />
-              {/* Add more performance-related routes as needed */}
-            </Route>
-            <Route path="/leave-management" element={<LeaveManagement />}>
-              <Route path="leave-requests" element={<LeaveRequests />} />
-              <Route path="leave-approvals" element={<LeaveApprovals />} />
-              <Route path="leave-reports" element={<LeaveReports />} />
-              <Route path="leave-settings" element={<LeaveSettings />} />
-            </Route>
-            <Route path="/change-password" element={<ChangePasswordForm />} />
+    <>
+      <ToastContainer />
+      <AuthProvider>
+        <RoleProvider>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/login" element={<LoginForm />} />
+            <Route path="/forgot-password" element={<ForgotPasswordForm />} />
+            <Route path="/reset-password" element={<ResetPasswordForm />} />
             
-            {/* Default redirect */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          </Route>
-        </Routes>
-      </RoleProvider>
-    </AuthProvider>
+            {/* Protected routes */}
+            <Route element={<DashboardLayout />}>
+              <Route path="/dashboard" element={<div>Dashboard Content</div>} />
+              <Route path="/directory" element={<div>Directory Content</div>} />
+              <Route path="/pim/employees" element={<EmployeeList />} />
+              <Route path="/pim/employees/add" element={<AddEmployee />} />
+              <Route path="/pim/employees/profile/:id" element={<EmployeeProfile />} />
+              <Route path="/pim/employees/profile/edit/:id" element={<UpdateProfile />} />
+              <Route path="/admin/users" element={<UsersList />} />
+              <Route path="/admin/users/add" element={<AddUser />} />
+              <Route path="/admin/users/edit/:id" element={<EditUser />} />
+              <Route path="/admin/roles" element={<RoleList />} />
+              <Route path="/admin/roles/edit/:id" element={<RoleEdit />} />
+              <Route path="/admin/qualification/course" element={<CourseList />} />
+              <Route path="/admin/qualification/course/add" element={<AddCourse />} />
+              <Route path="/admin/qualification/course/edit/:id" element={<EditCourse />} />
+              <Route path="/admin/qualification/university" element={<UniversityList />} /> 
+              <Route path="/admin/qualification/university/add" element={<AddUniversity />} />
+              <Route path="/admin/qualification/university/edit/:id" element={<EditUniversity />} />
+              <Route path="/admin/qualification/awards" element={<AwardsList />} />
+              <Route path="/admin/job/relation" element={<RelationList />} />
+              <Route path="/admin/job/job-title" element={<JobTitleList />} />
+              <Route path="/admin/job/employment-status" element={<EmploymentStatusList />} />
+              <Route path="/admin/job/departments" element={<DeparmentList />} />
+              <Route path="/admin/job/unit-branch" element={<UnitOrBranchList />} />
+              <Route path="/admin/job/grade-scale" element={<div>Grade or Scale Content</div>} />
+              <Route path="/admin/location/districts" element={<DistrictList />} />
+              <Route path="/admin/location/counties" element={<CountyList />} />
+              <Route path="/admin/location/subcounties" element={<SubCountiesList />} />
+              <Route path="/admin/location/parish" element={<ParishList />} />
+              <Route path="/admin/location/village" element={<VillageList />} />
+              <Route path="/admin/location/regions" element={<RegionList />} />
+              <Route path="/admin/location/tribes" element={<TribeList />} />
+              <Route path="/performance" element={<Performance />}>
+                <Route path="balance-score-card" element={<BalanceScoreCard />} />
+              </Route>
+              <Route path="/leave-management" element={<LeaveManagement />}>
+                <Route path="leave-requests" element={<LeaveRequests />} />
+                <Route path="leave-approvals" element={<LeaveApprovals />} />
+                <Route path="leave-reports" element={<LeaveReports />} />
+                <Route path="leave-settings" element={<LeaveSettings />} />
+              </Route>
+              <Route path="/profile" element={<div>My Profile Content</div>} />
+              <Route path="/info" element={<div>My Info Content</div>} />
+              <Route path="/change-password" element={<ChangePasswordForm />} />
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            </Route>
+          </Routes>
+        </RoleProvider>
+      </AuthProvider>
+    </>
   );
 }
 
