@@ -29,6 +29,8 @@ import AddUniversity from './pages/qualification/university/AddUniversity';
 import EditUniversity from './pages/qualification/university/EditUniversity';
 import RelationList from './pages/job/relation/RelationList';
 import JobTitleList from './pages/job/jobtitle/JobTitleList';
+import AddJobTitle from './pages/job/jobtitle/AddJobTitle';
+import EditJobTitle from './pages/job/jobtitle/EditJobTitle';
 import EmploymentStatusList from './pages/job/empstatus/EmploymentStatusList';
 import DeparmentList from './pages/job/department/DeparmentList';
 import UnitOrBranchList from './pages/job/unitorbranch/UnitOrBranchList';
@@ -78,7 +80,9 @@ function App() {
               <Route path="/admin/qualification/university/edit/:id" element={<EditUniversity />} />
               <Route path="/admin/qualification/awards" element={<AwardsList />} />
               <Route path="/admin/job/relation" element={<RelationList />} />
-              <Route path="/admin/job/job-title" element={<JobTitleList />} />
+              <Route path="/admin/job/jobtitle" element={<JobTitleList />} />
+              <Route path="/admin/job/jobtitle/add" element={<AddJobTitle />} />
+              <Route path="/admin/job/jobtitle/edit/:id" element={<EditJobTitle />} />
               <Route path="/admin/job/employment-status" element={<EmploymentStatusList />} />
               <Route path="/admin/job/departments" element={<DeparmentList />} />
               <Route path="/admin/job/unit-branch" element={<UnitOrBranchList />} />
