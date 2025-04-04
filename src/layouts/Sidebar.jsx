@@ -53,7 +53,7 @@ const navigationItems = [
         label: 'Job', 
         href: '/',
         children: [
-          { label: 'Job Title', href: '/admin/job/job-title' },
+          { label: 'Job Title', href: '/admin/job/jobtitle' },
           { label: 'Grade or Scale', href: '/admin/job/grade-scale' },
           { label: 'Employment Status', href: '/admin/job/employment-status' },
           { label: 'Departments', href: '/admin/job/departments' },
@@ -81,7 +81,30 @@ const navigationItems = [
     icon: ChartBarIcon, 
     href: '/',
     children: [
-      { label: 'Balanced Scorecard', href: '/performance/balance-score-card' },
+      { 
+        label: 'Templates', 
+        // href: '/performance/templates/list',
+        children: [
+          { label: 'Setup Templates', href: '/performance/templates' },
+        ]
+      
+      },
+      { label: 'Setup KPI', href: '/performance/kpi' },
+      { 
+        label: 'Appraisals', 
+        href: '/' ,
+        children: [
+          { label: 'Self Assesement', href: '/performance/rating/self' },
+          { label: 'Supervisor Assesement', href: '/performance/rating/supervisor' },
+          { label: 'HOD Assesement', href: '/performance/rating/hod' },
+          { label: 'Peer Assesement', href: '/performance/rating/peer' },
+          { label: 'Branch Final Assesement', href: '/performance/rating/branch' },
+        ]
+      
+      },
+      { label: 'Performance Review', href: '/performance/review' },
+      { label: 'Performance Reports', href: '/performance/reports' },
+      { label: 'Surveys', href: '/performance/surveys' },
       // Add more performance-related items as needed
     ]
   },
