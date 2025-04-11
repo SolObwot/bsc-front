@@ -44,6 +44,10 @@ import TribeList from './pages/location/tribes/TribeList';
 import CourseList from './pages/qualification/course/CourseList';
 import AddCourse from './pages/qualification/course/AddCourse';
 import EditCourse from './pages/qualification/course/EditCourse';
+import TemplateList from './pages/performance/templates/TemplateList';
+import AddTemplate from './pages/performance/templates/AddTemplate';
+import EditTemplate from './pages/performance/templates/EditTemplate';
+
 import React, { useEffect } from "react";
 import { ToastContainer } from 'react-toastify';
 
@@ -96,6 +100,9 @@ function App() {
               <Route path="/admin/location/tribes" element={<TribeList />} />
               <Route path="/performance" element={<Performance />}>
                 <Route path="balance-score-card" element={<BalanceScoreCard />} />
+                <Route path="templates" element={<TemplateList />} />
+                <Route path="templates/add" element={<AddTemplate />} />
+                <Route path="templates/edit/:id" element={<EditTemplate />} />
               </Route>
               <Route path="/leave-management" element={<LeaveManagement />}>
                 <Route path="leave-requests" element={<LeaveRequests />} />
