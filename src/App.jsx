@@ -7,7 +7,7 @@ import LoginForm from './components/auth/LoginForm';
 import UsersList from './components/users/UsersList';
 import Performance from './pages/Performance';
 import LeaveManagement from './pages/LeaveManagement';
-import BalanceScoreCard from './pages/BalanceScoreCard';
+import BalanceScoreCard from './components/balancescorecard/Index';
 import LeaveRequests from './pages/LeaveRequests';
 import LeaveApprovals from './pages/LeaveApprovals';
 import LeaveReports from './pages/LeaveReports';

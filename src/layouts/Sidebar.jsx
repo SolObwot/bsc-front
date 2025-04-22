@@ -89,7 +89,7 @@ const navigationItems = [
         ]
       
       },
-      { label: 'Setup KPI', href: '/performance/kpi' },
+      { label: 'Setup KPI', href: '/performance/balance-score-card' },
       { 
         label: 'Appraisals', 
         href: '/' ,
