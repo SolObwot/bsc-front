@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { SunIcon, ChevronUpIcon, ChevronDownIcon, EllipsisHorizontalIcon, ClockIcon, CalendarIcon, DocumentTextIcon, CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/20/solid';
-import { PencilIcon, TrashIcon, ShareIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
+import { SunIcon, ChevronUpIcon, ChevronDownIcon, EllipsisHorizontalIcon, ClockIcon, CalendarIcon, DocumentTextIcon, CheckCircleIcon, ExclamationCircleIcon, PlusCircleIcon } from '@heroicons/react/20/solid';
+import { PencilIcon, TrashIcon, ShareIcon } from '@heroicons/react/24/outline';
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions, Transition } from '@headlessui/react';
 import { Avatar } from '../ui/Avatar';
 
@@ -80,7 +80,7 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
             </span>
             <span className="flex items-center">
               <DocumentTextIcon className="w-3 h-3 mr-1" />
-              {objective.keyResults} KR(s)
+              {subObjectives.length} Strategic Objective(s)
             </span>
           </div>
           
@@ -139,9 +139,18 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
       {/* Sub-objectives */}
       {isExpanded && subObjectives.length > 0 && (
         <div className="bg-gray-50 p-3 border-t border-gray-200">
-          <h4 className="text-xs font-semibold text-gray-600 mb-2">
-            STRATEGIC OBJECTIVES ({subObjectives.length})
-          </h4>
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-xs font-semibold text-gray-600">
+              STRATEGIC OBJECTIVES
+            </h4>
+            <button 
+              onClick={() => {/* TODO: Add modal handler */}}
+              className="flex items-center text-xs border border-teal-700 text-teal-700 rounded px-2.5 py-1 hover:bg-teal-50"
+            >
+              <PlusCircleIcon className="h-3 w-3 mr-1" />
+              Add Strategic Objective
+            </button>
+          </div>
           <ul className="space-y-2">
             {subObjectives.map((subObj) => (
               <li key={`${objective.title}-${subObj.id}`} className="bg-white rounded border border-gray-200 overflow-hidden">
@@ -157,9 +166,16 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
                       }`} />
                     </button>
                     <div title={subObj.name}>
-                      <span className="text-xs font-medium text-gray-800 truncate max-w-[180px]">
-                        {subObj.name}
-                      </span>
+                      <div className='flex items-center'>
+                        <span className="text-xs font-medium text-gray-800 truncate max-w-[180px] capitalize">
+                          {subObj.name} |
+                        </span>
+                        <span className="flex items-center text-xs text-gray-500">
+                          <DocumentTextIcon className="w-3 h-3 mr-1" />
+                          {subObj.indicators.length} Performance Indicator(s)
+                        </span>
+                      </div>
+                     
                     </div>
                   </div>
                   
@@ -186,17 +202,30 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
                 </div>
                 
                 {expandedSubObjectiveId === subObj.id && (
-                  <div className="bg-gray-50 border-t border-gray-200 p-2 pl-8">
-                    <h5 className="text-xs font-medium text-gray-500 mb-1">PERFORMANCE INDICATORS</h5>
+                  <div className="bg-gray-50 border-t border-gray-200 p-2 pl-8 pb-16">
+                    <div className="flex items-center justify-between mb-1">
+                      <h5 className="text-xs font-medium text-gray-500 capitalize">
+                        Performance Measure/Indicator
+                      </h5>
+                      <button 
+                        onClick={() => {/* TODO: Add modal handler */}}
+                        className="flex items-center text-xs border border-teal-700 text-teal-700 rounded px-2.5 py-1 hover:bg-teal-50"
+                      >
+                        <PlusCircleIcon className="h-3 w-3 mr-1" />
+                        Add KPIs
+                      </button>
+                    </div>
                     <ul className="space-y-1">
                       {subObj.indicators.map((indicator) => (
                         <li key={indicator.id} className="flex items-center bg-white p-1.5 rounded border border-gray-200">
                           <div className="min-w-0 flex-1 mr-2">
+                          <a href="#">
                             <div title={indicator.name}>
-                              <span className="text-xs text-gray-700 line-clamp-2">
+                              <span className="text-sm/7 text-blue-700 underline line-clamp-2 capitalize">
                                 {indicator.name}
                               </span>
                             </div>
+                          </a>
                           </div>
                           <div className="flex items-center space-x-2">
                             <div className="flex items-center space-x-1 whitespace-nowrap">

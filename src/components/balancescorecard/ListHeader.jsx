@@ -9,21 +9,19 @@ const actionOptions = [
   { title: 'Export objectives', description: 'Export objectives to a downloadable format' },
 ];
 
-const ObjectiveListHeader = () => {
+const ObjectiveListHeader = ({ activeTab }) => {
   const [selectedAction, setSelectedAction] = useState(null);
+  const weight = activeTab === 'active' ? '90%' : '10%';
 
   return (
     <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center px-4 py-2 text-gray-500">
       <h2 className="font-semibold uppercase text-sm">Strategy Perspective List</h2>
       <div className="flex items-center mt-2 lg:mt-0 w-full lg:w-auto justify-between lg:justify-start">
         <div className="flex items-center mr-4">
-          <span className="text-sm font-medium mr-2 ">Overall Weight:</span>
-          <span className="text-sm font-semibold">90%</span>
+          <span className="text-sm font-medium mr-2">Overall Weight:</span>
+          <span className="text-sm font-semibold">{weight}</span>
         </div>
         <div className="flex items-center">
-          {/* <button className="p-2 rounded-md bg-blue-100 hover:bg-gray-100 mr-2">
-            <MagnifyingGlassIcon className="h-5 w-5" />
-          </button> */}
           <div className="relative">
             <Listbox value={selectedAction} onChange={setSelectedAction}>
               <div className="relative">
