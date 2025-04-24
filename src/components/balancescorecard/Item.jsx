@@ -5,6 +5,8 @@ import { SunIcon, ChevronUpIcon, ChevronDownIcon, EllipsisHorizontalIcon, ClockI
 import { PencilIcon, TrashIcon, ShareIcon } from '@heroicons/react/24/outline';
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions, Transition } from '@headlessui/react';
 import { Avatar } from '../ui/Avatar';
+import StrategicObjectiveModal from './modals/StrategicObjectiveModal';
+import PerformanceIndicatorModal from './modals/PerformanceIndicatorModal';
 
 const itemActions = [
   { name: 'Edit', description: 'Modify this objective', icon: PencilIcon },
@@ -17,6 +19,8 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
   const [selectedAction, setSelectedAction] = useState(null);
   const [isExpanded, setIsExpanded] = useState(true);
   const [expandedSubObjectiveId, setExpandedSubObjectiveId] = useState(subObjectives[0]?.id || null);
+  const [isStrategicModalOpen, setIsStrategicModalOpen] = useState(false);
+  const [isIndicatorModalOpen, setIsIndicatorModalOpen] = useState(false);
 
   useEffect(() => {
     if (subObjectives.length > 0) {
@@ -144,7 +148,7 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
               STRATEGIC OBJECTIVES
             </h4>
             <button 
-              onClick={() => {/* TODO: Add modal handler */}}
+              onClick={() => setIsStrategicModalOpen(true)}
               className="flex items-center text-xs border border-teal-700 text-teal-700 rounded px-2.5 py-1 hover:bg-teal-50"
             >
               <PlusCircleIcon className="h-3 w-3 mr-1" />
@@ -208,7 +212,7 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
                         Performance Measure/Indicator
                       </h5>
                       <button 
-                        onClick={() => {/* TODO: Add modal handler */}}
+                        onClick={() => setIsIndicatorModalOpen(true)}
                         className="flex items-center text-xs border border-teal-700 text-teal-700 rounded px-2.5 py-1 hover:bg-teal-50"
                       >
                         <PlusCircleIcon className="h-3 w-3 mr-1" />
@@ -257,6 +261,16 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
           </ul>
         </div>
       )}
+      
+      <StrategicObjectiveModal 
+        isOpen={isStrategicModalOpen}
+        closeModal={() => setIsStrategicModalOpen(false)}
+      />
+      
+      <PerformanceIndicatorModal
+        isOpen={isIndicatorModalOpen}
+        closeModal={() => setIsIndicatorModalOpen(false)}
+      />
     </div>
   );
 };
