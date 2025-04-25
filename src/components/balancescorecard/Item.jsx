@@ -1,13 +1,14 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
-import { SunIcon, ChevronUpIcon, ChevronDownIcon, EllipsisHorizontalIcon, ClockIcon, CalendarIcon, DocumentTextIcon, CheckCircleIcon, ExclamationCircleIcon, PlusCircleIcon } from '@heroicons/react/20/solid';
+import React, { useState, useEffect, Fragment } from 'react';
+import { SunIcon, ChevronUpIcon, ChevronDownIcon, EllipsisHorizontalIcon, ClockIcon, CalendarIcon, DocumentTextIcon, CheckCircleIcon, ExclamationCircleIcon, PlusCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/20/solid';
 import { PencilIcon, TrashIcon, ShareIcon } from '@heroicons/react/24/outline';
-import { Listbox, ListboxButton, ListboxOption, ListboxOptions, Transition } from '@headlessui/react';
+import { Listbox, ListboxButton, ListboxOption, ListboxOptions, Transition, Dialog } from '@headlessui/react';
 import { Avatar } from '../ui/Avatar';
 import StrategicObjectiveModal from './modals/StrategicObjectiveModal';
 import PerformanceIndicatorModal from './modals/PerformanceIndicatorModal';
 import AppraisalModal from './modals/AppraisalModal';
+import AppraisalApprovalModal from './modals/AppraisalApprovalModal';
 
 const itemActions = [
   { name: 'Edit', description: 'Modify this objective', icon: PencilIcon },
@@ -23,8 +24,12 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
   const [isStrategicModalOpen, setIsStrategicModalOpen] = useState(false);
   const [isIndicatorModalOpen, setIsIndicatorModalOpen] = useState(false);
   const [selectedIndicator, setSelectedIndicator] = React.useState(null);
-  const [isAppraisalModalOpen, setIsAppraisalModalOpen] = React.useState(false);
+  const [isAppraisalApprovalModalOpen, setIsAppraisalApprovalModalOpen] = React.useState(false);
+  const [selectedStrategicObjective, setSelectedStrategicObjective] = React.useState(null);
+  const [selectedPerformanceIndicator, setSelectedPerformanceIndicator] = React.useState(null);
+  const [isPerformanceAppraisalModalOpen, setIsPerformanceAppraisalModalOpen] = React.useState(false);
   const [currentIndicatorIndex, setCurrentIndicatorIndex] = React.useState(0);
+  const [approvalModalCurrentIndex, setApprovalModalCurrentIndex] = React.useState(0);
 
   useEffect(() => {
     if (subObjectives.length > 0) {
@@ -41,23 +46,59 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
   )?.indicators || [];
 
   const handleIndicatorEdit = (indicator, index) => {
-    setSelectedIndicator(indicator);
+    setSelectedPerformanceIndicator(indicator);
     setCurrentIndicatorIndex(index);
-    setIsAppraisalModalOpen(true);
+    setIsPerformanceAppraisalModalOpen(true);
   };
 
   const handleIndicatorNavigation = (direction) => {
     if (direction === 'next' && currentIndicatorIndex < currentIndicators.length - 1) {
       setCurrentIndicatorIndex(prev => prev + 1);
-      setSelectedIndicator(currentIndicators[currentIndicatorIndex + 1]);
+      setSelectedPerformanceIndicator(currentIndicators[currentIndicatorIndex + 1]);
     } else if (direction === 'prev' && currentIndicatorIndex > 0) {
       setCurrentIndicatorIndex(prev => prev - 1);
-      setSelectedIndicator(currentIndicators[currentIndicatorIndex - 1]);
+      setSelectedPerformanceIndicator(currentIndicators[currentIndicatorIndex - 1]);
     }
   };
 
   const handleIndicatorClick = (indicator, index) => {
-    handleIndicatorEdit(indicator, index);
+    setSelectedPerformanceIndicator(indicator);
+    setCurrentIndicatorIndex(index);
+    setIsPerformanceAppraisalModalOpen(true);
+  };
+
+  const handleStrategicObjectiveEdit = (objective) => {
+    setSelectedStrategicObjective(objective);
+    setIsAppraisalApprovalModalOpen(true);
+  };
+
+  const handleApprovalModalNavigation = (direction) => {
+    if (direction === 'next' && approvalModalCurrentIndex < currentIndicators.length - 1) {
+      setApprovalModalCurrentIndex(prev => prev + 1);
+      setSelectedIndicator(currentIndicators[approvalModalCurrentIndex + 1]);
+    } else if (direction === 'prev' && approvalModalCurrentIndex > 0) {
+      setApprovalModalCurrentIndex(prev => prev - 1);
+      setSelectedIndicator(currentIndicators[approvalModalCurrentIndex - 1]);
+    }
+  };
+
+  const handleIndicatorDelete = (indicator, index) => {
+    setSelectedIndicator(indicator);
+    setApprovalModalCurrentIndex(index);
+    setIsAppraisalApprovalModalOpen(true);
+  };
+
+  const handleActionSelect = (action) => {
+    if (action.name === 'Delete') {
+      setSelectedIndicator(objective);
+      setIsAppraisalApprovalModalOpen(true);
+    }
+    setSelectedAction(action);
+  };
+
+  const handleAppraisalModalClose = () => {
+    setIsPerformanceAppraisalModalOpen(false);
+    setSelectedPerformanceIndicator(null);
   };
 
   return (
@@ -132,7 +173,7 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
               {objective.status}
             </span>
             
-            <Listbox value={selectedAction} onChange={setSelectedAction}>
+            <Listbox value={selectedAction} onChange={handleActionSelect}>
               <div className="relative">
                 <ListboxButton className="flex items-center text-xs border border-teal-700 text-teal-700 rounded px-2.5 py-1 hover:bg-teal-50 focus:outline-none focus:ring-1 focus:ring-teal-300">
                   Actions
@@ -152,12 +193,12 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
                         className={({ active }) => 
                           `px-3 py-2 text-sm cursor-default select-none ${
                             active ? 'bg-teal-50 text-teal-900' : 'text-gray-700'
-                          }`
+                          } ${action.name === 'Delete' ? 'text-red-600' : ''}`
                         }
                       >
                         <div className="flex flex-col">
                           <div className="flex items-center">
-                            <action.icon className="w-4 h-4 mr-2 text-teal-600" />
+                            <action.icon className={`w-4 h-4 mr-2 ${action.name === 'Delete' ? 'text-red-600' : 'text-teal-600'}`} />
                             <span>{action.name}</span>
                           </div>
                           <p className="text-xs text-gray-500 mt-1 pl-6">{action.description}</p>
@@ -225,7 +266,11 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
                             <EllipsisHorizontalIcon className="h-4 w-4 text-gray-500" />
                           </ListboxButton>
                           <ListboxOptions className="absolute right-0 z-10 mt-1 w-32 origin-top-right rounded-md bg-white shadow-lg border border-gray-200 focus:outline-none py-1 text-xs">
-                            <ListboxOption value="edit" className="px-3 py-1.5 hover:bg-gray-100 cursor-pointer">
+                            <ListboxOption 
+                              value="edit" 
+                              className="px-3 py-1.5 hover:bg-gray-100 cursor-pointer"
+                              onClick={() => handleStrategicObjectiveEdit(subObj)}
+                            >
                               Edit
                             </ListboxOption>
                             <ListboxOption value="delete" className="px-3 py-1.5 hover:bg-gray-100 cursor-pointer text-red-600">
@@ -273,7 +318,7 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
                           <div className="flex items-center space-x-2">
                             <div className="flex items-center space-x-1 whitespace-nowrap">
                               <span className="text-xs text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded">
-                                Net Weight (%): {indicator.weight}
+                                Net Weight: {indicator.weight}
                               </span>
                             </div>
                             <Listbox as="div" className="relative z-20">
@@ -288,7 +333,11 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
                                 >
                                   Edit
                                 </ListboxOption>
-                                <ListboxOption value="delete" className="block px-2 py-1 hover:bg-gray-100 cursor-pointer text-red-600">
+                                <ListboxOption 
+                                  value="delete" 
+                                  className="block px-2 py-1 hover:bg-gray-100 cursor-pointer text-red-600"
+                                  onClick={() => handleIndicatorDelete(indicator, index)}
+                                >
                                   Delete
                                 </ListboxOption>
                               </ListboxOptions>
@@ -316,14 +365,37 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
       />
 
       <AppraisalModal 
-        isOpen={isAppraisalModalOpen}
-        closeModal={() => setIsAppraisalModalOpen(false)}
-        indicator={selectedIndicator}
+        isOpen={isPerformanceAppraisalModalOpen}
+        closeModal={handleAppraisalModalClose}
+        indicator={selectedPerformanceIndicator}
         onNavigate={handleIndicatorNavigation}
         hasNext={currentIndicatorIndex < currentIndicators.length - 1}
         hasPrevious={currentIndicatorIndex > 0}
         totalCount={currentIndicators.length}
         currentIndex={currentIndicatorIndex}
+      />
+
+      <AppraisalApprovalModal 
+        isOpen={isAppraisalApprovalModalOpen}
+        closeModal={() => setIsAppraisalApprovalModalOpen(false)}
+        indicator={selectedIndicator}
+        onNavigate={handleApprovalModalNavigation}
+        hasNext={approvalModalCurrentIndex < currentIndicators.length - 1}
+        hasPrevious={approvalModalCurrentIndex > 0}
+        totalCount={currentIndicators.length}
+        currentIndex={approvalModalCurrentIndex}
+        onApprove={() => {
+          // Handle delete approval
+          console.log('Deleting indicator:', selectedIndicator);
+          setIsAppraisalApprovalModalOpen(false);
+          setSelectedIndicator(null);
+          setApprovalModalCurrentIndex(0);
+        }}
+        onReject={() => {
+          setIsAppraisalApprovalModalOpen(false);
+          setSelectedIndicator(null);
+          setApprovalModalCurrentIndex(0);
+        }}
       />
     </div>
   );

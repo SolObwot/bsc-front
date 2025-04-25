@@ -39,7 +39,7 @@ const getPerformanceLevels = (targetValue, measurementType) => {
   ];
 };
 
-const AppraisalModal = ({ 
+const AppraisalApprovalModal = ({ 
   isOpen, 
   closeModal, 
   indicator,
@@ -47,11 +47,13 @@ const AppraisalModal = ({
   hasNext,
   hasPrevious,
   totalCount,
-  currentIndex
+  currentIndex,
+  onApprove,
+  onReject
 }) => {
-  const [actualValue, setActualValue] = React.useState("");
-  const [selfRating, setSelfRating] = React.useState("");
-  const [supervisorRating, setSupervisorRating] = React.useState("");
+  const actualValue = indicator?.actualValue || "";
+  const selfRating = indicator?.selfRating || "";
+  const supervisorRating = indicator?.supervisorRating || "";
 
   const performanceLevels = React.useMemo(() => 
     getPerformanceLevels(indicator?.targetValue, indicator?.measurementType),
@@ -89,7 +91,7 @@ const AppraisalModal = ({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       <Dialog.Title className="text-[20px] font-semibold text-gray-700">
-                        Performance Appraisal
+                        Performance Appraisal Approval
                       </Dialog.Title>
                       <span className="text-sm text-gray-500">
                         {currentIndex + 1} of {totalCount}
@@ -128,7 +130,7 @@ const AppraisalModal = ({
                 </div>
 
                 <div className="px-7 pt-7 pb-4 max-h-[92vh] overflow-y-auto">
-                  <form className="space-y-6">
+                  <div className="space-y-6">
                     {/* Indicator Details */}
                     <div className="bg-gray-50 p-4 rounded-lg shadow-md mb-4">
                       <h3 className="font-medium text-gray-900">Indicator Details</h3>
@@ -161,9 +163,8 @@ const AppraisalModal = ({
                         <input
                           type="number"
                           value={actualValue}
-                          onChange={e => setActualValue(e.target.value)}
-                          className="rounded border border-teal-200 w-full px-4 py-2 mt-1 outline-none focus:border-teal-400 text-[16px] bg-teal-50"
-                          placeholder="Enter actual value achieved"
+                          readOnly
+                          className="rounded border border-teal-200 w-full px-4 py-2 mt-1 outline-none bg-gray-50 text-[16px] cursor-not-allowed"
                         />
                       </div>
 
@@ -173,11 +174,9 @@ const AppraisalModal = ({
                         </label>
                         <input
                           type="number"
-                          min="1"
-                          max="5"
                           value={selfRating}
-                          onChange={e => setSelfRating(e.target.value)}
-                          className="rounded border border-teal-200 w-full px-4 py-2 mt-1 outline-none focus:border-teal-400 text-[16px] bg-teal-50"
+                          readOnly
+                          className="rounded border border-teal-200 w-full px-4 py-2 mt-1 outline-none bg-gray-50 text-[16px] cursor-not-allowed"
                         />
                       </div>
 
@@ -187,11 +186,9 @@ const AppraisalModal = ({
                         </label>
                         <input
                           type="number"
-                          min="1"
-                          max="5"
                           value={supervisorRating}
-                          onChange={e => setSupervisorRating(e.target.value)}
-                          className="rounded border border-teal-200 w-full px-4 py-2 mt-1 outline-none focus:border-teal-400 text-[16px] bg-teal-50"
+                          readOnly
+                          className="rounded border border-teal-200 w-full px-4 py-2 mt-1 outline-none bg-gray-50 text-[16px] cursor-not-allowed"
                         />
                       </div>
 
@@ -251,13 +248,21 @@ const AppraisalModal = ({
                         Cancel
                       </button>
                       <button
-                        type="submit"
-                        className="inline-flex justify-center rounded-md border border-transparent bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+                        type="button"
+                        onClick={onReject}
+                        className="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                       >
-                        Save Appraisal
+                        Reject
+                      </button>
+                      <button
+                        type="button"
+                        onClick={onApprove}
+                        className="inline-flex justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                      >
+                        Approve
                       </button>
                     </div>
-                  </form>
+                  </div>
                 </div>
               </Dialog.Panel>
             </Transition.Child>
@@ -268,4 +273,4 @@ const AppraisalModal = ({
   );
 };
 
-export default AppraisalModal;
+export default AppraisalApprovalModal;
