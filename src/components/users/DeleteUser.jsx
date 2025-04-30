@@ -1,7 +1,7 @@
 import React from 'react';
 import { useToast } from "../../hooks/useToast";
 import { userService } from '../../services/user.service';
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '../ui/AlertDialog';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '../../components/ui/AlertDialog';
 
 const DeleteUser = ({ userToDelete, setUserToDelete, onDeleteSuccess }) => {
   const { toast } = useToast();

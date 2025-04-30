@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "../../hooks/useToast";
 import { roleService } from '../../services/role.service';
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription } from '../ui/AlertDialog';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription } from '../../components/ui/AlertDialog';
 import RoleForm from './RoleForm';
 
 const AddRole = ({ roleToAdd, setRoleToAdd, onAddSuccess }) => {
