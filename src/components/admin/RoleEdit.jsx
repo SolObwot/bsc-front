@@ -2,12 +2,12 @@
 import React, { useEffect, useState } from 'react';
 import { useToast } from '../../hooks/useToast';
 import { roleService } from '../../services/role.service';
-import AlertDialog, { 
-  AlertDialogContent, 
-  AlertDialogHeader, 
-  AlertDialogTitle, 
-  AlertDialogDescription 
-} from '../ui/AlertDialog';
+// import AlertDialog, { 
+//   AlertDialogContent, 
+//   AlertDialogHeader, 
+//   AlertDialogTitle, 
+//   AlertDialogDescription 
+// } from '../ui/AlertDialog';
 import RoleForm from './RoleForm';
 
 const RoleEdit = ({ roleToEdit, setRoleToEdit, onEditSuccess }) => {
@@ -66,25 +66,26 @@ const RoleEdit = ({ roleToEdit, setRoleToEdit, onEditSuccess }) => {
   if (loading) return null;
 
   return (
-    <AlertDialog open={!!roleToEdit} onOpenChange={(open) => !open && setRoleToEdit(null)}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>
-            <span className="text-2xl font-bold">Edit Role</span>
-          </AlertDialogTitle>
-          <AlertDialogDescription>
-            Update the role details below.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        {role && (
-          <RoleForm
-            onSubmit={handleFormSubmit}
-            initialData={role}
-            onCancel={() => setRoleToEdit(null)}
-          />
-        )}
-      </AlertDialogContent>
-    </AlertDialog>
+    <p>Role Edit</p>
+    // <AlertDialog open={!!roleToEdit} onOpenChange={(open) => !open && setRoleToEdit(null)}>
+    //   <AlertDialogContent>
+    //     <AlertDialogHeader>
+    //       <AlertDialogTitle>
+    //         <span className="text-2xl font-bold">Edit Role</span>
+    //       </AlertDialogTitle>
+    //       <AlertDialogDescription>
+    //         Update the role details below.
+    //       </AlertDialogDescription>
+    //     </AlertDialogHeader>
+    //     {role && (
+    //       <RoleForm
+    //         onSubmit={handleFormSubmit}
+    //         initialData={role}
+    //         onCancel={() => setRoleToEdit(null)}
+    //       />
+    //     )}
+    //   </AlertDialogContent>
+    // </AlertDialog>
   );
 };
 
