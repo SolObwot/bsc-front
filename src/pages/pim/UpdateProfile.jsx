@@ -4,7 +4,7 @@ import { userService } from '../../services/user.service';
 import { employeeService } from '../../services/employee.service';
 import Tabs from '../../components/ui/Tabs';
 import SensitiveData from '../../components/ui/SensitiveData';
-import { Avatar } from '../../components/ui/avatar';
+import { Avatar } from '../../components/ui/Avatar';
 import EmployeeForm from './EmployeeForm';
 import Button from '../../components/ui/Button';
 
