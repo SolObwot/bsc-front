@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Button from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Field, Label } from '../ui/FieldSet';
-import { Checkbox } from '../ui/Checkbox';
+import { Checkbox } from '../ui/CheckBox';
 import { PERMISSIONS } from '../../constants/permissions';
 
 const RoleForm = ({ onSubmit, initialData = {}, onCancel }) => {
