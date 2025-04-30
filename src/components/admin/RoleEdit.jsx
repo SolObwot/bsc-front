@@ -7,7 +7,7 @@ import AlertDialog, {
   AlertDialogHeader, 
   AlertDialogTitle, 
   AlertDialogDescription 
-} from '@/components/ui/AlertDialog';
+} from '../ui/AlertDialog';
 import RoleForm from './RoleForm';
 
 const RoleEdit = ({ roleToEdit, setRoleToEdit, onEditSuccess }) => {
