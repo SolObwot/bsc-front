@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useToast } from '../../hooks/useToast';
 import { roleService } from '../../services/role.service';
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription } from '../../components/ui/AlertDialog';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription } from '../ui/AlertDialog';
 import RoleForm from './RoleForm';
 
 const RoleEdit = ({ roleToEdit, setRoleToEdit, onEditSuccess }) => {
