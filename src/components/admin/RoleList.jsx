@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { UserPlusIcon } from '@heroicons/react/24/outline';
 import { PencilSquareIcon, TrashIcon } from '@heroicons/react/20/solid';
 import Button from '../ui/Button';
-// import { Checkbox } from '../ui/checkbox';
 import { useToast } from "../../hooks/useToast";
 import { Table, TableHead, TableHeader, TableBody, TableRow, TableCell } from '../ui/Tables';
 import DeleteRole from './DeleteRole';
