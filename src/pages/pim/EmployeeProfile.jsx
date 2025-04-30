@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { userService } from '../../services/user.service';
 import {employeeService} from '../../services/employee.service';
 import Tabs from '../../components/ui/Tabs';
-import { Avatar } from '../../components/ui/avatar';
+import { Avatar } from '../../components/ui/Avatar';
 import { PencilSquareIcon, TrashIcon, PaperClipIcon, ArrowDownTrayIcon } from '@heroicons/react/20/solid';
 import EmployeeForm from './EmployeeForm';
 import { Table, TableHead, TableHeader, TableBody, TableRow, TableCell } from '../../components/ui/Tables';

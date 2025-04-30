@@ -4,7 +4,7 @@ import { userService } from '../../services/user.service';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "../../hooks/useToast";
 import Tabs from '../../components/ui/Tabs';
-import { Avatar } from '../../components/ui/avatar';
+import { Avatar } from '../../components/ui/Avatar';
 import EmployeeForm from './EmployeeForm';
 
 const AddEmployee = () => {
