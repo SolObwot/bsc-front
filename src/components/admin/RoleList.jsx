@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { UserPlusIcon } from '@heroicons/react/24/outline';
 import { PencilSquareIcon, TrashIcon } from '@heroicons/react/20/solid';
 import Button from '../ui/Button';
-import { Checkbox } from '../ui/checkbox';
+// import { Checkbox } from '../ui/checkbox';
 import { useToast } from "../../hooks/useToast";
 import { Table, TableHead, TableHeader, TableBody, TableRow, TableCell } from '../ui/Tables';
 import DeleteRole from './DeleteRole';
@@ -139,12 +139,7 @@ const RoleList = () => {
                         <div className="flex-1 grid grid-cols-4 gap-4">
                           {Object.values(permissions).map((permission) => (
                             <div key={permission} className="flex justify-center">
-                              <Checkbox
-                                checked={rolePermissions[`${role.id}-${permission}`] || false}
-                                onCheckedChange={(checked) =>
-                                  handlePermissionChange(role.id, permission, checked)
-                                }
-                              />
+                              
                             </div>
                           ))}
                         </div>
