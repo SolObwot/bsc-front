@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import prideLogo from '../../assets/vertical_logo.png'; 
+import horizontalLogo from '../../assets/logo_new.png';
+import { EnvelopeIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 
 const LoginForm = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -49,127 +52,156 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-200">
-      <div className="flex w-full m-10 max-w-4xl rounded-lg shadow-xl overflow-hidden">
-        {/* Login Form Section */}
-        <div className="flex-1 bg-white p-8">
-          <div className="mx-auto w-full max-w-sm">
-            <div className="text-left">
-              <h2 className="mt-8 text-2xl font-medium tracking-tight text-gray-900">
-                HR Balance Score Card System
-              </h2>
-              <p className="mt-2 text-sm font-normal text-gray-900">
-               Sign in to your account
-              </p>
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-100 to-gray-200">
+      {/* Left side: Login form container */}
+      <div className="flex w-full lg:w-1/2 justify-center items-center p-6">
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+          {/* Logo and brand name */}
+          <div className="flex flex-col items-center mb-10">
+            <img 
+              src={horizontalLogo} 
+              alt="Pride Logo" 
+              className="h-20 w-auto mb-4"
+            />
+            <h1 className="text-2xl font-bold text-teal-900 text-center">PRIDE PMS</h1>
+            <p className="text-xs font-medium text-gray-600 tracking-wider text-center mt-1">
+              PERFORMANCE MANAGEMENT SYSTEM
+            </p>
+          </div>
+          
+          <h2 className="text-xl font-semibold text-gray-800 mb-8 text-center">
+            Sign In to Your Account
+          </h2>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email Address
+              </label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <EnvelopeIcon className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
+                  autoComplete="email"
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500"
+                  placeholder="Enter your email"
+                />
+              </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-900">
-                  Email address <span className="text-red-500">*</span>
-                </label>
-                <div className="mt-2">
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                    autoComplete="email"
-                    className="block w-full rounded-md bg-white px-4 py-2 text-lg text-gray-900 outline-1 -outline-offset-1 outline-gray-500 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-lg"
-                  />
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <LockClosedIcon className="h-5 w-5 text-gray-400" />
                 </div>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required
+                  autoComplete="current-password"
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500"
+                  placeholder="Enter your password"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  name="remember-me"
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
+                />
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                  Remember me
+                </label>
               </div>
 
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-900">
-                  Password <span className="text-red-500">*</span>
-                </label>
-                <div className="mt-2">
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    required
-                    autoComplete="current-password"
-                    className="block w-full rounded-md bg-white px-4 py-2 text-lg text-gray-900 outline-1 -outline-offset-1 outline-gray-500 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-lg"
-                  />
-                </div>
+              <div className="text-sm">
+                <Link to="/forgot-password" className="font-medium text-teal-600 hover:text-teal-500">
+                  Forgot password?
+                </Link>
               </div>
+            </div>
 
-              <div className="flex items-center justify-between">
-                <div className="flex gap-3">
-                  <div className="flex h-6 shrink-0 items-center">
-                    <div className="group grid size-4 grid-cols-1">
-                      <input
-                        id="remember-me"
-                        name="remember-me"
-                        type="checkbox"
-                        checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
-                        className="col-start-1 row-start-1 appearance-none rounded-sm border border-gray-300 bg-white checked:border-indigo-600 checked:bg-indigo-600 indeterminate:border-indigo-600 indeterminate:bg-indigo-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 forced-colors:appearance-auto"
-                      />
-                      <svg
-                        fill="none"
-                        viewBox="0 0 14 14"
-                        className="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white group-has-disabled:stroke-gray-950/25"
-                      >
-                        <path
-                          d="M3 8L6 11L11 3.5"
-                          strokeWidth={2}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="opacity-0 group-has-checked:opacity-100"
-                        />
-                        <path
-                          d="M3 7H11"
-                          strokeWidth={2}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="opacity-0 group-has-indeterminate:opacity-100"
-                        />
-                      </svg>
-                    </div>
+            {error && (
+              <div className="bg-red-50 border-l-4 border-red-400 p-4">
+                <div className="flex">
+                  <div className="ml-3">
+                    <p className="text-sm text-red-700">
+                      {error}
+                    </p>
                   </div>
-                  <label htmlFor="remember-me" className="block text-sm text-gray-900">
-                    Remember me
-                  </label>
-                </div>
-
-                <div className="text-sm">
-                  <Link to="/forgot-password" className="font-semibold text-indigo-600 hover:text-indigo-500">
-                    Forgot password?
-                  </Link>
                 </div>
               </div>
+            )}
 
-              {error && (
-                <div className="text-red-600 text-sm">{error}</div>
-              )}
-
-              <div>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="flex w-full justify-center rounded-md bg-[#009a44] px-6 py-3 text-lg font-semibold text-white shadow-xs hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                >
-                  {isLoading ? 'Signing in...' : 'Sign in'}
-                </button>
-              </div>
-            </form>
+            <div>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-gradient-to-r from-teal-700 to-teal-600 hover:from-teal-800 hover:to-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+              >
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Signing in...
+                  </>
+                ) : 'Sign in'}
+              </button>
+            </div>
+          </form>
+          
+          <div className="mt-8 text-center text-xs text-gray-500">
+            &copy; {new Date().getFullYear()} Pride Microfinance Ltd. All rights reserved.
           </div>
         </div>
-
-        {/* Image Section */}
-        <div className="hidden lg:block flex-1">
-          <img
-            alt="Logo"
-            src="https://performance.pride.co.ug/static/media/logo.1b6cf8fbdaaee75f39fd.bmp"
-            className="w-180 h-170 object-cover"
-          />
+      </div>
+      
+      {/* Right side: Decorative panel with logo */}
+      <div className="hidden lg:block w-1/2 bg-gradient-to-br from-teal-600 to-teal-800 relative overflow-hidden">
+        <div className="absolute inset-0">
+          <svg className="absolute right-0 top-0 h-full w-full" viewBox="0 0 800 800" preserveAspectRatio="none">
+            <path 
+              d="M0,0 L800,0 L800,800 Q400,650 0,800 Z" 
+              fill="currentColor" 
+              className="text-teal-700"
+            ></path>
+          </svg>
+        </div>
+        
+        <div className="absolute flex items-center justify-center w-full h-full">
+          <div className="relative w-64 h-64 rounded-full bg-white border-4 border-teal-300 flex items-center justify-center shadow-xl">
+            <img 
+              src={prideLogo} 
+              alt="Pride Logo" 
+              className="w-48 h-48 object-contain"
+            />
+          </div>
+        </div>
+        
+        <div className="absolute bottom-0 inset-x-0 pb-6 text-center text-white">
+          <h2 className="text-2xl font-bold">Welcome to Pride PMS</h2>
+          <p className="mt-2 px-6 text-teal-100">Empowering Performance and Growth</p>
         </div>
       </div>
     </div>
