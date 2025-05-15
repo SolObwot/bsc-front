@@ -12,12 +12,79 @@ const metTypeTabs = [
   { label: "Date", value: "date" },
 ];
 
-const PerformanceIndicatorModal = ({ isOpen, closeModal }) => {
-  const [name, setName] = React.useState("");
-  const [weight, setWeight] = React.useState("");
-  const [targetValue, setTargetValue] = React.useState("");
-  const [metricTab, setMetricTab] = React.useState("number");
-  const [targetDate, setTargetDate] = React.useState();
+const PerformanceIndicatorModal = ({ 
+  isOpen, 
+  closeModal, 
+  strategicObjective, 
+  isEditing = false,
+  editData = null,
+  onSave = () => {} 
+}) => {
+  const [name, setName] = React.useState(editData?.name || "");
+  const [weight, setWeight] = React.useState(editData?.weight || "");
+  const [targetValue, setTargetValue] = React.useState(
+    editData?.measurementType !== 'date' ? editData?.targetValue || "" : ""
+  );
+  const [metricTab, setMetricTab] = React.useState(editData?.measurementType || "number");
+  const [targetDate, setTargetDate] = React.useState(
+    editData?.measurementType === 'date' && editData?.targetValue instanceof Date
+      ? editData.targetValue
+      : editData?.measurementType === 'date' && typeof editData?.targetValue === 'string'
+      ? new Date(editData.targetValue)
+      : undefined
+  );
+
+  React.useEffect(() => {
+    if (isOpen && editData) {
+      setName(editData.name || "");
+      setWeight(editData.weight || "");
+      
+      if (editData.measurementType === 'date') {
+        setMetricTab('date');
+        if (editData.targetValue instanceof Date) {
+          setTargetDate(editData.targetValue);
+        } else if (typeof editData.targetValue === 'string') {
+          try {
+            const date = new Date(editData.targetValue);
+            if (!isNaN(date.getTime())) {
+              setTargetDate(date);
+            }
+          } catch (e) {
+            setTargetDate(undefined);
+          }
+        }
+        setTargetValue("");
+      } else {
+        setMetricTab(editData.measurementType || "number");
+        setTargetValue(editData.targetValue || "");
+        setTargetDate(undefined);
+      }
+    } else if (isOpen && !editData) {
+      setName("");
+      setWeight("");
+      setTargetValue("");
+      setMetricTab("number");
+      setTargetDate(undefined);
+    }
+  }, [isOpen, editData]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    const formData = {
+      name,
+      weight,
+      measurementType: metricTab,
+      targetValue: metricTab === 'date' ? targetDate : targetValue
+    };
+    
+    if (isEditing && editData?.id) {
+      formData.id = editData.id;
+    }
+    
+    onSave(formData);
+    closeModal();
+  };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -49,7 +116,7 @@ const PerformanceIndicatorModal = ({ isOpen, closeModal }) => {
                 <div className="bg-teal-50 px-6 py-5 border-b border-teal-100">
                   <div className="flex items-center justify-between">
                     <Dialog.Title className="text-[20px] font-semibold text-gray-700">
-                      Add Performance Measure/Indicator
+                      {isEditing ? 'Edit' : 'Add'} Performance Measure/Indicator
                     </Dialog.Title>
                     <button onClick={closeModal} className="hover:bg-teal-100 rounded-full p-2">
                       <XMarkIcon className="h-5 w-5" />
@@ -58,7 +125,7 @@ const PerformanceIndicatorModal = ({ isOpen, closeModal }) => {
                 </div>
 
                 <div className="px-7 pt-7 pb-4 max-h-[92vh] overflow-y-auto">
-                  <form className="space-y-4">
+                  <form className="space-y-4" onSubmit={handleSubmit}>
                     <div>
                       <div className="flex justify-between items-center">
                         <label className="font-medium text-[15px] text-gray-900">
@@ -73,6 +140,7 @@ const PerformanceIndicatorModal = ({ isOpen, closeModal }) => {
                         className="rounded border border-teal-200 w-full px-4 py-2 mt-1 outline-none focus:border-teal-400 text-[16px] bg-teal-50"
                         placeholder="Enter indicator name"
                         maxLength={1000}
+                        required
                       />
                     </div>
 
@@ -81,15 +149,15 @@ const PerformanceIndicatorModal = ({ isOpen, closeModal }) => {
                          Net Weight (%)
                       </label>
                       <input
-                        type="number"
+                        type="text"
                         value={weight}
                         onChange={e => setWeight(e.target.value)}
                         className="rounded border border-teal-200 w-full px-4 py-2 mt-1 outline-none focus:border-teal-400 text-[16px] bg-teal-50"
                         placeholder="Enter weight percentage"
+                        required
                       />
                     </div>
 
-                    {/* Metric type tabs */}
                     <div className="mb-4">
                       <label className="text-[15px] font-medium text-gray-800 mb-1 block">
                         Measurement Type <span className="text-red-500">*</span>
@@ -113,7 +181,6 @@ const PerformanceIndicatorModal = ({ isOpen, closeModal }) => {
                       </div>
                     </div>
 
-                    {/* Conditional Target Value/Date Input */}
                     {metricTab === 'date' ? (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">
@@ -139,7 +206,19 @@ const PerformanceIndicatorModal = ({ isOpen, closeModal }) => {
                           onChange={e => setTargetValue(e.target.value)}
                           className="rounded border border-teal-200 w-full px-4 py-2 mt-1 outline-none focus:border-teal-400 text-[16px] bg-teal-50"
                           placeholder="Enter target value"
+                          required
                         />
+                      </div>
+                    )}
+
+                    {isEditing && strategicObjective && (
+                      <div className="bg-gray-50 p-3 rounded-md mt-4">
+                        <p className="text-xs text-gray-500">
+                          This indicator belongs to strategic objective:
+                        </p>
+                        <p className="text-sm font-medium text-gray-700 mt-1">
+                          {strategicObjective.name}
+                        </p>
                       </div>
                     )}
 
@@ -155,7 +234,7 @@ const PerformanceIndicatorModal = ({ isOpen, closeModal }) => {
                         type="submit"
                         className="inline-flex justify-center rounded-md border border-transparent bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
                       >
-                        Save Indicator
+                        {isEditing ? 'Update' : 'Save'} Indicator
                       </button>
                     </div>
                   </form>

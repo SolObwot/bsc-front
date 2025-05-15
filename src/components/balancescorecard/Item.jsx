@@ -10,14 +10,52 @@ import PerformanceIndicatorModal from './modals/PerformanceIndicatorModal';
 import AppraisalModal from './modals/AppraisalModal';
 import AppraisalApprovalModal from './modals/AppraisalApprovalModal';
 
-const itemActions = [
+const defaultItemActions = [
   { name: 'Edit', description: 'Modify this objective', icon: PencilIcon },
   { name: 'Delete', description: 'Remove this objective', icon: TrashIcon },
   { name: 'Share', description: 'Share this objective with others', icon: ShareIcon },
   { name: 'Add key result', description: 'Add a new key result to this objective', icon: PlusCircleIcon }
 ];
 
-const ObjectiveItem = ({ objective, subObjectives = [] }) => {
+const ObjectiveItem = ({ 
+  objective, 
+  subObjectives = [],
+  
+  // Button configurations
+  showAddStrategicButton = true,
+  showAddKPIButton = true,
+  showActionDropdown = true,
+  addStrategicButtonLabel = "Add Strategic Objective",
+  addKPIButtonLabel = "Add KPIs",
+  customItemActions = null,
+  
+  // Display controls
+  showTargetValue = true,
+  showIndicators = true, 
+  displayMode = 'standard', // Add new prop: 'standard' or 'direct-indicators'
+  isQualitative = false, // Add new prop to distinguish qualitative objectives
+  
+  // Button handlers
+  onAddStrategicClick = null,
+  onAddKPIClick = null,
+  onActionSelect = null,
+  onStrategicObjectiveEdit = null,
+  onIndicatorEdit = null,
+  onIndicatorClick = null,
+  onIndicatorDelete = null,
+  
+  // Modal configurations
+  renderStrategicModal = true,
+  renderIndicatorModal = true,
+  renderAppraisalModal = true,
+  renderAppraisalApprovalModal = true,
+  
+  // Modal props
+  strategicModalProps = {},
+  indicatorModalProps = {},
+  appraisalModalProps = {},
+  appraisalApprovalModalProps = {},
+}) => {
   const [selectedAction, setSelectedAction] = useState(null);
   const [isExpanded, setIsExpanded] = useState(true);
   const [expandedSubObjectiveId, setExpandedSubObjectiveId] = useState(subObjectives[0]?.id || null);
@@ -30,6 +68,8 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
   const [isPerformanceAppraisalModalOpen, setIsPerformanceAppraisalModalOpen] = React.useState(false);
   const [currentIndicatorIndex, setCurrentIndicatorIndex] = React.useState(0);
   const [approvalModalCurrentIndex, setApprovalModalCurrentIndex] = React.useState(0);
+
+  const itemActions = customItemActions || defaultItemActions;
 
   useEffect(() => {
     if (subObjectives.length > 0) {
@@ -48,7 +88,10 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
   const handleIndicatorEdit = (indicator, index) => {
     setSelectedPerformanceIndicator(indicator);
     setCurrentIndicatorIndex(index);
-    setIsPerformanceAppraisalModalOpen(true);
+    
+    if (onIndicatorEdit) {
+      onIndicatorEdit(indicator, index, currentIndicators);
+    }
   };
 
   const handleIndicatorNavigation = (direction) => {
@@ -64,12 +107,18 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
   const handleIndicatorClick = (indicator, index) => {
     setSelectedPerformanceIndicator(indicator);
     setCurrentIndicatorIndex(index);
-    setIsPerformanceAppraisalModalOpen(true);
+    
+    if (onIndicatorClick) {
+      onIndicatorClick(indicator, index, currentIndicators);
+    }
   };
 
   const handleStrategicObjectiveEdit = (objective) => {
     setSelectedStrategicObjective(objective);
-    setIsAppraisalApprovalModalOpen(true);
+    
+    if (onStrategicObjectiveEdit) {
+      onStrategicObjectiveEdit(objective);
+    }
   };
 
   const handleApprovalModalNavigation = (direction) => {
@@ -85,7 +134,10 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
   const handleIndicatorDelete = (indicator, index) => {
     setSelectedIndicator(indicator);
     setApprovalModalCurrentIndex(index);
-    setIsAppraisalApprovalModalOpen(true);
+    
+    if (onIndicatorDelete) {
+      onIndicatorDelete(indicator, index, currentIndicators);
+    }
   };
 
   const handleActionSelect = (action) => {
@@ -94,12 +146,88 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
       setIsAppraisalApprovalModalOpen(true);
     }
     setSelectedAction(action);
+    
+    if (onActionSelect) {
+      onActionSelect(action);
+    }
+  };
+
+  const handleAddStrategicClick = () => {
+    setIsStrategicModalOpen(true);
+    
+    if (onAddStrategicClick) {
+      onAddStrategicClick();
+    }
+  };
+
+  const handleAddKPIClick = (subObj) => {
+    if (onAddKPIClick) {
+      onAddKPIClick(subObj);
+    }
   };
 
   const handleAppraisalModalClose = () => {
     setIsPerformanceAppraisalModalOpen(false);
     setSelectedPerformanceIndicator(null);
   };
+
+  // Format target value based on measurement type
+  const formatTargetValue = (indicator) => {
+    if (!indicator.targetValue && !indicator.measurementType) {
+      // If no target value or measurement type is provided, return the weight as fallback
+      return indicator.weight;
+    }
+
+    switch(indicator.measurementType) {
+      case 'currency':
+        return `UGX ${indicator.targetValue.toLocaleString()}`;
+      case 'percentage':
+        return `${indicator.targetValue}%`;
+      case 'date':
+        // Format date properly
+        try {
+          // If it's a Date object
+          if (indicator.targetValue instanceof Date) {
+            return indicator.targetValue.toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            });
+          }
+          // If it's a string that can be parsed to a date
+          else if (typeof indicator.targetValue === 'string') {
+            const date = new Date(indicator.targetValue);
+            if (!isNaN(date.getTime())) {
+              return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+              });
+            }
+          }
+          // Fallback if parsing fails
+          return indicator.targetValue;
+        } catch (e) {
+          return indicator.targetValue;
+        }
+      case 'number':
+      default:
+        return indicator.targetValue.toLocaleString();
+    }
+  };
+
+  // Get all indicators from all subObjectives for direct display mode
+  const allIndicators = React.useMemo(() => {
+    if (displayMode === 'direct-indicators') {
+      return subObjectives.flatMap(subObj => 
+        subObj.indicators.map(indicator => ({
+          ...indicator,
+          parentObjective: subObj.name
+        }))
+      );
+    }
+    return [];
+  }, [subObjectives, displayMode]);
 
   return (
     <div className="border border-gray-200 rounded-lg mb-3 shadow-xs overflow-hidden transition-all duration-150">
@@ -173,67 +301,143 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
               {objective.status}
             </span>
             
-            <Listbox value={selectedAction} onChange={handleActionSelect}>
-              <div className="relative">
-                <ListboxButton className="flex items-center text-xs border border-teal-700 text-teal-700 rounded px-2.5 py-1 hover:bg-teal-50 focus:outline-none focus:ring-1 focus:ring-teal-300">
-                  Actions
-                  <ChevronDownIcon className="h-3 w-3 ml-1" />
-                </ListboxButton>
-                
-                <Transition
-                  leave="transition ease-in duration-100"
-                  leaveFrom="opacity-100"
-                  leaveTo="opacity-0"
-                >
-                  <ListboxOptions className="absolute right-0 z-10 mt-1 w-48 origin-top-right rounded-md bg-white shadow-lg border border-gray-200 focus:outline-none py-1">
-                    {itemActions.map((action) => (
-                      <ListboxOption
-                        key={action.name}
-                        value={action}
-                        className={({ active }) => 
-                          `px-3 py-2 text-sm cursor-default select-none ${
-                            active ? 'bg-teal-50 text-teal-900' : 'text-gray-700'
-                          } ${action.name === 'Delete' ? 'text-red-600' : ''}`
-                        }
-                      >
-                        <div className="flex flex-col">
-                          <div className="flex items-center">
-                            <action.icon className={`w-4 h-4 mr-2 ${action.name === 'Delete' ? 'text-red-600' : 'text-teal-600'}`} />
-                            <span>{action.name}</span>
+            {showActionDropdown && (
+              <Listbox value={selectedAction} onChange={handleActionSelect}>
+                <div className="relative">
+                  <ListboxButton className="flex items-center text-xs border border-teal-700 text-teal-700 rounded px-2.5 py-1 hover:bg-teal-50 focus:outline-none focus:ring-1 focus:ring-teal-300">
+                    Actions
+                    <ChevronDownIcon className="h-3 w-3 ml-1" />
+                  </ListboxButton>
+                  
+                  <Transition
+                    leave="transition ease-in duration-100"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                  >
+                    <ListboxOptions className="absolute right-0 z-10 mt-1 w-48 origin-top-right rounded-md bg-white shadow-lg border border-gray-200 focus:outline-none py-1">
+                      {itemActions.map((action) => (
+                        <ListboxOption
+                          key={action.name}
+                          value={action}
+                          className={({ active }) => 
+                            `px-3 py-2 text-sm cursor-default select-none ${
+                              active ? 'bg-teal-50 text-teal-900' : 'text-gray-700'
+                            } ${action.name === 'Delete' ? 'text-red-600' : ''}`
+                          }
+                        >
+                          <div className="flex flex-col">
+                            <div className="flex items-center">
+                              <action.icon className={`w-4 h-4 mr-2 ${action.name === 'Delete' ? 'text-red-600' : 'text-teal-600'}`} />
+                              <span>{action.name}</span>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1 pl-6">{action.description}</p>
                           </div>
-                          <p className="text-xs text-gray-500 mt-1 pl-6">{action.description}</p>
-                        </div>
-                      </ListboxOption>
-                    ))}
-                  </ListboxOptions>
-                </Transition>
-              </div>
-            </Listbox>
+                        </ListboxOption>
+                      ))}
+                    </ListboxOptions>
+                  </Transition>
+                </div>
+              </Listbox>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Sub-objectives */}
-      {isExpanded && subObjectives.length > 0 && (
+      {/* For direct-indicators mode, display indicators without strategic objectives */}
+      {isExpanded && displayMode === 'direct-indicators' && allIndicators.length > 0 && (
+        <div className="bg-gray-50 p-3 border-t border-gray-200">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-xs font-semibold text-gray-600">
+              PERFORMANCE MEASURES/KPIs
+            </h4>
+            {showAddKPIButton && (
+              <button 
+                onClick={() => handleAddKPIClick(subObjectives[0])}
+                className="flex items-center text-xs border border-teal-700 text-teal-700 rounded px-2.5 py-1 hover:bg-teal-50"
+              >
+                <PlusCircleIcon className="h-3 w-3 mr-1" />
+                {addKPIButtonLabel}
+              </button>
+            )}
+          </div>
+          
+          <ul className="space-y-1">
+            {allIndicators.map((indicator, index) => (
+              <li key={indicator.id} className="flex items-center bg-white p-1.5 rounded border border-gray-200">
+                <div className="min-w-0 flex-1 mr-2">
+                  <a 
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleIndicatorClick(indicator, index);
+                    }}
+                  >
+                    <div title={indicator.name}>
+                      <span className="text-sm/7 text-blue-700 underline line-clamp-2 capitalize">
+                        {indicator.name}
+                      </span>
+                    </div>
+                  </a>
+                </div>
+                {!isQualitative && (
+                  <div className="flex items-center space-x-2">
+                    {showTargetValue && (
+                      <div className="flex items-center space-x-1 whitespace-nowrap">
+                        <span className="text-xs text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded">
+                          Target Value: {formatTargetValue(indicator)}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-center space-x-1 whitespace-nowrap">
+                      <span className="text-xs text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded">
+                        Net Weight: {indicator.weight}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-center space-x-1 ml-2">
+                  <button 
+                    onClick={() => handleIndicatorEdit(indicator, index)}
+                    className="text-xs px-2.5 py-1 text-blue-600 hover:bg-blue-50 rounded"
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    onClick={() => handleIndicatorDelete(indicator, index)}
+                    className="text-xs px-2.5 py-1 text-red-600 hover:bg-red-50 rounded"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* For standard mode, show strategic objectives and indicators */}
+      {isExpanded && displayMode === 'standard' && subObjectives.length > 0 && (
         <div className="bg-gray-50 p-3 border-t border-gray-200">
           <div className="flex items-center justify-between mb-2">
             <h4 className="text-xs font-semibold text-gray-600">
               STRATEGIC OBJECTIVES
             </h4>
-            <button 
-              onClick={() => setIsStrategicModalOpen(true)}
-              className="flex items-center text-xs border border-teal-700 text-teal-700 rounded px-2.5 py-1 hover:bg-teal-50"
-            >
-              <PlusCircleIcon className="h-3 w-3 mr-1" />
-              Add Strategic Objective
-            </button>
+            {showAddStrategicButton && (
+              <button 
+                onClick={handleAddStrategicClick}
+                className="flex items-center text-xs border border-teal-700 text-teal-700 rounded px-2.5 py-1 hover:bg-teal-50"
+              >
+                <PlusCircleIcon className="h-3 w-3 mr-1" />
+                {addStrategicButtonLabel}
+              </button>
+            )}
           </div>
           <ul className="space-y-2">
             {subObjectives.map((subObj) => (
               <li key={`${objective.title}-${subObj.id}`} className="bg-white rounded border border-gray-200 overflow-hidden">
-                <button 
+                <div 
                   onClick={() => toggleSubObjective(subObj.id)}
-                  className="w-full flex items-center justify-between p-2 hover:bg-gray-50 text-left"
+                  className="w-full flex items-center justify-between p-2 hover:bg-gray-50 text-left cursor-pointer"
                 >
                   <div className="flex items-center min-w-0 flex-1">
                     <div className="p-1 rounded mr-1">
@@ -244,21 +448,20 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
                     <div title={subObj.name}>
                       <div className='flex items-center'>
                         <span className="text-xs font-medium text-gray-800 truncate max-w-[180px] capitalize">
-                          {subObj.name} |
+                          {subObj.name} 
+                          {showIndicators && " |"}
                         </span>
-                        <span className="flex items-center text-xs text-gray-500">
-                          <DocumentTextIcon className="w-3 h-3 mr-1" />
-                          {subObj.indicators.length} Performance Indicator(s)
-                        </span>
+                        {showIndicators && (
+                          <span className="flex items-center text-xs text-gray-500">
+                            <DocumentTextIcon className="w-3 h-3 mr-1" />
+                            {subObj.indicators.length} Performance Indicator(s)
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
                   
                   <div className="flex items-center space-x-2">
-                    <span className="text-xs text-teal-700 bg-teal-50 px-2 py-0.5 rounded whitespace-nowrap">
-                      Strategic Objective Weight: {subObj.weight}
-                    </span>
-                    {/* Stop propagation on the Listbox to prevent header click */}
                     <div onClick={e => e.stopPropagation()}>
                       <Listbox>
                         <div className="relative">
@@ -281,71 +484,94 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
                       </Listbox>
                     </div>
                   </div>
-                </button>
+                </div>
                 
                 {expandedSubObjectiveId === subObj.id && (
                   <div className="bg-gray-50 border-t border-gray-200 p-2 pl-8 pb-16">
-                    <div className="flex items-center justify-between mb-1">
-                      <h5 className="text-xs font-medium text-gray-500 capitalize">
-                        Performance Measure/Indicator
-                      </h5>
-                      <button 
-                        onClick={() => setIsIndicatorModalOpen(true)}
-                        className="flex items-center text-xs border border-teal-700 text-teal-700 rounded px-2.5 py-1 hover:bg-teal-50"
-                      >
-                        <PlusCircleIcon className="h-3 w-3 mr-1" />
-                        Add KPIs
-                      </button>
-                    </div>
-                    <ul className="space-y-1">
-                      {subObj.indicators.map((indicator, index) => (
-                        <li key={indicator.id} className="flex items-center bg-white p-1.5 rounded border border-gray-200">
-                          <div className="min-w-0 flex-1 mr-2">
-                            <a 
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleIndicatorClick(indicator, index);
-                              }}
-                            >
-                              <div title={indicator.name}>
-                                <span className="text-sm/7 text-blue-700 underline line-clamp-2 capitalize">
-                                  {indicator.name}
-                                </span>
-                              </div>
-                            </a>
+                    {/* Only show indicators section if showIndicators is true */}
+                    {showIndicators ? (
+                      <>
+                        <div className="flex justify-end mb-2">
+                          {showAddKPIButton && (
+                              <button 
+                                onClick={() => handleAddKPIClick(subObj)}
+                                className="flex items-center text-xs border border-teal-700 text-teal-700 rounded px-2.5 py-1 hover:bg-teal-50 ml-4"
+                              >
+                                <PlusCircleIcon className="h-3 w-3 mr-1" />
+                                {addKPIButtonLabel}
+                              </button>
+                            )}
+                        </div>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex-1 flex items-center">
+                            <h5 className="text-xs font-medium text-gray-500 capitalize">
+                              Performance Measure/Indicator
+                            </h5>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="flex items-center space-x-1 whitespace-nowrap">
-                              <span className="text-xs text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded">
-                                Net Weight: {indicator.weight}
-                              </span>
+                          
+                          {!isQualitative && (
+                            <div className="flex text-right pl-4 min-w-[200px]">
+                              <h5 className="text-xs font-medium text-gray-500 capitalize">
+                                <span className="text-purple-700">Target Value</span> | <span className="text-teal-700">Net Weight</span>
+                              </h5>
                             </div>
-                            <Listbox as="div" className="relative z-20">
-                              <ListboxButton className="p-0.5 rounded hover:bg-gray-100">
-                                <EllipsisHorizontalIcon className="h-3.5 w-3.5 text-gray-500" />
-                              </ListboxButton>
-                              <ListboxOptions className="absolute right-auto left-0 sm:right-0 sm:left-auto z-30 mt-1 w-28 origin-top-right rounded-md bg-white shadow-lg border border-gray-200 focus:outline-none py-1 text-xs">
-                                <ListboxOption 
-                                  value="edit" 
-                                  className="block px-2 py-1 hover:bg-gray-100 cursor-pointer"
+                          )}
+                          <div className="flex-none w-10">
+                            {/* Space for actions */}
+                          </div>
+                        </div>
+                        
+                        <ul className="space-y-1">
+                          {subObj.indicators.map((indicator, index) => (
+                            <li key={indicator.id} className="flex items-center bg-white p-1.5 rounded border border-gray-200">
+                              <div className="min-w-0 flex-1 mr-2">
+                                <a 
+                                  href="#"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleIndicatorEdit(indicator, index);
+                                  }}
+                                >
+                                  <div title={indicator.name}>
+                                    <span className="text-sm/7 text-blue-700 underline line-clamp-2 capitalize">
+                                      {indicator.name}
+                                    </span>
+                                  </div>
+                                </a>
+                              </div>
+                              {!isQualitative && (
+                                <div className="flex items-center space-x-2">
+                                  <div className="flex items-center whitespace-nowrap">
+                                    <span className="text-xs text-gray-700 px-1.5 py-0.5">
+                                      <span className="text-purple-700">{formatTargetValue(indicator)}</span> | <span className="text-teal-700">{indicator.weight}</span>
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                              <div className="flex items-center space-x-1 ml-2">
+                                <button 
                                   onClick={() => handleIndicatorEdit(indicator, index)}
+                                  className="text-xs px-2.5 py-1 text-blue-600 hover:bg-blue-50 rounded"
                                 >
                                   Edit
-                                </ListboxOption>
-                                <ListboxOption 
-                                  value="delete" 
-                                  className="block px-2 py-1 hover:bg-gray-100 cursor-pointer text-red-600"
+                                </button>
+                                <button 
                                   onClick={() => handleIndicatorDelete(indicator, index)}
+                                  className="text-xs px-2.5 py-1 text-red-600 hover:bg-red-50 rounded"
                                 >
                                   Delete
-                                </ListboxOption>
-                              </ListboxOptions>
-                            </Listbox>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
+                                </button>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    ) : (
+                      // Display a message if indicators are hidden
+                      <div className="text-xs text-gray-500 italic py-2">
+                        This is a qualitative objective with performance measures evaluated separately.
+                      </div>
+                    )}
                   </div>
                 )}
               </li>
@@ -354,49 +580,62 @@ const ObjectiveItem = ({ objective, subObjectives = [] }) => {
         </div>
       )}
       
-      <StrategicObjectiveModal 
-        isOpen={isStrategicModalOpen}
-        closeModal={() => setIsStrategicModalOpen(false)}
-      />
+      {/* Conditionally render modals based on props */}
+      {renderStrategicModal && (
+        <StrategicObjectiveModal 
+          isOpen={isStrategicModalOpen}
+          closeModal={() => setIsStrategicModalOpen(false)}
+          {...strategicModalProps}
+        />
+      )}
       
-      <PerformanceIndicatorModal
-        isOpen={isIndicatorModalOpen}
-        closeModal={() => setIsIndicatorModalOpen(false)}
-      />
+      {renderIndicatorModal && (
+        <PerformanceIndicatorModal
+          isOpen={isIndicatorModalOpen}
+          closeModal={() => setIsIndicatorModalOpen(false)}
+          {...indicatorModalProps}
+        />
+      )}
 
-      <AppraisalModal 
-        isOpen={isPerformanceAppraisalModalOpen}
-        closeModal={handleAppraisalModalClose}
-        indicator={selectedPerformanceIndicator}
-        onNavigate={handleIndicatorNavigation}
-        hasNext={currentIndicatorIndex < currentIndicators.length - 1}
-        hasPrevious={currentIndicatorIndex > 0}
-        totalCount={currentIndicators.length}
-        currentIndex={currentIndicatorIndex}
-      />
+      {renderAppraisalModal && (
+        <AppraisalModal 
+          isOpen={isPerformanceAppraisalModalOpen}
+          closeModal={handleAppraisalModalClose}
+          indicator={selectedPerformanceIndicator}
+          onNavigate={handleIndicatorNavigation}
+          hasNext={currentIndicatorIndex < currentIndicators.length - 1}
+          hasPrevious={currentIndicatorIndex > 0}
+          totalCount={currentIndicators.length}
+          currentIndex={currentIndicatorIndex}
+          {...appraisalModalProps}
+        />
+      )}
 
-      <AppraisalApprovalModal 
-        isOpen={isAppraisalApprovalModalOpen}
-        closeModal={() => setIsAppraisalApprovalModalOpen(false)}
-        indicator={selectedIndicator}
-        onNavigate={handleApprovalModalNavigation}
-        hasNext={approvalModalCurrentIndex < currentIndicators.length - 1}
-        hasPrevious={approvalModalCurrentIndex > 0}
-        totalCount={currentIndicators.length}
-        currentIndex={approvalModalCurrentIndex}
-        onApprove={() => {
-          // Handle delete approval
-          console.log('Deleting indicator:', selectedIndicator);
-          setIsAppraisalApprovalModalOpen(false);
-          setSelectedIndicator(null);
-          setApprovalModalCurrentIndex(0);
-        }}
-        onReject={() => {
-          setIsAppraisalApprovalModalOpen(false);
-          setSelectedIndicator(null);
-          setApprovalModalCurrentIndex(0);
-        }}
-      />
+      {renderAppraisalApprovalModal && (
+        <AppraisalApprovalModal 
+          isOpen={isAppraisalApprovalModalOpen}
+          closeModal={() => setIsAppraisalApprovalModalOpen(false)}
+          indicator={selectedIndicator}
+          onNavigate={handleApprovalModalNavigation}
+          hasNext={approvalModalCurrentIndex < currentIndicators.length - 1}
+          hasPrevious={approvalModalCurrentIndex > 0}
+          totalCount={currentIndicators.length}
+          currentIndex={approvalModalCurrentIndex}
+          onApprove={() => {
+            // Handle delete approval
+            console.log('Deleting indicator:', selectedIndicator);
+            setIsAppraisalApprovalModalOpen(false);
+            setSelectedIndicator(null);
+            setApprovalModalCurrentIndex(0);
+          }}
+          onReject={() => {
+            setIsAppraisalApprovalModalOpen(false);
+            setSelectedIndicator(null);
+            setApprovalModalCurrentIndex(0);
+          }}
+          {...appraisalApprovalModalProps}
+        />
+      )}
     </div>
   );
 };

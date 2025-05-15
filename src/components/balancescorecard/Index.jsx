@@ -5,6 +5,10 @@ import OverallProgress from './OverallProgress';
 import InfoBanner from './InfoBanner';
 import ObjectiveItem from './Item';
 import ObjectiveListHeader from './ListHeader';
+import StrategicObjectiveModal from './modals/StrategicObjectiveModal';
+import PerformanceIndicatorModal from './modals/PerformanceIndicatorModal';
+import AppraisalModal from './modals/AppraisalModal';
+import AppraisalApprovalModal from './modals/AppraisalApprovalModal';
 
 // Integrated sample data with sub-objectives included in each objective
 const objectives = [
@@ -44,8 +48,8 @@ const objectives = [
         indicators: [
           { id: 201, name: "Gross profit margin", weight: "5%" },
           { id: 202, name: "Operating expense ratio", weight: "5%" },
-          { id: 203, name: "Return on Investment (ROI)", weight: "4%" }, // Added Indicator 1
-          { id: 204, name: "Net Profit Margin", weight: "3%" } // Added Indicator 11
+          { id: 203, name: "Return on Investment (ROI)", weight: "4%" }, 
+          { id: 204, name: "Net Profit Margin", weight: "3%" } 
         ]
       },
       {
@@ -55,7 +59,7 @@ const objectives = [
         indicators: [
           { id: 301, name: "Cost per unit reduction", weight: "5%" },
           { id: 302, name: "Budget variance percentage", weight: "5%" },
-          { id: 303, name: "Cost Savings from Initiatives", weight: "4%" } // Added Indicator 2
+          { id: 303, name: "Cost Savings from Initiatives", weight: "4%" } 
         ]
       },
       {
@@ -467,6 +471,75 @@ const qualitativeObjectives = objectives.slice(4);    // Integrity, Customer Cen
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('active');
+  
+  // Modal states
+  const [isStrategicModalOpen, setIsStrategicModalOpen] = useState(false);
+  const [isIndicatorModalOpen, setIsIndicatorModalOpen] = useState(false);
+  const [isAppraisalModalOpen, setIsAppraisalModalOpen] = useState(false);
+  const [isAppraisalApprovalModalOpen, setIsAppraisalApprovalModalOpen] = useState(false);
+  
+  // Selected items for modals
+  const [selectedObjective, setSelectedObjective] = useState(null);
+  const [selectedIndicator, setSelectedIndicator] = useState(null);
+  const [selectedStrategicObjective, setSelectedStrategicObjective] = useState(null);
+  const [currentIndicatorIndex, setCurrentIndicatorIndex] = useState(0);
+  const [approvalModalCurrentIndex, setApprovalModalCurrentIndex] = useState(0);
+  const [currentIndicators, setCurrentIndicators] = useState([]);
+
+  // Modal handlers
+  const handleStrategicModalOpen = (objective) => {
+    setSelectedObjective(objective);
+    setIsStrategicModalOpen(true);
+  };
+
+  const handleIndicatorModalOpen = (objective, strategicObjective) => {
+    setSelectedObjective(objective);
+    setSelectedStrategicObjective(strategicObjective);
+    setIsIndicatorModalOpen(true);
+  };
+
+  const handleAppraisalModalOpen = (indicator, index, indicators) => {
+    setSelectedIndicator(indicator);
+    setCurrentIndicatorIndex(index);
+    setCurrentIndicators(indicators);
+    setIsAppraisalModalOpen(true);
+  };
+
+  const handleApprovalModalOpen = (indicator, index, indicators) => {
+    setSelectedIndicator(indicator);
+    setApprovalModalCurrentIndex(index);
+    setCurrentIndicators(indicators);
+    setIsAppraisalApprovalModalOpen(true);
+  };
+
+  const handleIndicatorNavigation = (direction) => {
+    if (direction === 'next' && currentIndicatorIndex < currentIndicators.length - 1) {
+      setCurrentIndicatorIndex(prev => prev + 1);
+      setSelectedIndicator(currentIndicators[currentIndicatorIndex + 1]);
+    } else if (direction === 'prev' && currentIndicatorIndex > 0) {
+      setCurrentIndicatorIndex(prev => prev - 1);
+      setSelectedIndicator(currentIndicators[currentIndicatorIndex - 1]);
+    }
+  };
+
+  const handleApprovalModalNavigation = (direction) => {
+    if (direction === 'next' && approvalModalCurrentIndex < currentIndicators.length - 1) {
+      setApprovalModalCurrentIndex(prev => prev + 1);
+      setSelectedIndicator(currentIndicators[approvalModalCurrentIndex + 1]);
+    } else if (direction === 'prev' && approvalModalCurrentIndex > 0) {
+      setApprovalModalCurrentIndex(prev => prev - 1);
+      setSelectedIndicator(currentIndicators[approvalModalCurrentIndex - 1]);
+    }
+  };
+
+  // Action handlers
+  const handleActionSelect = (action, objective) => {
+    console.log('Action selected:', action);
+    if (action.name === 'Delete') {
+      setSelectedIndicator(objective);
+      setIsAppraisalApprovalModalOpen(true);
+    }
+  };
 
   // Display objectives based on active tab
   const displayedObjectives = activeTab === 'active' ? quantitativeObjectives : qualitativeObjectives;
@@ -486,9 +559,75 @@ const Index = () => {
             key={index} 
             objective={objective}
             subObjectives={objective.subObjectives || []}
+            
+            // Button configurations
+            showAddStrategicButton={true}
+            showAddKPIButton={true}
+            addStrategicButtonLabel="Add New Strategic Objective"
+            addKPIButtonLabel="Add New KPI"
+            
+            // Button handlers
+            onAddStrategicClick={() => handleStrategicModalOpen(objective)}
+            onAddKPIClick={(strategicObjective) => handleIndicatorModalOpen(objective, strategicObjective)}
+            onActionSelect={(action) => handleActionSelect(action, objective)}
+            onIndicatorClick={(indicator, index, indicators) => handleAppraisalModalOpen(indicator, index, indicators || [])}
+            onIndicatorEdit={(indicator, index, indicators) => handleAppraisalModalOpen(indicator, index, indicators || [])}
+            onIndicatorDelete={(indicator, index, indicators) => handleApprovalModalOpen(indicator, index, indicators || [])}
+            onStrategicObjectiveEdit={(objective) => handleApprovalModalOpen(objective, 0, [])}
+            
+            // Don't render modals inside the component
+            renderStrategicModal={false}
+            renderIndicatorModal={false}
+            renderAppraisalModal={false}
+            renderAppraisalApprovalModal={false}
           />
         ))}
       </div>
+
+      {/* Render modals at the parent level */}
+      <StrategicObjectiveModal 
+        isOpen={isStrategicModalOpen}
+        closeModal={() => setIsStrategicModalOpen(false)}
+      />
+      
+      <PerformanceIndicatorModal
+        isOpen={isIndicatorModalOpen}
+        closeModal={() => setIsIndicatorModalOpen(false)}
+      />
+
+      <AppraisalModal 
+        isOpen={isAppraisalModalOpen}
+        closeModal={() => setIsAppraisalModalOpen(false)}
+        indicator={selectedIndicator}
+        onNavigate={handleIndicatorNavigation}
+        hasNext={currentIndicatorIndex < currentIndicators.length - 1}
+        hasPrevious={currentIndicatorIndex > 0}
+        totalCount={currentIndicators?.length || 0}
+        currentIndex={currentIndicatorIndex}
+      />
+
+      <AppraisalApprovalModal 
+        isOpen={isAppraisalApprovalModalOpen}
+        closeModal={() => setIsAppraisalApprovalModalOpen(false)}
+        indicator={selectedIndicator}
+        onNavigate={handleApprovalModalNavigation}
+        hasNext={approvalModalCurrentIndex < currentIndicators.length - 1}
+        hasPrevious={approvalModalCurrentIndex > 0}
+        totalCount={currentIndicators?.length || 0}
+        currentIndex={approvalModalCurrentIndex}
+        onApprove={() => {
+          // Handle delete approval
+          console.log('Deleting indicator:', selectedIndicator);
+          setIsAppraisalApprovalModalOpen(false);
+          setSelectedIndicator(null);
+          setApprovalModalCurrentIndex(0);
+        }}
+        onReject={() => {
+          setIsAppraisalApprovalModalOpen(false);
+          setSelectedIndicator(null);
+          setApprovalModalCurrentIndex(0);
+        }}
+      />
     </div>
   );
 };
