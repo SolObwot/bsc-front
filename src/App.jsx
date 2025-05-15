@@ -47,6 +47,10 @@ import EditCourse from './pages/qualification/course/EditCourse';
 import TemplateList from './pages/performance/templates/TemplateList';
 import AddTemplate from './pages/performance/templates/AddTemplate';
 import EditTemplate from './pages/performance/templates/EditTemplate';
+import AgreementList from './pages/performance/agreement/AgreementList.jsx';
+import AgreementReview from './pages/performance/agreement/AgreementReview.jsx';
+import AddAgreement from './pages/performance/agreement/AddAgreement';
+import HODApproval from './pages/performance/agreement/HODApproval';
 
 import React, { useEffect } from "react";
 import { ToastContainer } from 'react-toastify';
@@ -101,8 +105,16 @@ function App() {
               <Route path="/performance" element={<Performance />}>
                 <Route path="balance-score-card" element={<BalanceScoreCard />} />
                 <Route path="templates" element={<TemplateList />} />
+                <Route path="templates/list" element={<TemplateList />} />
                 <Route path="templates/add" element={<AddTemplate />} />
                 <Route path="templates/edit/:id" element={<EditTemplate />} />
+
+                <Route path="agreement/list" element={<AgreementList />} />
+                <Route path="agreement/new" element={<AddAgreement />} />
+                <Route path="agreement/edit/:id" element={<AddAgreement />} />
+                <Route path="agreement/review" element={<AgreementReview />} />
+                <Route path="agreement/hod-approval" element={<HODApproval />} />
+                <Route path="agreement/approval/:id" element={<AgreementReview />} />
               </Route>
               <Route path="/leave-management" element={<LeaveManagement />}>
                 <Route path="leave-requests" element={<LeaveRequests />} />
