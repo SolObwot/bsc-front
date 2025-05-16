@@ -107,6 +107,7 @@ const navigationItems = [
         children: [
           { label: 'Self Rating', href: '/performance/rating/self' },
           { label: 'Supervisor Rating', href: '/performance/rating/supervisor' },
+          {label: 'Overall Assessment ', href: '/performance/rating/overall'},
           { label: 'Appraisal Agreement', href: '/performance/rating/agreement' },
           { label: 'HOD Approval', href: '/performance/rating/hod' },
           // { label: 'Peer Assesement', href: '/performance/rating/peer' },
