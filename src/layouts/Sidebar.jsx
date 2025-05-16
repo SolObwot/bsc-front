@@ -83,9 +83,20 @@ const navigationItems = [
     children: [
       { 
         label: 'Templates', 
-        // href: '/performance/templates/list',
+        href: '/',
         children: [
+          { label: 'Template List', href: '/performance/templates/list' },
           { label: 'Setup Templates', href: '/performance/templates' },
+        ]
+      
+      },
+      { 
+        label: 'Agreement', 
+        href: '/',
+        children: [
+          { label: 'Setup Agreement', href: '/performance/agreement/list' },
+          { label: 'Agreement Review', href: '/performance/agreement/review' },
+          { label: 'HOD Approval', href: '/performance/agreement/hod-approval' },
         ]
       
       },
@@ -94,14 +105,25 @@ const navigationItems = [
         label: 'Appraisals', 
         href: '/' ,
         children: [
-          { label: 'Self Assesement', href: '/performance/rating/self' },
-          { label: 'Supervisor Assesement', href: '/performance/rating/supervisor' },
-          { label: 'HOD Assesement', href: '/performance/rating/hod' },
-          { label: 'Peer Assesement', href: '/performance/rating/peer' },
-          { label: 'Branch Final Assesement', href: '/performance/rating/branch' },
+          { label: 'Self Rating', href: '/performance/rating/self' },
+          { label: 'Supervisor Rating', href: '/performance/rating/supervisor' },
+          { label: 'Appraisal Agreement', href: '/performance/rating/agreement' },
+          { label: 'HOD Approval', href: '/performance/rating/hod' },
+          // { label: 'Peer Assesement', href: '/performance/rating/peer' },
+          // { label: 'Branch Final Assesement', href: '/performance/rating/branch' },
         ]
       
       },
+      { 
+        label: 'Confirmation', 
+        href: '/' ,
+        children: [
+          { label: 'Supervisor Confirmation', href: '/performance/confirmation/supervisor' },
+          { label: 'HOD Confirmation', href: '/performance/confirmation/hod' },
+        ]
+      
+      },
+      { label: 'Setup Strategic Objectives', href: '/performance/strategic-objectives' },
       { label: 'Performance Review', href: '/performance/review' },
       { label: 'Performance Reports', href: '/performance/reports' },
       { label: 'Surveys', href: '/performance/surveys' },
