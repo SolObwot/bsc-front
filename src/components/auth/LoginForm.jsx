@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import prideLogo from '../../assets/vertical_logo.png'; 
-import horizontalLogo from '../../assets/logo_new.png';
+import prideLogo from '../../assets/pride_logo_vertical.png'; 
+import horizontalLogo from '../../assets/pride_logo_horizontal.png';
 import { EnvelopeIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 
 const LoginForm = () => {
@@ -53,8 +53,55 @@ const LoginForm = () => {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-100 to-gray-200">
-      {/* Left side: Login form container */}
-      <div className="flex w-full lg:w-1/2 justify-center items-center p-6">
+      {/* Left side: Decorative panel with logo - 40% on desktop, 30% on xl */}
+      <div className="hidden lg:block lg:w-2/5 xl:w-[30%] bg-gradient-to-br from-teal-600 to-teal-800 relative overflow-hidden">
+        {/* Decorative arcs */}
+        <div className="absolute inset-0">
+          {/* Top-right decorative arc */}
+          <svg className="absolute right-0 top-0 h-64 w-64" viewBox="0 0 200 200" fill="none">
+            <path 
+              d="M200,0 Q100,0 100,100 Q100,200 0,200 L0,0 Z" 
+              fill="rgba(255,255,255,0.1)"
+            ></path>
+          </svg>
+          
+          {/* Bottom-left decorative arc */}
+          <svg className="absolute left-0 bottom-0 h-64 w-64" viewBox="0 0 200 200" fill="none">
+            <path 
+              d="M0,200 Q100,200 100,100 Q100,0 200,0 L0,0 Z" 
+              fill="rgba(255,255,255,0.1)"
+            ></path>
+          </svg>
+          
+          {/* Main background shape */}
+          <svg className="absolute left-0 top-0 h-full w-full" viewBox="0 0 800 800" preserveAspectRatio="none">
+            <path 
+              d="M0,0 L800,0 L800,800 Q400,650 0,800 Z" 
+              fill="currentColor" 
+              className="text-teal-700 opacity-50"
+            ></path>
+          </svg>
+        </div>
+        
+        {/* Enhanced circular logo in center */}
+        <div className="absolute flex items-center justify-center w-full h-full">
+          <div className="relative w-48 h-48 rounded-full bg-white/90 border-6 border-teal-300 flex items-center justify-center shadow-xl">
+            <img 
+              src={prideLogo} 
+              alt="Pride Logo" 
+              className="w-50 h-50 object-contain p-4"
+            />
+          </div>
+        </div>
+        
+        <div className="absolute bottom-0 inset-x-0 pb-12 text-center text-white">
+          <h2 className="text-3xl font-bold">Welcome to Pride PMS</h2>
+          <p className="mt-3 px-6 text-xl text-teal-100">Empowering Performance and Growth</p>
+        </div>
+      </div>
+      
+      {/* Right side: Login form container - 60% on desktop, 70% on xl */}
+      <div className="flex w-full lg:w-3/5 xl:w-[70%] justify-center items-center p-6">
         <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
           {/* Logo and brand name */}
           <div className="flex flex-col items-center mb-10">
@@ -162,7 +209,7 @@ const LoginForm = () => {
                   <>
                     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                     Signing in...
                   </>
@@ -171,37 +218,12 @@ const LoginForm = () => {
             </div>
           </form>
           
-          <div className="mt-8 text-center text-xs text-gray-500">
-            &copy; {new Date().getFullYear()} Pride Microfinance Ltd. All rights reserved.
+          <div className="mt-10 text-center text-xs text-gray-500 space-y-2">
+            <p>Copyright &copy; {new Date().getFullYear()} Pride Bank Ltd. All rights reserved.</p>
+            <p className="text-[11px] text-gray-400">
+              Permission to use, copy, modify, and distribute this software and its documentation for any purpose is prohibited unless authorized in writing by the Managing Director.
+            </p>
           </div>
-        </div>
-      </div>
-      
-      {/* Right side: Decorative panel with logo */}
-      <div className="hidden lg:block w-1/2 bg-gradient-to-br from-teal-600 to-teal-800 relative overflow-hidden">
-        <div className="absolute inset-0">
-          <svg className="absolute right-0 top-0 h-full w-full" viewBox="0 0 800 800" preserveAspectRatio="none">
-            <path 
-              d="M0,0 L800,0 L800,800 Q400,650 0,800 Z" 
-              fill="currentColor" 
-              className="text-teal-700"
-            ></path>
-          </svg>
-        </div>
-        
-        <div className="absolute flex items-center justify-center w-full h-full">
-          <div className="relative w-64 h-64 rounded-full bg-white border-4 border-teal-300 flex items-center justify-center shadow-xl">
-            <img 
-              src={prideLogo} 
-              alt="Pride Logo" 
-              className="w-48 h-48 object-contain"
-            />
-          </div>
-        </div>
-        
-        <div className="absolute bottom-0 inset-x-0 pb-6 text-center text-white">
-          <h2 className="text-2xl font-bold">Welcome to Pride PMS</h2>
-          <p className="mt-2 px-6 text-teal-100">Empowering Performance and Growth</p>
         </div>
       </div>
     </div>
