@@ -55,6 +55,10 @@ const ObjectiveItem = ({
   indicatorModalProps = {},
   appraisalModalProps = {},
   appraisalApprovalModalProps = {},
+
+  // Add this new prop for the appraisal button
+  showAppraisalButton = false,
+  appraisalButtonLabel = "Rate",
 }) => {
   const [selectedAction, setSelectedAction] = useState(null);
   const [isExpanded, setIsExpanded] = useState(true);
@@ -169,6 +173,17 @@ const ObjectiveItem = ({
   const handleAppraisalModalClose = () => {
     setIsPerformanceAppraisalModalOpen(false);
     setSelectedPerformanceIndicator(null);
+  };
+
+  const handleIndicatorRating = (indicator, index) => {
+    setSelectedPerformanceIndicator(indicator);
+    setCurrentIndicatorIndex(index);
+    
+    if (onIndicatorClick) {
+      onIndicatorClick(indicator, index, currentIndicators);
+    } else {
+      setIsPerformanceAppraisalModalOpen(true);
+    }
   };
 
   // Format target value based on measurement type
@@ -396,6 +411,14 @@ const ObjectiveItem = ({
                   </div>
                 )}
                 <div className="flex items-center space-x-1 ml-2">
+                  {showAppraisalButton && (
+                    <button 
+                      onClick={() => handleIndicatorRating(indicator, index)}
+                      className="text-xs px-2.5 py-1 bg-teal-50 text-teal-600 hover:bg-teal-100 rounded font-medium"
+                    >
+                      {appraisalButtonLabel}
+                    </button>
+                  )}
                   <button 
                     onClick={() => handleIndicatorEdit(indicator, index)}
                     className="text-xs px-2.5 py-1 text-blue-600 hover:bg-blue-50 rounded"
@@ -549,6 +572,14 @@ const ObjectiveItem = ({
                                 </div>
                               )}
                               <div className="flex items-center space-x-1 ml-2">
+                                {showAppraisalButton && (
+                                  <button 
+                                    onClick={() => handleIndicatorRating(indicator, index)}
+                                    className="text-xs px-2.5 py-1 bg-teal-50 text-teal-600 hover:bg-teal-100 rounded font-medium"
+                                  >
+                                    {appraisalButtonLabel}
+                                  </button>
+                                )}
                                 <button 
                                   onClick={() => handleIndicatorEdit(indicator, index)}
                                   className="text-xs px-2.5 py-1 text-blue-600 hover:bg-blue-50 rounded"

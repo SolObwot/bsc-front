@@ -20,7 +20,10 @@ const StatusBadge = ({ status }) => {
     pending_rating: { label: 'Pending Rating', color: 'bg-gray-100 text-gray-700', icon: ClockIcon },
     in_progress: { label: 'Rating In Progress', color: 'bg-blue-100 text-blue-700', icon: PencilIcon },
     submitted: { label: 'Submitted to Supervisor', color: 'bg-green-100 text-green-700', icon: CheckCircleIcon },
-    supervisor_reviewed: { label: 'Supervisor Reviewed', color: 'bg-purple-100 text-purple-700', icon: DocumentCheckIcon }
+    supervisor_reviewed: { label: 'Supervisor Reviewed', color: 'bg-purple-100 text-purple-700', icon: DocumentCheckIcon },
+    user_accepted: { label: 'You Accepted Rating', color: 'bg-teal-100 text-teal-700', icon: CheckCircleIcon },
+    user_rejected: { label: 'You Rejected Rating', color: 'bg-red-100 text-red-700', icon: XMarkIcon },
+    pending_hod: { label: 'Pending HOD Approval', color: 'bg-amber-100 text-amber-700', icon: ClockIcon }
   };
 
   const config = statusConfig[status] || statusConfig.pending_rating;
@@ -118,7 +121,7 @@ const SubmitConfirmationModal = ({ isOpen, closeModal, onConfirm, appraisal }) =
 };
 
 // Overall Assessment Modal Component
-const OverallAssessmentModal = ({ isOpen, closeModal, appraisal }) => {
+const OverallAssessmentModal = ({ isOpen, closeModal, appraisal, onApprove, onReject }) => {
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={closeModal}>
@@ -271,12 +274,24 @@ const OverallAssessmentModal = ({ isOpen, closeModal, appraisal }) => {
                     </div>
                   </div>
 
-                  <div className="mt-6 flex justify-end">
+                  <div className="mt-6 flex justify-end space-x-3">
                     <button
                       onClick={closeModal}
                       className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                     >
                       Close
+                    </button>
+                    <button
+                      onClick={() => onReject && onReject(appraisal)}
+                      className="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                    >
+                      Reject Supervisor's Rating
+                    </button>
+                    <button
+                      onClick={() => onApprove && onApprove(appraisal)}
+                      className="inline-flex justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+                    >
+                      Accept Supervisor's Rating
                     </button>
                   </div>
                 </div>
@@ -297,12 +312,11 @@ const SelfRating = () => {
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [recordsPerPage, setRecordsPerPage] = useState(5);
+  const [recordsPerPage, setRecordsPerPage] = useState(10);
   
   // Modal states
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [selectedAppraisal, setSelectedAppraisal] = useState(null);
-  const [isAppraisalModalOpen, setIsAppraisalModalOpen] = useState(false);
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   
   // Sample appraisal data
@@ -368,6 +382,68 @@ const SelfRating = () => {
         { id: 402, name: "Customer Retention", targetValue: "85%", actualValue: "87%", weight: "20%", self_rating: "4", supervisor_rating: "4", measurement_type: "percentage" },
         { id: 403, name: "Project Completion", targetValue: "12", actualValue: "10", weight: "15%", self_rating: "3", supervisor_rating: "3", measurement_type: "number" }
       ]
+    },
+    {
+      id: 5,
+      agreementTitle: 'Performance Agreement 2023 Q3',
+      agreementId: 5,
+      period: 'Quarterly Review',
+      createdDate: '2023-07-01',
+      submittedDate: '2023-10-05',
+      reviewedDate: '2023-10-12',
+      status: 'user_accepted',
+      totalPartA: '82',
+      totalPartB: '88',
+      totalScore: '85',
+      employeeName: 'Sarah Johnson',
+      employeeTitle: 'Marketing Manager',
+      department: 'Marketing',
+      branch: 'Head Office',
+      indicators: [
+        { id: 501, name: "Marketing Campaign ROI", targetValue: "25%", actualValue: "27%", weight: "20%", self_rating: "4", supervisor_rating: "4", measurement_type: "percentage" },
+        { id: 502, name: "Lead Generation", targetValue: "500", actualValue: "520", weight: "15%", self_rating: "4", supervisor_rating: "5", measurement_type: "number" }
+      ]
+    },
+    {
+      id: 6,
+      agreementTitle: 'Performance Agreement 2023 Q2',
+      agreementId: 6,
+      period: 'Quarterly Review',
+      createdDate: '2023-04-01',
+      submittedDate: '2023-07-05',
+      reviewedDate: '2023-07-10',
+      status: 'user_rejected',
+      rejectionReason: 'Requested reconsideration of project complexity factors',
+      employeeName: 'David Wilson',
+      employeeTitle: 'Sales Executive',
+      department: 'Sales',
+      branch: 'Eastern Region',
+      indicators: [
+        { id: 601, name: "Sales Target Achievement", targetValue: "$200,000", actualValue: "$180,000", weight: "25%", self_rating: "4", supervisor_rating: "2", measurement_type: "currency" },
+        { id: 602, name: "Client Retention Rate", targetValue: "85%", actualValue: "80%", weight: "15%", self_rating: "4", supervisor_rating: "3", measurement_type: "percentage" }
+      ]
+    },
+    {
+      id: 7,
+      agreementTitle: 'Performance Agreement 2023 Q1',
+      agreementId: 7,
+      period: 'Quarterly Review',
+      createdDate: '2023-01-01',
+      submittedDate: '2023-04-05',
+      reviewedDate: '2023-04-12',
+      supervisorApprovedDate: '2023-04-15',
+      status: 'pending_hod',
+      totalPartA: '90',
+      totalPartB: '88',
+      totalScore: '89',
+      employeeName: 'Michael Brown',
+      employeeTitle: 'Project Manager',
+      department: 'Operations',
+      branch: 'Central Region',
+      indicators: [
+        { id: 701, name: "Project Delivery On Time", targetValue: "100%", actualValue: "95%", weight: "30%", self_rating: "4", supervisor_rating: "5", measurement_type: "percentage" },
+        { id: 702, name: "Budget Adherence", targetValue: "100%", actualValue: "98%", weight: "20%", self_rating: "5", supervisor_rating: "5", measurement_type: "percentage" }
+      ]
     }
   ]);
   
@@ -403,8 +479,7 @@ const SelfRating = () => {
   
   // Handler functions
   const handleStartRating = (appraisal) => {
-    setSelectedAppraisal(appraisal);
-    setIsAppraisalModalOpen(true);
+    navigate(`/performance/rating/self/edit/${appraisal.id}`);
   };
   
   const handleSubmitRating = (appraisal) => {
@@ -434,6 +509,29 @@ const SelfRating = () => {
   
   const handlePageChange = (page) => {
     setCurrentPage(page);
+  };
+  
+  const handleApproveAssessment = (appraisal) => {
+    console.log('Accepting supervisor rating:', appraisal);
+    const updatedAppraisals = appraisals.map(a => 
+      a.id === appraisal.id ? {...a, status: 'user_accepted'} : a
+    );
+    setAppraisals(updatedAppraisals);
+    setIsAssessmentModalOpen(false);
+    alert('You have accepted the supervisor\'s rating. It will now proceed to HOD for approval.');
+  };
+  
+  const handleRejectAssessment = (appraisal) => {
+    console.log('Rejecting supervisor rating:', appraisal);
+    const rejectionReason = prompt("Please provide a reason for rejecting the supervisor's rating:");
+    if (rejectionReason) {
+      const updatedAppraisals = appraisals.map(a => 
+        a.id === appraisal.id ? {...a, status: 'user_rejected', rejectionReason} : a
+      );
+      setAppraisals(updatedAppraisals);
+      setIsAssessmentModalOpen(false);
+      alert('You have rejected the supervisor\'s rating. Your feedback will be sent to the supervisor.');
+    }
   };
   
   // Get unique periods for filter dropdown
@@ -506,6 +604,9 @@ const SelfRating = () => {
                 { value: 'in_progress', label: 'Rating In Progress' },
                 { value: 'submitted', label: 'Submitted to Supervisor' },
                 { value: 'supervisor_reviewed', label: 'Supervisor Reviewed' },
+                { value: 'user_accepted', label: 'You Accepted Rating' },
+                { value: 'user_rejected', label: 'You Rejected Rating' },
+                { value: 'pending_hod', label: 'Pending HOD Approval' },
               ],
             },
             {
@@ -614,6 +715,18 @@ const SelfRating = () => {
                             <span>Overall Assessment</span>
                           </button>
                         </div>
+                      ) : appraisal.status === 'user_accepted' || 
+                         appraisal.status === 'user_rejected' || 
+                         appraisal.status === 'pending_hod' ? (
+                        <div className="flex space-x-3">
+                          <button
+                            onClick={() => handlePreview(appraisal)}
+                            className="text-blue-600 hover:text-blue-900 inline-flex items-center gap-x-1.5 cursor-pointer"
+                          >
+                            <DocumentCheckIcon className="w-4 h-4" />
+                            <span>Preview</span>
+                          </button>
+                        </div>
                       ) : (
                         <AppraisalActions
                           appraisal={appraisal}
@@ -627,6 +740,21 @@ const SelfRating = () => {
                       {appraisal.status === 'submitted' && (
                         <span className="text-xs text-gray-500 block mt-1">
                           Waiting for supervisor rating
+                        </span>
+                      )}
+                      {appraisal.status === 'pending_hod' && (
+                        <span className="text-xs text-gray-500 block mt-1">
+                          Waiting for HOD approval
+                        </span>
+                      )}
+                      {appraisal.status === 'user_accepted' && (
+                        <span className="text-xs text-gray-500 block mt-1">
+                          You accepted your supervisor's rating
+                        </span>
+                      )}
+                      {appraisal.status === 'user_rejected' && (
+                        <span className="text-xs text-gray-500 block mt-1">
+                          You rejected your supervisor's rating
                         </span>
                       )}
                     </TableCell>
@@ -654,26 +782,13 @@ const SelfRating = () => {
         appraisal={selectedAppraisal}
       />
       
-      {/* Performance Rating Modal */}
-      {selectedAppraisal && (
-        <AppraisalModal 
-          isOpen={isAppraisalModalOpen}
-          closeModal={() => setIsAppraisalModalOpen(false)}
-          indicator={selectedAppraisal.indicators[0]}
-          onNavigate={() => {}}
-          hasNext={false}
-          hasPrevious={false}
-          totalCount={selectedAppraisal.indicators.length}
-          currentIndex={0}
-          onSave={() => {}}
-        />
-      )}
-      
       {/* Overall Assessment Modal */}
       <OverallAssessmentModal
         isOpen={isAssessmentModalOpen}
         closeModal={() => setIsAssessmentModalOpen(false)}
         appraisal={selectedAppraisal}
+        onApprove={handleApproveAssessment}
+        onReject={handleRejectAssessment}
       />
     </div>
   );

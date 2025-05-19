@@ -47,16 +47,39 @@ const AppraisalModal = ({
   hasNext,
   hasPrevious,
   totalCount,
-  currentIndex
+  currentIndex,
+  initialActualValue = "",
+  initialSelfRating = "",
+  onSave = null
 }) => {
-  const [actualValue, setActualValue] = React.useState("");
-  const [selfRating, setSelfRating] = React.useState("");
+  const [actualValue, setActualValue] = React.useState(initialActualValue);
+  const [selfRating, setSelfRating] = React.useState(initialSelfRating);
   const [supervisorRating, setSupervisorRating] = React.useState("");
+
+  React.useEffect(() => {
+    if (indicator) {
+      setActualValue(initialActualValue || indicator.actualValue || "");
+      setSelfRating(initialSelfRating || indicator.selfRating || "");
+      setSupervisorRating(indicator.supervisorRating || "");
+    }
+  }, [indicator, initialActualValue, initialSelfRating]);
 
   const performanceLevels = React.useMemo(() => 
     getPerformanceLevels(indicator?.targetValue, indicator?.measurementType),
     [indicator?.targetValue, indicator?.measurementType]
   );
+
+  const handleSave = () => {
+    if (onSave && indicator) {
+      onSave({
+        ...indicator,
+        actualValue,
+        selfRating
+      });
+    } else {
+      closeModal();
+    }
+  };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -128,7 +151,10 @@ const AppraisalModal = ({
                 </div>
 
                 <div className="px-7 pt-7 pb-4 max-h-[92vh] overflow-y-auto">
-                  <form className="space-y-6">
+                  <form className="space-y-6" onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSave();
+                  }}>
                     {/* Indicator Details */}
                     <div className="bg-gray-50 p-4 rounded-lg shadow-md mb-4">
                       <h3 className="font-medium text-gray-900">Indicator Details</h3>
@@ -254,7 +280,7 @@ const AppraisalModal = ({
                         type="submit"
                         className="inline-flex justify-center rounded-md border border-transparent bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
                       >
-                        Save Appraisal
+                        Save Rating
                       </button>
                     </div>
                   </form>

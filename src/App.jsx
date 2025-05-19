@@ -52,6 +52,7 @@ import AgreementReview from './pages/performance/agreement/AgreementReview.jsx';
 import AddAgreement from './pages/performance/agreement/AddAgreement';
 import HODApproval from './pages/performance/agreement/HODApproval';
 import SelfRating from './pages/performance/appraisals/SelfRating.jsx';
+import RateAppraisalPage from './pages/performance/appraisals/RateAppraisalPage.jsx';
 
 import React, { useEffect } from "react";
 import { ToastContainer } from 'react-toastify';
@@ -117,6 +118,7 @@ function App() {
                 <Route path="agreement/hod-approval" element={<HODApproval />} />
                 <Route path="agreement/approval/:id" element={<AgreementReview />} />
                 <Route path="rating/self" element={<SelfRating />} />
+                <Route path="rating/self/edit/:id" element={<RateAppraisalPage />} />
               </Route>
               <Route path="/leave-management" element={<LeaveManagement />}>
                 <Route path="leave-requests" element={<LeaveRequests />} />
