@@ -56,9 +56,33 @@ const AppraisalModal = ({
   const [selfRating, setSelfRating] = React.useState(initialSelfRating);
   const [supervisorRating, setSupervisorRating] = React.useState("");
 
+  // Format Date objects for display
+  const formatDateValue = (value) => {
+    if (value instanceof Date) {
+      return value.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+    }
+    
+    // Try to parse string dates
+    if (typeof value === 'string' && !isNaN(Date.parse(value))) {
+      return new Date(value).toISOString().split('T')[0];
+    }
+    
+    return value;
+  };
+
+  // Use the formatted value for display
+  const displayTargetValue = indicator?.targetValue ? formatDateValue(indicator.targetValue) : "";
+
   React.useEffect(() => {
     if (indicator) {
-      setActualValue(initialActualValue || indicator.actualValue || "");
+      // If this is a date type indicator, ensure proper formatting
+      if (indicator.measurementType === 'date') {
+        const formattedActualValue = initialActualValue ? formatDateValue(initialActualValue) : 
+                                    indicator.actualValue ? formatDateValue(indicator.actualValue) : "";
+        setActualValue(formattedActualValue);
+      } else {
+        setActualValue(initialActualValue || indicator.actualValue || "");
+      }
       setSelfRating(initialSelfRating || indicator.selfRating || "");
       setSupervisorRating(indicator.supervisorRating || "");
     }
@@ -165,7 +189,7 @@ const AppraisalModal = ({
                         </div>
                         <div>
                           <dt className="text-sm font-medium text-gray-500">Target Value</dt>
-                          <dd className="mt-1 text-sm text-gray-900">{indicator?.targetValue}</dd>
+                          <dd className="mt-1 text-sm text-gray-900">{displayTargetValue}</dd>
                         </div>
                         <div>
                           <dt className="text-sm font-medium text-gray-500">Measurement Type</dt>
@@ -185,7 +209,7 @@ const AppraisalModal = ({
                           Actual Value
                         </label>
                         <input
-                          type="number"
+                          type={indicator?.measurementType === 'date' ? "date" : "number"}
                           value={actualValue}
                           onChange={e => setActualValue(e.target.value)}
                           className="rounded border border-teal-200 w-full px-4 py-2 mt-1 outline-none focus:border-teal-400 text-[16px] bg-teal-50"

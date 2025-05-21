@@ -53,6 +53,21 @@ import AddAgreement from './pages/performance/agreement/AddAgreement';
 import HODApproval from './pages/performance/agreement/HODApproval';
 import SelfRating from './pages/performance/appraisals/SelfRating.jsx';
 import RateAppraisalPage from './pages/performance/appraisals/RateAppraisalPage.jsx';
+import SupervisorRating from './pages/performance/appraisals/SupervisorRating.jsx';
+import BranchSupervisor from './pages/performance/appraisals/BranchSupervisor.jsx';
+import PeerApproval from './pages/performance/appraisals/PeerApproval.jsx';
+import BranchFinal from './pages/performance/appraisals/BranchFinal.jsx';
+import HODAppraisalApproval from './pages/performance/appraisals/HODAppraisalApproval.jsx';
+import Dashboard from './pages/Dashboard';
+import PerformanceReport from './pages/performance/PerformanceReport';
+import StrategicObjectiveList from './pages/performance/strategic_objectives/StrategicObjectiveList';
+import AddStrategicObjective from './pages/performance/strategic_objectives/AddStrategicObjective';
+import EditStrategicObjective from './pages/performance/strategic_objectives/EditStrategicObjective';
+import SupervisorConfirmation from './pages/performance/confirmation/SupervisorConfirmation';
+import HODConfirmation from './pages/performance/confirmation/HODConfirmation';
+import PeerConfirmation from './pages/performance/confirmation/PeerConfirmation';
+import FinalBranchConfirmation from './pages/performance/confirmation/FinalBranchConfirmation';
+import ConfirmationForm from './pages/performance/confirmation/ConfirmationForm';
 
 import React, { useEffect } from "react";
 import { ToastContainer } from 'react-toastify';
@@ -71,7 +86,7 @@ function App() {
             
             {/* Protected routes */}
             <Route element={<DashboardLayout />}>
-              <Route path="/dashboard" element={<div>Dashboard Content</div>} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/directory" element={<div>Directory Content</div>} />
               <Route path="/pim/employees" element={<EmployeeList />} />
               <Route path="/pim/employees/add" element={<AddEmployee />} />
@@ -117,8 +132,27 @@ function App() {
                 <Route path="agreement/review" element={<AgreementReview />} />
                 <Route path="agreement/hod-approval" element={<HODApproval />} />
                 <Route path="agreement/approval/:id" element={<AgreementReview />} />
+
                 <Route path="rating/self" element={<SelfRating />} />
                 <Route path="rating/self/edit/:id" element={<RateAppraisalPage />} />
+                <Route path="rating/supervisor" element={<SupervisorRating />} />
+                <Route path="rating/supervisor/edit/:id" element={<RateAppraisalPage />} />
+                <Route path="rating/branch" element={<BranchSupervisor />} />
+                <Route path="rating/branch/edit/:id" element={<RateAppraisalPage />} />
+                <Route path="rating/hod" element={<HODAppraisalApproval />} />
+                <Route path="rating/peer" element={<PeerApproval />} />
+                <Route path="rating/final" element={<BranchFinal />} />
+
+                <Route path="confirmation/supervisor" element={<SupervisorConfirmation />} />
+                <Route path="confirmation/hod" element={<HODConfirmation />} />
+                <Route path="confirmation/peer" element={<PeerConfirmation />} />
+                <Route path="confirmation/final" element={<FinalBranchConfirmation />} />
+                <Route path="confirmation/edit/:id" element={<ConfirmationForm />} />
+
+                <Route path="reports" element={<PerformanceReport />} />
+                <Route path="strategic-objectives" element={<StrategicObjectiveList />} />
+                <Route path="strategic-objectives/add" element={<AddStrategicObjective />} />
+                <Route path="strategic-objectives/edit/:id" element={<EditStrategicObjective />} />
               </Route>
               <Route path="/leave-management" element={<LeaveManagement />}>
                 <Route path="leave-requests" element={<LeaveRequests />} />

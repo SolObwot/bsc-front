@@ -9,7 +9,9 @@ import {
   ChevronDownIcon,
   UserCircleIcon,
   ChartBarIcon,
-  CalendarIcon
+  CalendarIcon,
+  DocumentTextIcon, // Added for Annual Execution Undertaking Forms
+  ChatBubbleLeftRightIcon // Added for HR Policy Summarization
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../hooks/useAuth';
 
@@ -19,11 +21,11 @@ const navigationItems = [
     icon: HomeIcon, 
     href: '/dashboard' 
   },
-  { 
-    label: 'Directory', 
-    icon: UsersIcon, 
-    href: '/directory' 
-  },
+  // { 
+  //   label: 'Directory', 
+  //   icon: UsersIcon, 
+  //   href: '/directory' 
+  // },
   { 
     label: 'PIM', 
     icon: BriefcaseIcon, 
@@ -100,18 +102,19 @@ const navigationItems = [
         ]
       
       },
-      { label: 'Setup KPI', href: '/performance/balance-score-card' },
+      // { label: 'Setup KPI', href: '/performance/balance-score-card' },
       { 
         label: 'Appraisals', 
         href: '/' ,
         children: [
           { label: 'Self Rating', href: '/performance/rating/self' },
           { label: 'Supervisor Rating', href: '/performance/rating/supervisor' },
-          {label: 'Overall Assessment ', href: '/performance/rating/overall'},
-          { label: 'Appraisal Agreement', href: '/performance/rating/agreement' },
+          // {label: 'Overall Assessment ', href: '/performance/rating/overall'},
+          // { label: 'Appraisal Agreement', href: '/performance/rating/agreement' },
           { label: 'HOD Approval', href: '/performance/rating/hod' },
-          // { label: 'Peer Assesement', href: '/performance/rating/peer' },
-          // { label: 'Branch Final Assesement', href: '/performance/rating/branch' },
+          {label: 'Branch Immediate Supervisor', href: '/performance/rating/branch'},
+          { label: 'Peer Approval', href: '/performance/rating/peer' },
+          { label: 'Branch Final Assesement', href: '/performance/rating/final' },
         ]
       
       },
@@ -121,27 +124,54 @@ const navigationItems = [
         children: [
           { label: 'Supervisor Confirmation', href: '/performance/confirmation/supervisor' },
           { label: 'HOD Confirmation', href: '/performance/confirmation/hod' },
+          { label: 'Peer Approval', href: '/performance/confirmation/peer' },
+          { label: 'Branch Final Confirmation', href: '/performance/confirmation/final' },
         ]
       
       },
       { label: 'Setup Strategic Objectives', href: '/performance/strategic-objectives' },
-      { label: 'Performance Review', href: '/performance/review' },
+      // { label: 'Performance Review', href: '/performance/review' },
       { label: 'Performance Reports', href: '/performance/reports' },
-      { label: 'Surveys', href: '/performance/surveys' },
+      // { label: 'Surveys', href: '/performance/surveys' },
       // Add more performance-related items as needed
     ]
   },
+  // New section for Annual Execution Undertaking Forms
   { 
-    label: 'Leave Management', 
-    icon: CalendarIcon, 
+    label: 'Annual Execution Undertaking', 
+    icon: DocumentTextIcon, 
     href: '/',
     children: [
-      { label: 'Leave Requests', href: '/leave-management/leave-requests' },
-      { label: 'Leave Approvals', href: '/leave-management/leave-approvals' },
-      { label: 'Leave Reports', href: '/leave-management/leave-reports' },
-      { label: 'Leave Settings', href: '/leave-management/leave-settings' },
+      { label: 'View Forms', href: '/hr/annual-undertaking/view' },
+      { label: 'Create Form', href: '/hr/annual-undertaking/create' },
+      { label: 'Manage Templates', href: '/hr/annual-undertaking/templates' },
+      { label: 'Review Submissions', href: '/hr/annual-undertaking/review' },
+      { label: 'Reports', href: '/hr/annual-undertaking/reports' },
     ]
   },
+  // New section for HR Policy Summarization with AI interaction
+  { 
+    label: 'HR Policy Assistant', 
+    icon: ChatBubbleLeftRightIcon, 
+    href: '/',
+    children: [
+      { label: 'Policy Explorer', href: '/hr/policy/explorer' },
+      { label: 'Chat with Policy', href: '/hr/policy/chat' },
+      { label: 'Upload Documents', href: '/hr/policy/upload' },
+      { label: 'Saved Conversations', href: '/hr/policy/saved-chats' },
+    ]
+  },
+  // { 
+  //   label: 'Leave Management', 
+  //   icon: CalendarIcon, 
+  //   href: '/',
+  //   children: [
+  //     { label: 'Leave Requests', href: '/leave-management/leave-requests' },
+  //     { label: 'Leave Approvals', href: '/leave-management/leave-approvals' },
+  //     { label: 'Leave Reports', href: '/leave-management/leave-reports' },
+  //     { label: 'Leave Settings', href: '/leave-management/leave-settings' },
+  //   ]
+  // },
 ];
 
 const Sidebar = ({ isMobile, setMobileMenuOpen }) => {

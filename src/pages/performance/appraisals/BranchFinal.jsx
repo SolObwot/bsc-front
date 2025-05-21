@@ -4,27 +4,22 @@ import { Table, TableHead, TableHeader, TableBody, TableRow, TableCell } from '.
 import ObjectiveHeader from '../../../components/balancescorecard/Header';
 import OverallProgress from '../../../components/balancescorecard/OverallProgress';
 import FilterBox from '../../../components/ui/FilterBox';
-import { DocumentPlusIcon, ClockIcon, CheckCircleIcon, PencilIcon, UserCircleIcon, CalendarDaysIcon, DocumentCheckIcon, PlayIcon, PaperAirplaneIcon, EyeIcon } from '@heroicons/react/20/solid';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
-import AppraisalActions from './AppraisalActions';
+import { XMarkIcon, EyeIcon, DocumentCheckIcon, DocumentTextIcon, ClockIcon, CheckCircleIcon, UserCircleIcon, CalendarDaysIcon } from '@heroicons/react/24/outline';
 import AppraisalToolbar from './AppraisalToolbar';
 import Pagination from '../../../components/ui/Pagination';
+import AppraisalActions from './AppraisalActions';
 import { useAuth } from '../../../hooks/useAuth';
 
 // Status badge component
 const StatusBadge = ({ status }) => {
   const statusConfig = {
-    pending_supervisor: { label: 'Pending Supervisor Rating', color: 'bg-amber-100 text-amber-700', icon: ClockIcon },
-    supervisor_in_progress: { label: 'Rating In Progress', color: 'bg-blue-100 text-blue-700', icon: PencilIcon },
-    supervisor_completed: { label: 'Rating Completed', color: 'bg-green-100 text-green-700', icon: CheckCircleIcon },
-    employee_reviewing: { label: 'Employee Reviewing', color: 'bg-purple-100 text-purple-700', icon: DocumentCheckIcon },
-    pending_hod: { label: 'Pending HOD Approval', color: 'bg-indigo-100 text-indigo-700', icon: ClockIcon },
-    completed: { label: 'Completed', color: 'bg-teal-100 text-teal-700', icon: CheckCircleIcon }
+    pending_final: { label: 'Pending Final Approval', color: 'bg-amber-100 text-amber-700', icon: ClockIcon },
+    completed: { label: 'Completed', color: 'bg-green-100 text-green-700', icon: CheckCircleIcon }
   };
 
-  const config = statusConfig[status] || statusConfig.pending_supervisor;
+  const config = statusConfig[status] || statusConfig.pending_final;
   const Icon = config.icon;
 
   return (
@@ -35,92 +30,29 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-// Confirmation Modal Component
-const SubmitConfirmationModal = ({ isOpen, closeModal, onConfirm, appraisal }) => {
-  return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={closeModal}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-black/25" />
-        </Transition.Child>
+// Branch Final Approval Modal Component
+const BranchFinalApprovalModal = ({ isOpen, closeModal, appraisal, onApprove, onReject }) => {
+  const [branchComments, setBranchComments] = useState('');
 
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white text-left align-middle shadow-xl transition-all border border-teal-100">
-                <div className="bg-teal-50 px-6 py-5 border-b border-teal-100">
-                  <div className="flex items-center justify-between">
-                    <Dialog.Title className="text-lg font-semibold text-gray-700">
-                      Submit Supervisor Rating
-                    </Dialog.Title>
-                    <button onClick={closeModal} className="hover:bg-teal-100 rounded-full p-2">
-                      <XMarkIcon className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
+  const handleApprove = () => {
+    if (onApprove) {
+      onApprove(appraisal, branchComments);
+    }
+    closeModal();
+  };
 
-                <div className="px-6 py-6">
-                  <div className="space-y-4">
-                    <p className="text-gray-700">
-                      Are you sure you want to submit your supervisor rating for this appraisal?
-                    </p>
-                    <p className="text-amber-600 text-sm">
-                      Once submitted, the employee will be able to review your rating. You won't be able to make changes after submission.
-                    </p>
-                    
-                    <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-600">
-                      <p className="font-medium">Appraisal Details:</p>
-                      <p>Employee: {appraisal?.employeeName}</p>
-                      <p>Agreement: {appraisal?.agreementTitle}</p>
-                      <p>Period: {appraisal?.period}</p>
-                    </div>
-                  </div>
+  const handleReject = () => {
+    if (branchComments.trim() === '') {
+      alert('Please provide comments explaining why you are rejecting this appraisal');
+      return;
+    }
+    
+    if (onReject) {
+      onReject(appraisal, branchComments);
+    }
+    closeModal();
+  };
 
-                  <div className="mt-6 flex justify-end space-x-3">
-                    <button
-                      onClick={closeModal}
-                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => {
-                        onConfirm();
-                        closeModal();
-                      }}
-                      className="inline-flex items-center justify-center rounded-md border border-transparent bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
-                    >
-                      Submit Rating
-                    </button>
-                  </div>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </div>
-      </Dialog>
-    </Transition>
-  );
-};
-
-// Overall Assessment Modal Component
-const OverallAssessmentModal = ({ isOpen, closeModal, appraisal }) => {
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={closeModal}>
@@ -151,7 +83,7 @@ const OverallAssessmentModal = ({ isOpen, closeModal, appraisal }) => {
                 <div className="bg-teal-50 px-6 py-5 border-b border-teal-100">
                   <div className="flex items-center justify-between">
                     <Dialog.Title className="text-lg font-semibold text-gray-700">
-                      Overall Assessment Score
+                      Branch Final Approval
                     </Dialog.Title>
                     <button onClick={closeModal} className="hover:bg-teal-100 rounded-full p-2">
                       <XMarkIcon className="h-5 w-5" />
@@ -159,7 +91,7 @@ const OverallAssessmentModal = ({ isOpen, closeModal, appraisal }) => {
                   </div>
                 </div>
 
-                <div className="px-7 pt-7 pb-4">
+                <div className="px-7 pt-7 pb-4 max-h-[80vh] overflow-y-auto">
                   <div className="space-y-6">
                     {/* Enhanced Summary Section */}
                     <div className="bg-gray-50 rounded-lg p-4 mb-6">
@@ -183,6 +115,7 @@ const OverallAssessmentModal = ({ isOpen, closeModal, appraisal }) => {
                       </div>
                     </div>
                     
+                    {/* Overall Assessment Section */}
                     <div className="border rounded-lg overflow-hidden">
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
@@ -217,6 +150,7 @@ const OverallAssessmentModal = ({ isOpen, closeModal, appraisal }) => {
                       </table>
                     </div>
                     
+                    {/* Score Rating Table */}
                     <div className="border rounded-lg overflow-hidden">
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
@@ -271,6 +205,45 @@ const OverallAssessmentModal = ({ isOpen, closeModal, appraisal }) => {
                         </tbody>
                       </table>
                     </div>
+                    
+                    {/* Supervisor Comments Section */}
+                    {appraisal?.supervisorComments && (
+                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                        <h4 className="font-medium text-blue-800 mb-2">Supervisor Comments</h4>
+                        <p className="text-sm text-gray-700">{appraisal.supervisorComments}</p>
+                      </div>
+                    )}
+                    
+                    {/* HOD Comments Section */}
+                    {appraisal?.hodComments && (
+                      <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                        <h4 className="font-medium text-purple-800 mb-2">HOD Comments</h4>
+                        <p className="text-sm text-gray-700">{appraisal.hodComments}</p>
+                      </div>
+                    )}
+                    
+                    {/* Peer Comments Section */}
+                    {appraisal?.peerComments && (
+                      <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
+                        <h4 className="font-medium text-indigo-800 mb-2">Peer Reviewer Comments</h4>
+                        <p className="text-sm text-gray-700">{appraisal.peerComments}</p>
+                      </div>
+                    )}
+                    
+                    {/* Branch Manager Final Comments Section */}
+                    <div>
+                      <label htmlFor="branchComments" className="block text-sm font-medium text-gray-700 mb-1">
+                        Branch Manager Final Comments
+                      </label>
+                      <textarea
+                        id="branchComments"
+                        rows={4}
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm resize-none p-2 border"
+                        placeholder="Enter your final comments about this appraisal..."
+                        value={branchComments}
+                        onChange={(e) => setBranchComments(e.target.value)}
+                      />
+                    </div>
                   </div>
 
                   <div className="mt-6 flex justify-end space-x-3">
@@ -278,7 +251,19 @@ const OverallAssessmentModal = ({ isOpen, closeModal, appraisal }) => {
                       onClick={closeModal}
                       className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                     >
-                      Close
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleReject}
+                      className="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                    >
+                      Reject Appraisal
+                    </button>
+                    <button
+                      onClick={handleApprove}
+                      className="inline-flex justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+                    >
+                      Final Approval
                     </button>
                   </div>
                 </div>
@@ -291,25 +276,24 @@ const OverallAssessmentModal = ({ isOpen, closeModal, appraisal }) => {
   );
 };
 
-const SupervisorRating = () => {
+const BranchFinal = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [filterText, setFilterText] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterPeriod, setFilterPeriod] = useState('');
   const [filterDepartment, setFilterDepartment] = useState('');
-  const [filterBranch, setFilterBranch] = useState(''); // Add branch filter state
+  const [filterBranch, setFilterBranch] = useState('');
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage, setRecordsPerPage] = useState(10);
   
-  // Modal states
-  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+  // Modal state
+  const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
   const [selectedAppraisal, setSelectedAppraisal] = useState(null);
-  const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false); // Add assessment modal state
   
-  // Sample appraisal data - would be fetched from API in real app
+  // Sample appraisal data
   const [appraisals, setAppraisals] = useState([
     {
       id: 1,
@@ -322,12 +306,16 @@ const SupervisorRating = () => {
       period: 'Annual Review',
       createdDate: '2025-01-15',
       submittedDate: '2025-05-10',
-      status: 'pending_supervisor',
-      indicators: [
-        { id: 101, name: "Code Quality Improvement", targetValue: "95%", actualValue: "92%", weight: "15%", self_rating: "4", supervisor_rating: "", measurement_type: "percentage" },
-        { id: 102, name: "Project Completion Rate", targetValue: "100%", actualValue: "98%", weight: "15%", self_rating: "4", supervisor_rating: "", measurement_type: "percentage" },
-        { id: 103, name: "Bug Resolution Time", targetValue: "24 hours", actualValue: "22 hours", weight: "10%", self_rating: "5", supervisor_rating: "", measurement_type: "number" }
-      ]
+      status: 'pending_final',
+      supervisorName: 'Jane Doe',
+      peerApproverName: 'Robert Chen',
+      hodName: 'Elizabeth Taylor',
+      supervisorComments: 'John has shown remarkable improvement in his technical skills. His attention to detail has led to fewer bugs in production.',
+      hodComments: 'I concur with the supervisor assessment. John has been a valuable asset to the team.',
+      peerComments: 'John is always willing to help others and share his knowledge.',
+      totalPartA: '82',
+      totalPartB: '88',
+      totalScore: '85'
     },
     {
       id: 2,
@@ -340,12 +328,16 @@ const SupervisorRating = () => {
       period: 'Quarterly Review',
       createdDate: '2024-10-01',
       submittedDate: '2024-12-15',
-      status: 'supervisor_in_progress',
-      indicators: [
-        { id: 201, name: "Campaign Conversion Rate", targetValue: "15%", actualValue: "17%", weight: "20%", self_rating: "5", supervisor_rating: "4", measurement_type: "percentage" },
-        { id: 202, name: "Content Creation Volume", targetValue: "50", actualValue: "45", weight: "15%", self_rating: "4", supervisor_rating: "", measurement_type: "number" },
-        { id: 203, name: "Social Media Engagement", targetValue: "25%", actualValue: "22%", weight: "10%", self_rating: "3", supervisor_rating: "3", measurement_type: "percentage" }
-      ]
+      status: 'pending_final',
+      supervisorName: 'Michael Wilson',
+      peerApproverName: 'Lisa Miller',
+      hodName: 'David Miller',
+      supervisorComments: 'Sarah has exceeded expectations in her marketing campaigns. Customer engagement is up 15% since she implemented her new strategy.',
+      hodComments: 'Approved. Sarah continues to be a high performer.',
+      peerComments: 'Sarah consistently delivers high-quality work and is an asset to the marketing team.',
+      totalPartA: '90',
+      totalPartB: '85',
+      totalScore: '87'
     },
     {
       id: 3,
@@ -358,11 +350,18 @@ const SupervisorRating = () => {
       period: 'Annual Review',
       createdDate: '2024-01-10',
       submittedDate: '2024-12-05',
-      status: 'supervisor_completed',
-      indicators: [
-        { id: 301, name: "Budget Accuracy", targetValue: "98%", actualValue: "97%", weight: "25%", self_rating: "4", supervisor_rating: "4", measurement_type: "percentage" },
-        { id: 302, name: "Financial Report Timeliness", targetValue: "100%", actualValue: "100%", weight: "20%", self_rating: "5", supervisor_rating: "5", measurement_type: "percentage" }
-      ]
+      status: 'completed',
+      supervisorName: 'Robert Johnson',
+      peerApproverName: 'James Wilson',
+      hodName: 'Jennifer Lewis',
+      branchManagerName: 'Daniel Smith',
+      supervisorComments: 'Michael consistently delivers accurate financial reports ahead of schedule. His attention to detail is exemplary.',
+      hodComments: 'Excellent work from Michael this year. His financial analysis has been instrumental in helping us make strategic decisions.',
+      peerComments: 'As a peer reviewer, I can attest to Michael\'s expertise and professionalism. Always willing to help the team.',
+      finalComments: 'Final approval granted. Michael has demonstrated exceptional performance throughout the review period.',
+      totalPartA: '88',
+      totalPartB: '92',
+      totalScore: '90'
     },
     {
       id: 4,
@@ -375,47 +374,18 @@ const SupervisorRating = () => {
       period: 'Annual Review',
       createdDate: '2023-01-15',
       submittedDate: '2023-12-10',
-      status: 'employee_reviewing',
-      indicators: [
-        { id: 401, name: "Customer Satisfaction Score", targetValue: "90%", actualValue: "92%", weight: "30%", self_rating: "4", supervisor_rating: "5", measurement_type: "percentage" },
-        { id: 402, name: "Response Time", targetValue: "2 hours", actualValue: "1.8 hours", weight: "20%", self_rating: "4", supervisor_rating: "4", measurement_type: "number" },
-        { id: 403, name: "Issue Resolution Rate", targetValue: "95%", actualValue: "94%", weight: "20%", self_rating: "4", supervisor_rating: "4", measurement_type: "percentage" }
-      ]
-    },
-    {
-      id: 5,
-      agreementTitle: 'Performance Agreement 2023',
-      agreementId: 5,
-      employeeName: 'David Wilson',
-      employeeTitle: 'Operations Manager',
-      department: 'Operations',
-      branch: 'Jinja Branch',
-      period: 'Annual Review',
-      createdDate: '2023-01-10',
-      submittedDate: '2023-12-08',
-      status: 'pending_hod',
-      indicators: [
-        { id: 501, name: "Operational Efficiency", targetValue: "85%", actualValue: "87%", weight: "25%", self_rating: "5", supervisor_rating: "4", measurement_type: "percentage" },
-        { id: 502, name: "Cost Reduction", targetValue: "10%", actualValue: "8%", weight: "15%", self_rating: "3", supervisor_rating: "3", measurement_type: "percentage" },
-        { id: 503, name: "Process Improvement", targetValue: "5", actualValue: "6", weight: "10%", self_rating: "5", supervisor_rating: "5", measurement_type: "number" }
-      ]
-    },
-    {
-      id: 6,
-      agreementTitle: 'Performance Agreement 2022',
-      agreementId: 6,
-      employeeName: 'Robert Chen',
-      employeeTitle: 'Research Analyst',
-      department: 'Research',
-      branch: 'Mbarara Branch',
-      period: 'Annual Review',
-      createdDate: '2022-01-15',
-      submittedDate: '2022-12-10',
       status: 'completed',
-      indicators: [
-        { id: 601, name: "Research Report Quality", targetValue: "90%", actualValue: "92%", weight: "25%", self_rating: "5", supervisor_rating: "4", measurement_type: "percentage" },
-        { id: 602, name: "Data Analysis Accuracy", targetValue: "98%", actualValue: "99%", weight: "20%", self_rating: "5", supervisor_rating: "5", measurement_type: "percentage" }
-      ]
+      supervisorName: 'David Miller',
+      peerApproverName: 'Susan Brown',
+      hodName: 'James Wilson',
+      branchManagerName: 'Thomas Johnson',
+      supervisorComments: 'Jessica has maintained excellent customer satisfaction scores and has gone above and beyond to resolve complex issues.',
+      hodComments: 'Jessica has been a valuable asset to the customer support team. Her dedication to resolving customer issues promptly is commendable.',
+      peerComments: 'Jessica is an excellent team player who always shares knowledge and best practices.',
+      finalComments: 'Final approval complete. Jessica\'s performance has been consistently high throughout the year.',
+      totalPartA: '85',
+      totalPartB: '80',
+      totalScore: '83'
     }
   ]);
   
@@ -426,7 +396,6 @@ const SupervisorRating = () => {
   useEffect(() => {
     let filtered = appraisals;
     
-    // Filter by text (employee name or agreement title)
     if (filterText) {
       filtered = filtered.filter(appraisal => 
         appraisal.employeeName.toLowerCase().includes(filterText.toLowerCase()) ||
@@ -434,22 +403,18 @@ const SupervisorRating = () => {
       );
     }
     
-    // Filter by status
     if (filterStatus) {
       filtered = filtered.filter(appraisal => appraisal.status === filterStatus);
     }
     
-    // Filter by period
     if (filterPeriod) {
       filtered = filtered.filter(appraisal => appraisal.period === filterPeriod);
     }
     
-    // Filter by department
     if (filterDepartment) {
       filtered = filtered.filter(appraisal => appraisal.department === filterDepartment);
     }
     
-    // Filter by branch
     if (filterBranch) {
       filtered = filtered.filter(appraisal => appraisal.branch === filterBranch);
     }
@@ -464,32 +429,49 @@ const SupervisorRating = () => {
   const paginatedAppraisals = filteredAppraisals.slice(indexOfFirstRecord, indexOfLastRecord);
   
   // Handler functions
-  const handleStartRating = (appraisal) => {
-    navigate(`/performance/rating/supervisor/edit/${appraisal.id}`);
-  };
-  
-  const handleSubmitRating = (appraisal) => {
+  const handleReviewApprove = (appraisal) => {
     setSelectedAppraisal(appraisal);
-    setIsSubmitModalOpen(true);
+    setIsApprovalModalOpen(true);
   };
   
-  const handleConfirmSubmit = () => {
-    // In a real app, this would make an API call to submit the rating
-    const updatedAppraisals = appraisals.map(appraisal => {
-      if (appraisal.id === selectedAppraisal.id) {
-        return { ...appraisal, status: 'supervisor_completed' };
+  const handleApprove = (appraisal, comments) => {
+    const updatedAppraisals = appraisals.map(a => {
+      if (a.id === appraisal.id) {
+        return { 
+          ...a, 
+          status: 'completed', 
+          finalComments: comments,
+          branchManagerName: user?.name || 'Current Branch Manager' // In a real app, use the logged-in user's name
+        };
       }
-      return appraisal;
+      return a;
     });
     
     setAppraisals(updatedAppraisals);
-    alert('Supervisor rating submitted successfully!');
+    alert('Appraisal has been given final approval successfully!');
+  };
+  
+  const handleReject = (appraisal, comments) => {
+    // In a real app, you might set a different status for rejected appraisals
+    const updatedAppraisals = appraisals.map(a => {
+      if (a.id === appraisal.id) {
+        return { 
+          ...a, 
+          status: 'rejected', // You might want to define a new status for rejected appraisals
+          finalComments: comments,
+          branchManagerName: user?.name || 'Current Branch Manager' // In a real app, use the logged-in user's name
+        };
+      }
+      return a;
+    });
+    
+    setAppraisals(updatedAppraisals);
+    alert('Appraisal has been rejected with comments!');
   };
   
   const handlePreview = (appraisal) => {
     console.log("Preview appraisal:", appraisal);
-    // In a real app, this would navigate to a preview page
-    // navigate(`/performance/rating/supervisor/preview/${appraisal.id}`);
+    // In a real app, navigate to a preview page or open a preview modal
   };
 
   const handleReset = () => {
@@ -497,7 +479,7 @@ const SupervisorRating = () => {
     setFilterStatus('');
     setFilterPeriod('');
     setFilterDepartment('');
-    setFilterBranch(''); // Reset branch filter
+    setFilterBranch('');
   };
   
   const handleRecordsPerPageChange = (value) => {
@@ -509,54 +491,19 @@ const SupervisorRating = () => {
     setCurrentPage(page);
   };
   
-  const handleViewAssessment = (appraisal) => {
-    setSelectedAppraisal(appraisal);
-    setIsAssessmentModalOpen(true);
-  };
-  
   // Get unique values for filter dropdowns
   const periods = [...new Set(appraisals.map(a => a.period))];
   const departments = [...new Set(appraisals.map(a => a.department))];
-  const branches = [...new Set(appraisals.map(a => a.branch))]; // Get unique branches
-  
-  // Format date for display
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
-  };
-  
-  // Calculate time ago
-  const getTimeAgo = (dateString) => {
-    if (!dateString) return '';
-    
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 1) {
-      return 'Today';
-    } else if (diffDays === 1) {
-      return 'Yesterday';
-    } else if (diffDays < 30) {
-      return `${diffDays} days ago`;
-    } else if (diffDays < 365) {
-      const months = Math.floor(diffDays / 30);
-      return `${months} ${months === 1 ? 'month' : 'months'} ago`;
-    } else {
-      const years = Math.floor(diffDays / 365);
-      return `${years} ${years === 1 ? 'year' : 'years'} ago`;
-    }
-  };
+  const branches = [...new Set(appraisals.map(a => a.branch))];
 
   return (
     <div className="min-h-screen bg-white shadow-md rounded-lg">
       <ObjectiveHeader />
       <div className="flex justify-between p-4 bg-gray-100">
         <div>
-          <h1 className="text-xl font-bold text-gray-800">Supervisor Rating</h1>
+          <h1 className="text-xl font-bold text-gray-800">Branch Final Assessment</h1>
           <p className="text-sm text-gray-600 mt-1">
-            Rate the performance of your team members against their KPIs
+            Give final approval for performance appraisals as Branch Manager
           </p>
         </div>
         <OverallProgress progress={65} riskStatus={false} />
@@ -564,7 +511,7 @@ const SupervisorRating = () => {
       
       <div className="px-4 py-2 bg-white">
         <FilterBox
-          title="Supervisor Rating Filters"
+          title="Branch Final Assessment Filters"
           filters={[
             {
               id: 'filterText',
@@ -582,11 +529,7 @@ const SupervisorRating = () => {
               onChange: (e) => setFilterStatus(e.target.value),
               options: [
                 { value: '', label: '-- All Statuses --' },
-                { value: 'pending_supervisor', label: 'Pending Supervisor Rating' },
-                { value: 'supervisor_in_progress', label: 'Rating In Progress' },
-                { value: 'supervisor_completed', label: 'Rating Completed' },
-                { value: 'employee_reviewing', label: 'Employee Reviewing' },
-                { value: 'pending_hod', label: 'Pending HOD Approval' },
+                { value: 'pending_final', label: 'Pending Final Approval' },
                 { value: 'completed', label: 'Completed' },
               ],
             },
@@ -646,9 +589,10 @@ const SupervisorRating = () => {
               <TableRow>
                 <TableHeader>Employee</TableHeader>
                 <TableHeader>Department</TableHeader>
-                <TableHeader>Branch/Unit</TableHeader> 
-                <TableHeader>Agreement</TableHeader>
-                <TableHeader>Submitted</TableHeader>
+                <TableHeader>Branch/Unit</TableHeader>
+                <TableHeader>Supervisor</TableHeader>
+                <TableHeader>Peer Approver</TableHeader>
+                <TableHeader>HOD</TableHeader>
                 <TableHeader>Status</TableHeader>
                 <TableHeader>Actions</TableHeader>
               </TableRow>
@@ -656,8 +600,8 @@ const SupervisorRating = () => {
             <TableBody>
               {paginatedAppraisals.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                    No appraisals found that require your review.
+                  <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                    No appraisals found that require final approval.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -666,45 +610,20 @@ const SupervisorRating = () => {
                     <TableCell>
                       <div className="text-sm font-medium text-gray-900">{appraisal.employeeName}</div>
                       <div className="text-xs text-gray-500">{appraisal.employeeTitle}</div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {appraisal.agreementTitle}, {appraisal.period}
+                      </div>
                     </TableCell>
                     <TableCell>{appraisal.department}</TableCell>
-                    <TableCell>{appraisal.branch}</TableCell> {/* Add Branch/Unit cell */}
-                    <TableCell>
-                      <div className="text-sm text-gray-900">{appraisal.agreementTitle}</div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {appraisal.indicators.length} KPIs to rate
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        {formatDate(appraisal.submittedDate)}
-                        <span className="block text-xs text-gray-500 mt-1">
-                          {getTimeAgo(appraisal.submittedDate)}
-                        </span>
-                      </div>
-                    </TableCell>
+                    <TableCell>{appraisal.branch}</TableCell>
+                    <TableCell>{appraisal.supervisorName}</TableCell>
+                    <TableCell>{appraisal.peerApproverName}</TableCell>
+                    <TableCell>{appraisal.hodName}</TableCell>
                     <TableCell>
                       <StatusBadge status={appraisal.status} />
                     </TableCell>
                     <TableCell>
-                      {appraisal.status === 'employee_reviewing' ? (
-                        <div className="flex space-x-3">
-                          <button
-                            onClick={() => handlePreview(appraisal)}
-                            className="text-blue-600 hover:text-blue-900 inline-flex items-center gap-x-1.5 cursor-pointer"
-                          >
-                            <EyeIcon className="w-4 h-4" />
-                            <span>Preview</span>
-                          </button>
-                          <button
-                            onClick={() => handleViewAssessment(appraisal)}
-                            className="text-teal-600 hover:text-teal-900 inline-flex items-center gap-x-1.5 cursor-pointer"
-                          >
-                            <DocumentCheckIcon className="w-4 h-4" />
-                            <span>Overall Assessment</span>
-                          </button>
-                        </div>
-                      ) : appraisal.status === 'supervisor_completed' ? (
+                      {appraisal.status === 'completed' ? (
                         <button
                           onClick={() => handlePreview(appraisal)}
                           className="text-blue-600 hover:text-blue-900 inline-flex items-center gap-x-1.5 cursor-pointer"
@@ -712,40 +631,20 @@ const SupervisorRating = () => {
                           <EyeIcon className="w-4 h-4" />
                           <span>Preview</span>
                         </button>
-                      ) : (appraisal.status === 'pending_hod' || 
-                         appraisal.status === 'completed') ? (
-                        <div className="flex space-x-3">
-                          <button
-                            onClick={() => handlePreview(appraisal)}
-                            className="text-blue-600 hover:text-blue-900 inline-flex items-center gap-x-1.5 cursor-pointer"
-                          >
-                            <EyeIcon className="w-4 h-4" />
-                            <span>Preview</span>
-                          </button>
-                        </div>
                       ) : (
                         <AppraisalActions
                           appraisal={appraisal}
-                          onStartRating={handleStartRating}
-                          onSubmit={handleSubmitRating}
                           onPreview={handlePreview}
-                          showOnlyRatingButtons={true}
+                          onViewAssessment={handleReviewApprove}
+                          showOnlyRatingButtons={false}
+                          showReviewAsApprove={true}
+                          showOnlyReviewAndPreview={true}
                         />
                       )}
                       
-                      {appraisal.status === 'pending_supervisor' && (
+                      {appraisal.status === 'pending_final' && (
                         <span className="text-xs text-gray-500 block mt-1">
-                          Awaiting your rating
-                        </span>
-                      )}
-                      {appraisal.status === 'employee_reviewing' && (
-                        <span className="text-xs text-gray-500 block mt-1">
-                          Employee is reviewing your rating
-                        </span>
-                      )}
-                      {appraisal.status === 'pending_hod' && (
-                        <span className="text-xs text-gray-500 block mt-1">
-                          Awaiting HOD approval
+                          Awaiting your final approval
                         </span>
                       )}
                     </TableCell>
@@ -765,22 +664,16 @@ const SupervisorRating = () => {
         </div>
       </div>
       
-      {/* Submit Confirmation Modal */}
-      <SubmitConfirmationModal
-        isOpen={isSubmitModalOpen}
-        closeModal={() => setIsSubmitModalOpen(false)}
-        onConfirm={handleConfirmSubmit}
+      {/* Branch Final Approval Modal */}
+      <BranchFinalApprovalModal
+        isOpen={isApprovalModalOpen}
+        closeModal={() => setIsApprovalModalOpen(false)}
         appraisal={selectedAppraisal}
-      />
-
-      {/* Overall Assessment Modal */}
-      <OverallAssessmentModal
-        isOpen={isAssessmentModalOpen}
-        closeModal={() => setIsAssessmentModalOpen(false)}
-        appraisal={selectedAppraisal}
+        onApprove={handleApprove}
+        onReject={handleReject}
       />
     </div>
   );
 };
 
-export default SupervisorRating;
+export default BranchFinal;

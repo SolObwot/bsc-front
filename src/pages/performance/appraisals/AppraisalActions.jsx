@@ -1,5 +1,5 @@
 import React from 'react';
-import { PlayIcon, PaperAirplaneIcon, EyeIcon, DocumentArrowDownIcon, ClockIcon, DocumentCheckIcon } from '@heroicons/react/20/solid';
+import { PlayIcon, PaperAirplaneIcon, EyeIcon, DocumentArrowDownIcon, ClockIcon, DocumentCheckIcon, DocumentTextIcon } from '@heroicons/react/20/solid';
 
 const AppraisalActions = ({ 
   appraisal, 
@@ -9,13 +9,39 @@ const AppraisalActions = ({
   onDownload, 
   onViewHistory,
   onViewAssessment,
-  showOnlyRatingButtons = false
+  showOnlyRatingButtons = false,
+  showReviewAsApprove = false,
+  showOnlyReviewAndPreview = false
 }) => {
   return (
     <div className="flex space-x-3">
-      {appraisal.status === 'pending_rating' && (
+      {/* For HOD Approval view */}
+      {showOnlyReviewAndPreview && (
+        <>
+          {appraisal.status !== 'completed' && (
+            <button
+              onClick={() => onViewAssessment && onViewAssessment(appraisal)}
+              className="text-teal-600 hover:text-teal-900 inline-flex items-center gap-x-1.5 cursor-pointer"
+            >
+              <DocumentTextIcon className="h-5 w-5" aria-hidden="true" />
+              <span>{showReviewAsApprove ? "Approve" : "Review"}</span>
+            </button>
+          )}
+          
+          <button
+            onClick={() => onPreview && onPreview(appraisal)}
+            className="text-blue-600 hover:text-blue-900 inline-flex items-center gap-x-1.5 cursor-pointer"
+          >
+            <EyeIcon className="w-4 h-4" />
+            <span>Preview</span>
+          </button>
+        </>
+      )}
+
+      {/* Start/Continue Rating buttons for pending or in-progress statuses */}
+      {!showOnlyReviewAndPreview && (appraisal.status === 'pending_rating' || appraisal.status === 'pending_supervisor') && (
         <button
-          onClick={() => onStartRating(appraisal)}
+          onClick={() => onStartRating && onStartRating(appraisal)}
           className="text-teal-600 hover:text-teal-900 inline-flex items-center gap-x-1.5 cursor-pointer"
         >
           <PlayIcon className="h-5 w-5" aria-hidden="true" />
@@ -23,19 +49,20 @@ const AppraisalActions = ({
         </button>
       )}
       
-      {appraisal.status === 'in_progress' && (
+      {!showOnlyReviewAndPreview && (appraisal.status === 'in_progress' || appraisal.status === 'supervisor_in_progress') && (
         <button
-          onClick={() => onStartRating(appraisal)}
+          onClick={() => onStartRating && onStartRating(appraisal)}
           className="text-teal-600 hover:text-teal-900 inline-flex items-center gap-x-1.5 cursor-pointer"
         >
           <PlayIcon className="h-5 w-5" aria-hidden="true" />
-          <span>Continue Rating</span>
+          <span>Continue</span>
         </button>
       )}
       
-      {(appraisal.status === 'in_progress') && (
+      {/* Submit button for in-progress statuses */}
+      {!showOnlyReviewAndPreview && (appraisal.status === 'in_progress' || appraisal.status === 'supervisor_in_progress') && (
         <button
-          onClick={() => onSubmit(appraisal)}
+          onClick={() => onSubmit && onSubmit(appraisal)}
           className="text-blue-600 hover:text-blue-900 inline-flex items-center gap-x-1.5 cursor-pointer"
         >
           <PaperAirplaneIcon className="h-5 w-5" aria-hidden="true" />
@@ -43,7 +70,7 @@ const AppraisalActions = ({
         </button>
       )}
 
-      {appraisal.status === 'supervisor_reviewed' && onViewAssessment && (
+      {!showOnlyReviewAndPreview && appraisal.status === 'supervisor_reviewed' && onViewAssessment && (
         <button
           onClick={() => onViewAssessment(appraisal)}
           className="text-purple-600 hover:text-purple-900 inline-flex items-center gap-x-1.5 cursor-pointer"
@@ -53,7 +80,7 @@ const AppraisalActions = ({
         </button>
       )}
       
-      {(!showOnlyRatingButtons || appraisal.status === 'submitted' || appraisal.status === 'supervisor_reviewed') && (
+      {(!showOnlyRatingButtons || appraisal.status === 'submitted' || appraisal.status === 'supervisor_reviewed') && !showOnlyReviewAndPreview && (
         <>
           <button
             onClick={() => onPreview && onPreview(appraisal)}
