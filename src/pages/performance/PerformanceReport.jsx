@@ -17,6 +17,35 @@ import {
 } from '@heroicons/react/24/outline';
 import { ArrowDownTrayIcon } from '@heroicons/react/20/solid';
 
+// Import custom chart components instead of direct chartjs components
+import { LineChart, BarChart, PieChart, DoughnutChart } from '../../components/charts';
+
+// Chart color theme
+const chartColors = {
+  primary: '#4f46e5',
+  secondary: '#10b981',
+  tertiary: '#8b5cf6',
+  quaternary: '#f59e0b',
+  quinary: '#ef4444',
+  gray: '#9ca3af',
+  backgroundColors: [
+    'rgba(79, 70, 229, 0.8)',
+    'rgba(16, 185, 129, 0.8)', 
+    'rgba(139, 92, 246, 0.8)',
+    'rgba(245, 158, 11, 0.8)',
+    'rgba(239, 68, 68, 0.8)',
+    'rgba(156, 163, 175, 0.8)'
+  ],
+  borderColors: [
+    'rgba(79, 70, 229, 1)',
+    'rgba(16, 185, 129, 1)',
+    'rgba(139, 92, 246, 1)',
+    'rgba(245, 158, 11, 1)',
+    'rgba(239, 68, 68, 1)',
+    'rgba(156, 163, 175, 1)'
+  ]
+};
+
 // Custom Tab Button component for consistent styling
 const TabButton = ({ children, isActive }) => {
   return (
@@ -203,6 +232,301 @@ const generateSampleData = () => {
     ratingDistribution,
     confirmationStatusDistribution
   };
+};
+
+// Chart components
+const AgreementStatusChart = ({ data }) => {
+  const chartData = {
+    labels: Object.keys(data).map(key => 
+      key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+    ),
+    datasets: [
+      {
+        data: Object.values(data),
+        backgroundColor: chartColors.backgroundColors,
+        borderColor: chartColors.borderColors,
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: {
+          usePointStyle: true,
+          boxWidth: 10,
+          font: {
+            size: 11
+          }
+        }
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            const label = context.label || '';
+            const value = context.raw || 0;
+            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+            const percentage = Math.round((value / total) * 100);
+            return `${label}: ${value} (${percentage}%)`;
+          }
+        }
+      }
+    }
+  };
+
+  return (
+    <div className="h-64">
+      <DoughnutChart data={chartData} options={options} />
+    </div>
+  );
+};
+
+const RatingDistributionChart = ({ data }) => {
+  const labels = {
+    excellent: 'Excellent',
+    veryGood: 'Very Good',
+    good: 'Good',
+    fair: 'Fair',
+    belowAverage: 'Below Average'
+  };
+
+  const chartData = {
+    labels: Object.keys(data).map(key => labels[key] || key),
+    datasets: [
+      {
+        data: Object.values(data),
+        backgroundColor: [
+          'rgba(16, 185, 129, 0.8)',  // Green for Excellent
+          'rgba(79, 70, 229, 0.8)',   // Blue for Very Good
+          'rgba(6, 182, 212, 0.8)',   // Teal for Good
+          'rgba(245, 158, 11, 0.8)',  // Amber for Fair
+          'rgba(239, 68, 68, 0.8)',   // Red for Below Average
+        ],
+        borderColor: [
+          'rgba(16, 185, 129, 1)',
+          'rgba(79, 70, 229, 1)',
+          'rgba(6, 182, 212, 1)',
+          'rgba(245, 158, 11, 1)',
+          'rgba(239, 68, 68, 1)',
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: {
+          usePointStyle: true,
+          boxWidth: 10,
+          font: {
+            size: 11
+          }
+        }
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            const label = context.label || '';
+            const value = context.raw || 0;
+            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+            const percentage = Math.round((value / total) * 100);
+            return `${label}: ${value} (${percentage}%)`;
+          }
+        }
+      }
+    }
+  };
+
+  return (
+    <div className="h-64">
+      <PieChart data={chartData} options={options} />
+    </div>
+  );
+};
+
+const PerformanceTrendChart = () => {
+  // Sample data for performance trend
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  
+  const chartData = {
+    labels: months,
+    datasets: [
+      {
+        label: 'Average Performance Score',
+        data: months.map(() => 60 + Math.random() * 30), // Random score between 60-90
+        borderColor: chartColors.primary,
+        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+        tension: 0.4,
+        fill: true,
+      },
+      {
+        label: 'Agreement Completion Rate',
+        data: months.map(() => 50 + Math.random() * 40), // Random rate between 50-90
+        borderColor: chartColors.secondary,
+        backgroundColor: 'transparent',
+        tension: 0.4,
+        borderDash: [5, 5],
+      }
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        beginAtZero: false,
+        min: 40,
+        max: 100,
+        ticks: {
+          callback: function(value) {
+            return value + '%';
+          }
+        }
+      }
+    },
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          usePointStyle: true,
+          boxWidth: 10,
+        }
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            const label = context.dataset.label || '';
+            const value = context.raw || 0;
+            return `${label}: ${value.toFixed(1)}%`;
+          }
+        }
+      }
+    }
+  };
+
+  return (
+    <div className="h-72">
+      <LineChart data={chartData} options={options} />
+    </div>
+  );
+};
+
+const DepartmentPerformanceChart = ({ departments }) => {
+  // Generate random scores for each department
+  const scores = departments.map(() => 70 + Math.random() * 20); // Random score between 70-90
+  
+  const chartData = {
+    labels: departments,
+    datasets: [
+      {
+        label: 'Average Performance Score',
+        data: scores,
+        backgroundColor: chartColors.backgroundColors.slice(0, departments.length),
+        borderColor: chartColors.borderColors.slice(0, departments.length),
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const options = {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        beginAtZero: false,
+        min: 60,
+        max: 100,
+        ticks: {
+          callback: function(value) {
+            return value + '%';
+          }
+        }
+      }
+    },
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            const value = context.raw || 0;
+            return `Performance Score: ${value.toFixed(1)}%`;
+          }
+        }
+      }
+    }
+  };
+
+  return (
+    <div className="h-60">
+      <BarChart data={chartData} options={options} />
+    </div>
+  );
+};
+
+const BranchPerformanceChart = ({ branches }) => {
+  // Generate random scores for each branch
+  const scores = branches.map(() => 70 + Math.random() * 20); // Random score between 70-90
+  
+  const chartData = {
+    labels: branches,
+    datasets: [
+      {
+        label: 'Average Performance Score',
+        data: scores,
+        backgroundColor: chartColors.backgroundColors.slice(0, branches.length),
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        beginAtZero: false,
+        min: 60,
+        max: 100,
+        ticks: {
+          callback: function(value) {
+            return value + '%';
+          }
+        }
+      }
+    },
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            const value = context.raw || 0;
+            return `Performance Score: ${value.toFixed(1)}%`;
+          }
+        }
+      }
+    }
+  };
+
+  return (
+    <div className="h-60">
+      <BarChart data={chartData} options={options} />
+    </div>
+  );
 };
 
 const PerformanceReport = () => {
@@ -498,144 +822,24 @@ const PerformanceReport = () => {
           />
         </div>
         
-        {/* Add Status Distribution Charts */}
+        {/* Replace Status Distribution with Chart Components */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Agreement Status Distribution */}
+          {/* Agreement Status Distribution Chart */}
           <div className="bg-white p-4 rounded-lg shadow border border-gray-200">
             <h3 className="text-gray-700 font-medium mb-3">Agreement Status Distribution</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Draft</span>
-                <span className="text-sm font-medium">{agreementStatusDistribution.draft}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-gray-500 h-2 rounded-full" style={{ width: `${(agreementStatusDistribution.draft / filteredAgreements.length) * 100}%` }}></div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Submitted</span>
-                <span className="text-sm font-medium">{agreementStatusDistribution.submitted}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${(agreementStatusDistribution.submitted / filteredAgreements.length) * 100}%` }}></div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Pending Supervisor</span>
-                <span className="text-sm font-medium">{agreementStatusDistribution.pending_supervisor}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-amber-500 h-2 rounded-full" style={{ width: `${(agreementStatusDistribution.pending_supervisor / filteredAgreements.length) * 100}%` }}></div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Pending HOD</span>
-                <span className="text-sm font-medium">{agreementStatusDistribution.pending_hod}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-purple-500 h-2 rounded-full" style={{ width: `${(agreementStatusDistribution.pending_hod / filteredAgreements.length) * 100}%` }}></div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Approved</span>
-                <span className="text-sm font-medium">{agreementStatusDistribution.approved}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-green-500 h-2 rounded-full" style={{ width: `${(agreementStatusDistribution.approved / filteredAgreements.length) * 100}%` }}></div>
-              </div>
-            </div>
+            <AgreementStatusChart data={agreementStatusDistribution} />
           </div>
           
-          {/* Appraisal Status Distribution */}
+          {/* Appraisal Status Distribution Chart */}
           <div className="bg-white p-4 rounded-lg shadow border border-gray-200">
             <h3 className="text-gray-700 font-medium mb-3">Appraisal Status Distribution</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Pending Rating</span>
-                <span className="text-sm font-medium">{appraisalStatusDistribution.pending_rating}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-gray-500 h-2 rounded-full" style={{ width: `${(appraisalStatusDistribution.pending_rating / filteredAppraisals.length) * 100}%` }}></div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-sm">In Progress</span>
-                <span className="text-sm font-medium">{appraisalStatusDistribution.in_progress}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${(appraisalStatusDistribution.in_progress / filteredAppraisals.length) * 100}%` }}></div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Pending Supervisor</span>
-                <span className="text-sm font-medium">{appraisalStatusDistribution.pending_supervisor}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-amber-500 h-2 rounded-full" style={{ width: `${(appraisalStatusDistribution.pending_supervisor / filteredAppraisals.length) * 100}%` }}></div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Pending HOD</span>
-                <span className="text-sm font-medium">{appraisalStatusDistribution.pending_hod}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-purple-500 h-2 rounded-full" style={{ width: `${(appraisalStatusDistribution.pending_hod / filteredAppraisals.length) * 100}%` }}></div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Completed</span>
-                <span className="text-sm font-medium">{appraisalStatusDistribution.completed}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-green-500 h-2 rounded-full" style={{ width: `${(appraisalStatusDistribution.completed / filteredAppraisals.length) * 100}%` }}></div>
-              </div>
-            </div>
+            <AgreementStatusChart data={appraisalStatusDistribution} />
           </div>
           
-          {/* Rating Distribution */}
+          {/* Rating Distribution Chart */}
           <div className="bg-white p-4 rounded-lg shadow border border-gray-200">
             <h3 className="text-gray-700 font-medium mb-3">Performance Rating Distribution</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Excellent</span>
-                <span className="text-sm font-medium">{ratingDistribution.excellent}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-green-500 h-2 rounded-full" style={{ width: `${(ratingDistribution.excellent / filteredAppraisals.length) * 100}%` }}></div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Very Good</span>
-                <span className="text-sm font-medium">{ratingDistribution.veryGood}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${(ratingDistribution.veryGood / filteredAppraisals.length) * 100}%` }}></div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Good</span>
-                <span className="text-sm font-medium">{ratingDistribution.good}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-teal-500 h-2 rounded-full" style={{ width: `${(ratingDistribution.good / filteredAppraisals.length) * 100}%` }}></div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Fair</span>
-                <span className="text-sm font-medium">{ratingDistribution.fair}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-amber-500 h-2 rounded-full" style={{ width: `${(ratingDistribution.fair / filteredAppraisals.length) * 100}%` }}></div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Below Average</span>
-                <span className="text-sm font-medium">{ratingDistribution.belowAverage}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-red-500 h-2 rounded-full" style={{ width: `${(ratingDistribution.belowAverage / filteredAppraisals.length) * 100}%` }}></div>
-              </div>
-            </div>
+            <RatingDistributionChart data={ratingDistribution} />
           </div>
         </div>
         
@@ -676,9 +880,8 @@ const PerformanceReport = () => {
             </Tab.List>
             
             <Tab.Panels>
-              {/* Agreements Report Tab - Updated */}
+              {/* Agreements Report Tab */}
               <Tab.Panel>
-                {/* Add summary metrics for Agreements */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                   <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
                     <h3 className="text-gray-500 text-sm font-medium mb-2">Total Agreements</h3>
@@ -757,9 +960,8 @@ const PerformanceReport = () => {
                 </div>
               </Tab.Panel>
               
-              {/* Appraisals Report Tab - Updated */}
+              {/* Appraisals Report Tab */}
               <Tab.Panel>
-                {/* Add summary metrics for Appraisals */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                   <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
                     <h3 className="text-gray-500 text-sm font-medium mb-2">Total Appraisals</h3>
@@ -854,9 +1056,8 @@ const PerformanceReport = () => {
                 </div>
               </Tab.Panel>
               
-              {/* Confirmations Report Tab - Updated */}
+              {/* Confirmations Report Tab */}
               <Tab.Panel>
-                {/* Add summary metrics for Confirmations */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                   <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
                     <h3 className="text-gray-500 text-sm font-medium mb-2">Total Confirmations</h3>
@@ -959,75 +1160,28 @@ const PerformanceReport = () => {
           </Tab.Group>
         </div>
         
-        {/* Add Trend Analysis Section */}
+        {/* Replace Trend Analysis Section with Chart Components */}
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
-          <h3 className="text-gray-700 font-medium mb-4">Performance Trend Analysis</h3>
+          <h3 className="text-gray-700 font-medium mb-4">Performance Analytics</h3>
           
-          <div className="bg-gray-50 p-6 rounded-lg flex flex-col justify-center items-center border border-dashed border-gray-300">
-            <div className="w-full space-y-6">
-              <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Average Performance Score Over Time</h4>
-                <div className="h-40 flex items-end space-x-2">
-                  {['Q1 2023', 'Q2 2023', 'Q3 2023', 'Q4 2023', 'Q1 2024', 'Q2 2024'].map((quarter, index) => {
-                    const height = 60 + Math.random() * 30; // Random height between 60-90%
-                    return (
-                      <div key={quarter} className="flex flex-col items-center flex-1">
-                        <div 
-                          className={`w-full rounded-t-sm ${
-                            height > 85 ? 'bg-green-500' : 
-                            height > 75 ? 'bg-blue-500' : 
-                            height > 65 ? 'bg-teal-500' : 
-                            'bg-amber-500'
-                          }`}
-                          style={{ height: `${height}%` }}
-                        ></div>
-                        <div className="text-xs mt-2 text-gray-600">{quarter}</div>
-                        <div className="text-xs font-medium">{height.toFixed(1)}%</div>
-                      </div>
-                    );
-                  })}
-                </div>
+          <div className="mb-6">
+            <h4 className="text-sm font-medium text-gray-700 mb-2">Performance Trend Analysis</h4>
+            <div className="bg-white p-2 rounded-lg border border-gray-200">
+              <PerformanceTrendChart />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Department Performance Comparison</h4>
+              <div className="bg-white p-2 rounded-lg border border-gray-200">
+                <DepartmentPerformanceChart departments={departments.slice(0, 5)} />
               </div>
-              
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Department Score Comparison</h4>
-                  <div className="space-y-3">
-                    {departments.slice(0, 5).map(dept => (
-                      <div key={dept} className="space-y-1">
-                        <div className="flex justify-between text-xs">
-                          <span>{dept}</span>
-                          <span>{(75 + Math.random() * 15).toFixed(1)}%</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-blue-500 h-2 rounded-full" 
-                            style={{ width: `${75 + Math.random() * 15}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Agreement Completion Rate by Month</h4>
-                  <div className="space-y-3">
-                    {['January', 'February', 'March', 'April', 'May', 'June'].map(month => (
-                      <div key={month} className="space-y-1">
-                        <div className="flex justify-between text-xs">
-                          <span>{month}</span>
-                          <span>{(60 + Math.random() * 30).toFixed(1)}%</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-teal-500 h-2 rounded-full" 
-                            style={{ width: `${60 + Math.random() * 30}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+            </div>
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Branch Performance Comparison</h4>
+              <div className="bg-white p-2 rounded-lg border border-gray-200">
+                <BranchPerformanceChart branches={branches.slice(0, 5)} />
               </div>
             </div>
           </div>
