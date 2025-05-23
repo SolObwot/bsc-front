@@ -143,10 +143,10 @@ const navigationItems = [
     href: '/',
     children: [
       { label: 'View Forms', href: '/hr/annual-undertaking/view' },
-      { label: 'Create Form', href: '/hr/annual-undertaking/create' },
-      { label: 'Manage Templates', href: '/hr/annual-undertaking/templates' },
-      { label: 'Review Submissions', href: '/hr/annual-undertaking/review' },
-      { label: 'Reports', href: '/hr/annual-undertaking/reports' },
+      { label: 'Add Undertaking Form', href: '/hr/annual-undertaking/create' },
+      // { label: 'Manage Templates', href: '/hr/annual-undertaking/templates' },
+      // { label: 'Review Submissions', href: '/hr/annual-undertaking/review' },
+      // { label: 'Reports', href: '/hr/annual-undertaking/reports' },
     ]
   },
   // New section for HR Policy Summarization with AI interaction

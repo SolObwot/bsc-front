@@ -68,6 +68,16 @@ import HODConfirmation from './pages/performance/confirmation/HODConfirmation';
 import PeerConfirmation from './pages/performance/confirmation/PeerConfirmation';
 import FinalBranchConfirmation from './pages/performance/confirmation/FinalBranchConfirmation';
 import ConfirmationForm from './pages/performance/confirmation/ConfirmationForm';
+import AssistantChat from './pages/assistant/AssistantChat';
+import UploadDocuments from './pages/assistant/UploadDocuments';
+import AssistantList from './pages/assistant/AssistantList';
+import SavedChat from './pages/assistant/SavedChat';
+
+import UndertakingList from './pages/undertaking/UndertakingList';
+import UndertakingForm from './pages/undertaking/UndertakingForm';
+import UndertakingTemplates from './pages/undertaking/UndertakingTemplates';
+import UndertakingReview from './pages/undertaking/UndertakingReview';
+import UndertakingReports from './pages/undertaking/UndertakingReports';
 
 import React, { useEffect } from "react";
 import { ToastContainer } from 'react-toastify';
@@ -164,6 +174,20 @@ function App() {
               <Route path="/info" element={<div>My Info Content</div>} />
               <Route path="/change-password" element={<ChangePasswordForm />} />
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+              {/* HR Policy Assistant routes */}
+              <Route path="/hr/policy/explorer" element={<AssistantList />} />
+              <Route path="/hr/policy/chat" element={<AssistantChat />} />
+              <Route path="/hr/policy/upload" element={<UploadDocuments />} />
+              <Route path="/hr/policy/saved-chats" element={<SavedChat />} />
+
+              {/* Annual Undertaking routes */}
+              <Route path="/hr/annual-undertaking/view" element={<UndertakingList />} />
+              <Route path="/hr/annual-undertaking/create" element={<UndertakingForm />} />
+              <Route path="/hr/annual-undertaking/templates" element={<UndertakingTemplates />} />
+              <Route path="/hr/annual-undertaking/review" element={<UndertakingReview />} />
+              <Route path="/hr/annual-undertaking/reports" element={<UndertakingReports />} />
+              <Route path="/hr/annual-undertaking/sign/:id" element={<UndertakingForm />} />
             </Route>
           </Routes>
         </RoleProvider>
