@@ -129,7 +129,7 @@ const PerformanceIndicatorModal = ({
                     <div>
                       <div className="flex justify-between items-center">
                         <label className="font-medium text-[15px] text-gray-900">
-                          Indicator Name <span className="text-red-500 ml-1">*</span>
+                        Performance Measure/Indicator<span className="text-red-500 ml-1">*</span>
                         </label>
                         <span className="text-xs text-gray-400">(Char {name.length} of 1000)</span>
                       </div>
@@ -184,7 +184,7 @@ const PerformanceIndicatorModal = ({
                     {metricTab === 'date' ? (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">
-                          Target Date
+                          Target
                         </label>
                         <div className="relative">
                           <CalendarDaysIcon className="absolute top-2.5 left-3 h-5 w-5 text-gray-400" />
@@ -198,7 +198,7 @@ const PerformanceIndicatorModal = ({
                     ) : (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">
-                          Target Value
+                          Target
                         </label>
                         <input
                           type="text"
