@@ -206,7 +206,7 @@ const AppraisalModal = ({
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700">
-                          Actual Value
+                          Actual
                         </label>
                         <input
                           type={indicator?.measurementType === 'date' ? "date" : "number"}
