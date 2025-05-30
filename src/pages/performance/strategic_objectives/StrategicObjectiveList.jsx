@@ -6,7 +6,8 @@ import OverallProgress from '../../../components/balancescorecard/OverallProgres
 import FilterBox from '../../../components/ui/FilterBox';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { XMarkIcon, CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, CheckCircleIcon, ExclamationCircleIcon, PlusIcon } from '@heroicons/react/24/outline';
+import StrategicObjectiveForm from './StrategicObjectiveForm';
 import StrategicObjectiveToolbar from './StrategicObjectiveToolbar';
 import StrategicObjectiveActions from './StrategicObjectiveActions';
 import Pagination from '../../../components/ui/Pagination';
@@ -114,6 +115,64 @@ const DeleteConfirmationModal = ({ isOpen, closeModal, onConfirm, objective }) =
   );
 };
 
+// Create Strategic Objective Modal Component
+const CreateObjectiveModal = ({ isOpen, closeModal, onSubmit, perspectives, departments }) => {
+  return (
+    <Transition appear show={isOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-50" onClose={closeModal}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black/25" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white text-left align-middle shadow-xl transition-all">
+                <div className="bg-teal-50 px-6 py-5 border-b border-teal-100">
+                  <div className="flex items-center justify-between">
+                    <Dialog.Title className="text-lg font-semibold text-gray-800">
+                      Create Strategic Objective
+                    </Dialog.Title>
+                    <button onClick={closeModal} className="hover:bg-teal-100 rounded-full p-2">
+                      <XMarkIcon className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="px-6 py-6">
+                  <StrategicObjectiveForm
+                    perspectives={perspectives}
+                    departments={departments}
+                    onSubmit={onSubmit}
+                    onCancel={closeModal}
+                    isModal={true}
+                  />
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition>
+  );
+};
+
 const StrategicObjectiveList = () => {
   const navigate = useNavigate();
   const [filterText, setFilterText] = useState('');
@@ -128,6 +187,7 @@ const StrategicObjectiveList = () => {
   
   // Modal states
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedObjective, setSelectedObjective] = useState(null);
   
   // Data states
@@ -139,12 +199,10 @@ const StrategicObjectiveList = () => {
   
   // Fetch data (mock for now)
   useEffect(() => {
-    // In a real application, you would fetch from your API
     const fetchData = async () => {
       try {
         setLoading(true);
         
-        // Mock data based on the provided API response
         const mockResponse = {
           success: true,
           data: {
@@ -306,11 +364,9 @@ const StrategicObjectiveList = () => {
           }
         };
         
-        // Process the data
         setPerspectives(mockResponse.data.perspectives);
         setDepartments(mockResponse.data.departments);
         
-        // Flatten objectives for table display
         const allObjectives = mockResponse.data.perspectives.flatMap(perspective => 
           perspective.objectives.map(objective => ({
             ...objective,
@@ -334,7 +390,6 @@ const StrategicObjectiveList = () => {
     fetchData();
   }, []);
   
-  // Filter objectives based on filter criteria
   const filteredObjectives = objectives.filter(objective => {
     let matchesFilters = true;
     
@@ -361,15 +416,40 @@ const StrategicObjectiveList = () => {
     return matchesFilters;
   });
   
-  // Apply pagination
   const totalPages = Math.ceil(filteredObjectives.length / recordsPerPage);
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   const paginatedObjectives = filteredObjectives.slice(indexOfFirstRecord, indexOfLastRecord);
   
-  // Handler functions
   const handleAddNew = () => {
-    navigate('/performance/strategic-objectives/add');
+    setIsCreateModalOpen(true);
+  };
+  
+  const handleCreateSubmit = async (formData) => {
+    try {
+      console.log("Creating strategic objective:", formData);
+      
+      const newObjective = {
+        id: Math.max(...objectives.map(obj => obj.id), 0) + 1,
+        name: formData.name,
+        status: 'draft',
+        department_id: formData.department_id,
+        department_name: departments.find(d => d.id.toString() === formData.department_id.toString())?.name || 'Unknown Department',
+        perspective_id: formData.perspective_id,
+        perspective_name: perspectives.find(p => p.id.toString() === formData.perspective_id.toString())?.name || 'Unknown Perspective',
+        perspective_type: perspectives.find(p => p.id.toString() === formData.perspective_id.toString())?.type || 'unknown',
+        perspective_weight: perspectives.find(p => p.id.toString() === formData.perspective_id.toString())?.weight || 0,
+        created_by: 'Current User',
+        approved_by: null
+      };
+      
+      setObjectives(prev => [...prev, newObjective]);
+      
+      setIsCreateModalOpen(false);
+    } catch (err) {
+      console.error("Error creating strategic objective:", err);
+      throw err;
+    }
   };
   
   const handleEdit = (objective) => {
@@ -378,9 +458,7 @@ const StrategicObjectiveList = () => {
   
   const handleApprove = (objective) => {
     console.log("Approve objective:", objective);
-    // In a real application, you would make an API call to approve the objective
     
-    // Update the local state to show the objective as approved
     const updatedObjectives = objectives.map(obj => {
       if (obj.id === objective.id) {
         return { ...obj, status: 'approved', approved_by: 'Current User' };
@@ -397,10 +475,8 @@ const StrategicObjectiveList = () => {
   };
   
   const handleConfirmDelete = async (objective) => {
-    // In a real application, you would call your API to delete the objective
     console.log("Deleting objective:", objective);
     
-    // Update the local state to remove the deleted objective
     setObjectives(prev => prev.filter(obj => obj.id !== objective.id));
   };
 
@@ -421,7 +497,6 @@ const StrategicObjectiveList = () => {
     setCurrentPage(page);
   };
   
-  // Get unique values for filter dropdowns
   const perspectiveNames = [...new Set(objectives.map(obj => obj.perspective_name))];
   const departmentNames = [...new Set(objectives.map(obj => obj.department_name))];
   
@@ -527,11 +602,11 @@ const StrategicObjectiveList = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableHeader>Name</TableHeader>
-                <TableHeader>Perspective</TableHeader>
+                <TableHeader>Strategic Objective(s)</TableHeader>
+                <TableHeader>Strategy Perspective</TableHeader>
                 <TableHeader>Department</TableHeader>
-                <TableHeader>Created By</TableHeader>
-                <TableHeader>Approved By</TableHeader>
+                <TableHeader>Created</TableHeader>
+                <TableHeader>Approved</TableHeader>
                 <TableHeader>Status</TableHeader>
                 <TableHeader>Actions</TableHeader>
               </TableRow>
@@ -590,6 +665,15 @@ const StrategicObjectiveList = () => {
         closeModal={() => setIsDeleteModalOpen(false)}
         onConfirm={handleConfirmDelete}
         objective={selectedObjective}
+      />
+      
+      {/* Create Strategic Objective Modal */}
+      <CreateObjectiveModal
+        isOpen={isCreateModalOpen}
+        closeModal={() => setIsCreateModalOpen(false)}
+        onSubmit={handleCreateSubmit}
+        perspectives={perspectives}
+        departments={departments}
       />
     </div>
   );

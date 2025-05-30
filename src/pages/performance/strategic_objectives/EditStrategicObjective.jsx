@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ObjectiveHeader from '../../../components/balancescorecard/Header';
 import OverallProgress from '../../../components/balancescorecard/OverallProgress';
 import StrategicObjectiveForm from './StrategicObjectiveForm';
+import { Dialog, Transition } from '@headlessui/react';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 
 const EditStrategicObjective = () => {
   const navigate = useNavigate();
@@ -12,6 +14,7 @@ const EditStrategicObjective = () => {
   const [objective, setObjective] = useState(null);
   const [perspectives, setPerspectives] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(true); // Modal is open by default
   
   // Fetch data for the form
   useEffect(() => {
@@ -103,7 +106,6 @@ const EditStrategicObjective = () => {
           name: "Enhance effectiveness measures",
           perspective_id: 1,
           department_id: 6,
-          description: "Focus on improving effectiveness measures across the organization",
           status: "approved"
         };
         
@@ -127,15 +129,17 @@ const EditStrategicObjective = () => {
       // In a real application, you would call your API to update the objective
       console.log("Updating strategic objective:", formData);
       
-      // Redirect to the list page after successful update
-      navigate('/performance/strategic-objectives');
+      // Close the modal and redirect to the list page after successful update
+      closeModal();
     } catch (err) {
       console.error("Error updating strategic objective:", err);
       throw err;
     }
   };
   
-  const handleCancel = () => {
+  const closeModal = () => {
+    setIsModalOpen(false);
+    // Navigate back to the list
     navigate('/performance/strategic-objectives');
   };
   
@@ -148,27 +152,61 @@ const EditStrategicObjective = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white shadow-md rounded-lg">
-      <ObjectiveHeader />
-      <div className="flex justify-between p-4 bg-gray-100">
-        <div>
-          <h1 className="text-xl font-bold text-gray-800">Edit Strategic Objective</h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Update details for this strategic objective
-          </p>
-        </div>
-        <OverallProgress progress={85} riskStatus={false} />
-      </div>
-      
-      <div className="px-4 py-6 bg-white">
-        <StrategicObjectiveForm
-          initialData={objective}
-          perspectives={perspectives}
-          departments={departments}
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
-        />
-      </div>
+    <div>
+      {/* Modal for editing strategic objective */}
+      <Transition appear show={isModalOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={closeModal}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white text-left align-middle shadow-xl transition-all">
+                  <div className="bg-blue-50 px-6 py-5 border-b border-blue-100">
+                    <div className="flex items-center justify-between">
+                      <Dialog.Title className="text-lg font-semibold text-gray-800">
+                        Edit Strategic Objective
+                      </Dialog.Title>
+                      <button onClick={closeModal} className="hover:bg-blue-100 rounded-full p-2">
+                        <XMarkIcon className="h-5 w-5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="px-6 py-6">
+                    <StrategicObjectiveForm
+                      initialData={objective}
+                      perspectives={perspectives}
+                      departments={departments}
+                      onSubmit={handleSubmit}
+                      onCancel={closeModal}
+                      isModal={true}
+                    />
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
     </div>
   );
 };

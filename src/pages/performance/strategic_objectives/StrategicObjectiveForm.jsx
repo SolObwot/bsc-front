@@ -1,18 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import Button from '../../../components/ui/Button';
+import { 
+  DocumentTextIcon, 
+  BuildingOfficeIcon, 
+  ChartPieIcon,
+  ExclamationCircleIcon
+} from '@heroicons/react/24/outline';
 
 const StrategicObjectiveForm = ({ 
   initialData = null, 
   perspectives = [],
   departments = [],
   onSubmit,
-  onCancel
+  onCancel,
+  isModal = false
 }) => {
   const [formData, setFormData] = useState({
     name: '',
     perspective_id: '',
-    department_id: '',
-    description: ''
+    department_id: ''
   });
   
   const [errors, setErrors] = useState({});
@@ -23,8 +29,7 @@ const StrategicObjectiveForm = ({
       setFormData({
         name: initialData.name || '',
         perspective_id: initialData.perspective_id || '',
-        department_id: initialData.department_id || '',
-        description: initialData.description || ''
+        department_id: initialData.department_id || ''
       });
     }
   }, [initialData]);
@@ -49,7 +54,7 @@ const StrategicObjectiveForm = ({
     const newErrors = {};
     
     if (!formData.name.trim()) {
-      newErrors.name = 'Objective name is required';
+      newErrors.name = 'Strategic objective is required';
     }
     
     if (!formData.perspective_id) {
@@ -84,22 +89,35 @@ const StrategicObjectiveForm = ({
   };
   
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-      <div className="space-y-6">
+    <form onSubmit={handleSubmit} className={`${isModal ? '' : 'bg-white p-6 rounded-lg shadow-sm border border-gray-200'}`}>
+      <div className="space-y-5">
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-            Objective Name <span className="text-red-500">*</span>
+            Strategic Objective <span className="text-red-500">*</span>
           </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            className={`block w-full rounded-md shadow-sm sm:text-sm focus:ring-teal-500 focus:border-teal-500 ${
-              errors.name ? 'border-red-300' : 'border-gray-300'
-            }`}
-          />
+          <div className="relative rounded-md shadow-sm">
+            <div className="absolute top-3 left-0 pl-3 flex items-start pointer-events-none">
+              <DocumentTextIcon className="h-5 w-5 text-gray-400" />
+            </div>
+            <textarea
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="Enter strategic objective"
+              rows={3}
+              className={`block w-full pl-10 pr-3 py-2 rounded-md focus:ring-2 focus:ring-offset-0 sm:text-sm transition-colors resize-none ${
+                errors.name 
+                  ? 'border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500' 
+                  : 'border-gray-300 focus:ring-teal-500 focus:border-teal-500 hover:border-gray-400'
+              }`}
+            />
+            {errors.name && (
+              <div className="absolute top-3 right-0 pr-3 flex items-start pointer-events-none">
+                <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
+              </div>
+            )}
+          </div>
           {errors.name && (
             <p className="mt-1 text-sm text-red-600">{errors.name}</p>
           )}
@@ -109,22 +127,39 @@ const StrategicObjectiveForm = ({
           <label htmlFor="department_id" className="block text-sm font-medium text-gray-700 mb-1">
             Department <span className="text-red-500">*</span>
           </label>
-          <select
-            id="department_id"
-            name="department_id"
-            value={formData.department_id}
-            onChange={handleChange}
-            className={`block w-full rounded-md shadow-sm sm:text-sm focus:ring-teal-500 focus:border-teal-500 ${
-              errors.department_id ? 'border-red-300' : 'border-gray-300'
-            }`}
-          >
-            <option value="">-- Select Department --</option>
-            {departments.map(department => (
-              <option key={department.id} value={department.id}>
-                {department.name}
-              </option>
-            ))}
-          </select>
+          <div className="relative rounded-md shadow-sm">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <BuildingOfficeIcon className="h-5 w-5 text-gray-400" />
+            </div>
+            <select
+              id="department_id"
+              name="department_id"
+              value={formData.department_id}
+              onChange={handleChange}
+              className={`block w-full pl-10 pr-10 py-2 rounded-md appearance-none focus:ring-2 focus:ring-offset-0 sm:text-sm transition-colors ${
+                errors.department_id 
+                  ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' 
+                  : 'border-gray-300 focus:ring-teal-500 focus:border-teal-500 hover:border-gray-400'
+              }`}
+            >
+              <option value="">-- Select Department --</option>
+              {departments.map(department => (
+                <option key={department.id} value={department.id}>
+                  {department.name}
+                </option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+              <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </div>
+            {errors.department_id && (
+              <div className="absolute inset-y-0 right-0 pr-8 flex items-center pointer-events-none">
+                <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
+              </div>
+            )}
+          </div>
           {errors.department_id && (
             <p className="mt-1 text-sm text-red-600">{errors.department_id}</p>
           )}
@@ -132,49 +167,53 @@ const StrategicObjectiveForm = ({
         
         <div>
           <label htmlFor="perspective_id" className="block text-sm font-medium text-gray-700 mb-1">
-            Perspective <span className="text-red-500">*</span>
+            Strategy Perspective <span className="text-red-500">*</span>
           </label>
-          <select
-            id="perspective_id"
-            name="perspective_id"
-            value={formData.perspective_id}
-            onChange={handleChange}
-            className={`block w-full rounded-md shadow-sm sm:text-sm focus:ring-teal-500 focus:border-teal-500 ${
-              errors.perspective_id ? 'border-red-300' : 'border-gray-300'
-            }`}
-          >
-            <option value="">-- Select Perspective --</option>
-            {perspectives.map(perspective => (
-              <option key={perspective.id} value={perspective.id}>
-                {perspective.name} ({perspective.type} - {perspective.weight}%)
-              </option>
-            ))}
-          </select>
+          <div className="relative rounded-md shadow-sm">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <ChartPieIcon className="h-5 w-5 text-gray-400" />
+            </div>
+            <select
+              id="perspective_id"
+              name="perspective_id"
+              value={formData.perspective_id}
+              onChange={handleChange}
+              className={`block w-full pl-10 pr-10 py-2 rounded-md appearance-none focus:ring-2 focus:ring-offset-0 sm:text-sm transition-colors ${
+                errors.perspective_id 
+                  ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' 
+                  : 'border-gray-300 focus:ring-teal-500 focus:border-teal-500 hover:border-gray-400'
+              }`}
+            >
+              <option value="">-- Select Perspective --</option>
+              {perspectives.map(perspective => (
+                <option key={perspective.id} value={perspective.id}>
+                  {perspective.name} ({perspective.type} - {perspective.weight}%)
+                </option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+              <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </div>
+            {errors.perspective_id && (
+              <div className="absolute inset-y-0 right-0 pr-8 flex items-center pointer-events-none">
+                <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
+              </div>
+            )}
+          </div>
           {errors.perspective_id && (
             <p className="mt-1 text-sm text-red-600">{errors.perspective_id}</p>
           )}
         </div>
         
-        <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-            Description
-          </label>
-          <textarea
-            id="description"
-            name="description"
-            rows={4}
-            value={formData.description}
-            onChange={handleChange}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
-          />
-        </div>
-        
-        <div className="flex justify-end space-x-3 pt-4">
+        <div className="flex justify-end space-x-3 pt-6">
           <Button
             type="button"
             variant="secondary"
             onClick={onCancel}
             disabled={isSubmitting}
+            className="px-4"
           >
             Cancel
           </Button>
@@ -182,6 +221,7 @@ const StrategicObjectiveForm = ({
             type="submit"
             variant="pride"
             disabled={isSubmitting}
+            className="px-4"
           >
             {isSubmitting ? 'Saving...' : initialData ? 'Update Objective' : 'Create Objective'}
           </Button>

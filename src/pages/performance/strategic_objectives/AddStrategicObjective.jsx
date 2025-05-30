@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ObjectiveHeader from '../../../components/balancescorecard/Header';
 import OverallProgress from '../../../components/balancescorecard/OverallProgress';
 import StrategicObjectiveForm from './StrategicObjectiveForm';
+import { Dialog, Transition } from '@headlessui/react';
+import { XMarkIcon, PlusIcon } from '@heroicons/react/24/outline';
+import Button from '../../../components/ui/Button';
 
 const AddStrategicObjective = () => {
   const navigate = useNavigate();
@@ -10,6 +13,7 @@ const AddStrategicObjective = () => {
   const [error, setError] = useState(null);
   const [perspectives, setPerspectives] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Fetch perspectives and departments for the form
   useEffect(() => {
@@ -113,7 +117,8 @@ const AddStrategicObjective = () => {
       // In a real application, you would call your API to create the objective
       console.log("Creating strategic objective:", formData);
       
-      // Redirect to the list page after successful creation
+      // Close the modal and redirect to the list page after successful creation
+      setIsModalOpen(false);
       navigate('/performance/strategic-objectives');
     } catch (err) {
       console.error("Error creating strategic objective:", err);
@@ -122,6 +127,10 @@ const AddStrategicObjective = () => {
   };
   
   const handleCancel = () => {
+    setIsModalOpen(false);
+  };
+  
+  const handleReturnToList = () => {
     navigate('/performance/strategic-objectives');
   };
   
@@ -138,22 +147,98 @@ const AddStrategicObjective = () => {
       <ObjectiveHeader />
       <div className="flex justify-between p-4 bg-gray-100">
         <div>
-          <h1 className="text-xl font-bold text-gray-800">Add Strategic Objective</h1>
+          <h1 className="text-xl font-bold text-gray-800">Strategic Objectives</h1>
           <p className="text-sm text-gray-600 mt-1">
-            Create a new strategic objective for your organization
+            Create and manage strategic objectives for your organization
           </p>
         </div>
         <OverallProgress progress={85} riskStatus={false} />
       </div>
       
-      <div className="px-4 py-6 bg-white">
-        <StrategicObjectiveForm
-          perspectives={perspectives}
-          departments={departments}
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
-        />
+      <div className="px-6 py-8 bg-white">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Strategic Objectives</h2>
+            <p className="text-gray-600 mb-8">
+              Strategic objectives define the key goals your organization aims to achieve.
+            </p>
+            
+            <div className="flex flex-col items-center space-y-4">
+              <Button 
+                type="button"
+                variant="pride"
+                onClick={() => setIsModalOpen(true)}
+                className="flex items-center px-6"
+              >
+                <PlusIcon className="w-5 h-5 mr-2" />
+                Create Strategic Objective
+              </Button>
+              
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleReturnToList}
+              >
+                View All Strategic Objectives
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
+      
+      {/* Strategic Objective Modal */}
+      <Transition appear show={isModalOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={() => setIsModalOpen(false)}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white text-left align-middle shadow-xl transition-all">
+                  <div className="bg-teal-50 px-6 py-5 border-b border-teal-100">
+                    <div className="flex items-center justify-between">
+                      <Dialog.Title className="text-lg font-semibold text-gray-800">
+                        Create Strategic Objective
+                      </Dialog.Title>
+                      <button onClick={() => setIsModalOpen(false)} className="hover:bg-teal-100 rounded-full p-2">
+                        <XMarkIcon className="h-5 w-5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="px-6 py-6">
+                    <StrategicObjectiveForm
+                      perspectives={perspectives}
+                      departments={departments}
+                      onSubmit={handleSubmit}
+                      onCancel={handleCancel}
+                      isModal={true}
+                    />
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
     </div>
   );
 };
