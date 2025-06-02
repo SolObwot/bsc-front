@@ -1,5 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchStrategicObjectives, deleteStrategicObjective, approveStrategicObjective } from '../../../redux/strategicObjectiveSlice';
+import useStrategicObjectiveFilters from '../../../hooks/strategicObjective/useStrategicObjectiveFilters';
+import useStrategicObjectivePagination from '../../../hooks/strategicObjective/useStrategicObjectivePagination';
+import { useToast, ToastContainer } from "../../../hooks/useToast";
 import { Table, TableHead, TableHeader, TableBody, TableRow, TableCell } from '../../../components/ui/Tables';
 import ObjectiveHeader from '../../../components/balancescorecard/Header';
 import OverallProgress from '../../../components/balancescorecard/OverallProgress';
@@ -11,26 +16,7 @@ import StrategicObjectiveForm from './StrategicObjectiveForm';
 import StrategicObjectiveToolbar from './StrategicObjectiveToolbar';
 import StrategicObjectiveActions from './StrategicObjectiveActions';
 import Pagination from '../../../components/ui/Pagination';
-
-// Status badge component
-const StatusBadge = ({ status }) => {
-  const statusConfig = {
-    draft: { label: 'Draft', color: 'bg-gray-100 text-gray-700', icon: ExclamationCircleIcon },
-    pending: { label: 'Pending', color: 'bg-amber-100 text-amber-700', icon: ExclamationCircleIcon },
-    rejected: { label: 'Rejected', color: 'bg-red-100 text-red-700', icon: ExclamationCircleIcon },
-    approved: { label: 'Approved', color: 'bg-green-100 text-green-700', icon: CheckCircleIcon }
-  };
-
-  const config = statusConfig[status] || statusConfig.pending;
-  const Icon = config.icon;
-
-  return (
-    <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${config.color}`}>
-      <Icon className="w-3.5 h-3.5 mr-1" />
-      {config.label}
-    </span>
-  );
-};
+import StatusBadge from './StatusBadge';
 
 // Confirmation Modal Component
 const DeleteConfirmationModal = ({ isOpen, closeModal, onConfirm, objective }) => {
@@ -175,251 +161,53 @@ const CreateObjectiveModal = ({ isOpen, closeModal, onSubmit, perspectives, depa
 
 const StrategicObjectiveList = () => {
   const navigate = useNavigate();
-  const [filterText, setFilterText] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
-  const [filterPerspective, setFilterPerspective] = useState('');
-  const [filterType, setFilterType] = useState('');
-  const [filterDepartment, setFilterDepartment] = useState('');
+  const dispatch = useDispatch();
+  const { toast } = useToast();
   
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [recordsPerPage, setRecordsPerPage] = useState(10);
+  const { data, loading, error } = useSelector((state) => state.strategicObjectives);
+  
+  // Use the flattened objectives array instead of the nested structure
+  const objectives = data?.flattenedObjectives || [];
+  const departments = data?.departments || [];
+  
+  // Extract unique department info for the filter dropdown
+  const departmentOptions = useMemo(() => {
+    const uniqueDepartments = new Map();
+    objectives.forEach(obj => {
+      if (obj.department_id && obj.department_name) {
+        uniqueDepartments.set(obj.department_id, obj.department_name);
+      }
+    });
+    
+    // Also add departments from the departments array
+    departments.forEach(dept => {
+      if (dept.department?.id && dept.department?.name) {
+        uniqueDepartments.set(dept.department.id, dept.department.name);
+      }
+    });
+    
+    return Array.from(uniqueDepartments.entries()).map(([id, name]) => ({
+      id,
+      name
+    }));
+  }, [objectives, departments]);
   
   // Modal states
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedObjective, setSelectedObjective] = useState(null);
   
-  // Data states
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [perspectives, setPerspectives] = useState([]);
-  const [objectives, setObjectives] = useState([]);
-  const [departments, setDepartments] = useState([]);
+  // Filter and pagination hooks
+  const { filteredObjectives, filterProps } = useStrategicObjectiveFilters(objectives);
+  const { paginatedObjectives, paginationProps } = useStrategicObjectivePagination(filteredObjectives);
   
-  // Fetch data (mock for now)
+  // Extract perspective names and types for filters
+  const perspectiveNames = [...new Set(objectives.map(obj => obj.perspective?.name).filter(Boolean))];
+  const perspectiveTypes = [...new Set(objectives.map(obj => obj.perspective?.type).filter(Boolean))];
+  
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        
-        const mockResponse = {
-          success: true,
-          data: {
-            department: {
-              id: 6,
-              name: "Business Technology Department",
-              short_code: "BT",
-              hod: {
-                id: 17,
-                surname: "John",
-                last_name: "Aogon"
-              }
-            },
-            departments: [
-              { id: 1, name: "Information Technology" },
-              { id: 2, name: "Finance" },
-              { id: 3, name: "Human Resources" },
-              { id: 4, name: "Marketing" },
-              { id: 5, name: "Operations" },
-              { id: 6, name: "Business Technology Department" }
-            ],
-            perspectives: [
-              {
-                id: 1,
-                name: "INNOVATION, LEARNING & GROWTH",
-                short_code: "SP001",
-                type: "quantitative",
-                weight: 20,
-                objectives: [
-                  {
-                    id: 12,
-                    name: "Enhance effectiveness measures",
-                    assignment_id: 185,
-                    status: "approved",
-                    department_id: 6,
-                    department_name: "Business Technology Department",
-                    created_by: "Jane Smith",
-                    approved_by: "Michael Johnson"
-                  },
-                  {
-                    id: 16,
-                    name: "Optimize operational allocation",
-                    assignment_id: 186,
-                    status: "approved",
-                    department_id: 1,
-                    department_name: "Information Technology",
-                    created_by: "David Wilson",
-                    approved_by: "Sarah Thomas"
-                  }
-                ]
-              },
-              {
-                id: 2,
-                name: "INTERNAL PROCESSES",
-                short_code: "SP002",
-                type: "quantitative",
-                weight: 20,
-                objectives: [
-                  {
-                    id: 22,
-                    name: "Improve customer system",
-                    assignment_id: 190,
-                    status: "pending",
-                    department_id: 4,
-                    department_name: "Marketing",
-                    created_by: "Robert Brown",
-                    approved_by: null
-                  },
-                  {
-                    id: 36,
-                    name: "Develop business-focused solutions",
-                    assignment_id: 191,
-                    status: "draft",
-                    department_id: 1,
-                    department_name: "Information Technology",
-                    created_by: "Emily Clark",
-                    approved_by: null
-                  }
-                ]
-              },
-              {
-                id: 3,
-                name: "FINANCIAL",
-                short_code: "SP003",
-                type: "quantitative",
-                weight: 20,
-                objectives: []
-              },
-              {
-                id: 4,
-                name: "CUSTOMER",
-                short_code: "SP004",
-                type: "quantitative",
-                weight: 20,
-                objectives: []
-              },
-              {
-                id: 5,
-                name: "INTEGRITY & ACCOUNTABILITY",
-                short_code: "SP005",
-                type: "qualitative",
-                weight: 4,
-                objectives: [
-                  {
-                    id: 3,
-                    name: "Enhance engagement capabilities",
-                    assignment_id: 203,
-                    status: "rejected",
-                    department_id: 2,
-                    department_name: "Finance",
-                    created_by: "John Doe",
-                    approved_by: null
-                  },
-                  {
-                    id: 19,
-                    name: "Expand operational base",
-                    assignment_id: 204,
-                    status: "pending",
-                    department_id: 5,
-                    department_name: "Operations",
-                    created_by: "Alice Johnson",
-                    approved_by: null
-                  }
-                ]
-              },
-              {
-                id: 6,
-                name: "CUSTOMER CENTRICITY",
-                short_code: "SP006",
-                type: "qualitative",
-                weight: 4,
-                objectives: []
-              },
-              {
-                id: 7,
-                name: "TEAMWORK & COLLABORATION",
-                short_code: "SP007",
-                type: "qualitative",
-                weight: 4,
-                objectives: []
-              },
-              {
-                id: 8,
-                name: "EFFICIENCY & EFFECTIVENESS",
-                short_code: "SP008",
-                type: "qualitative",
-                weight: 4,
-                objectives: []
-              },
-              {
-                id: 9,
-                name: "FAIRNESS & TRANSPARENCY",
-                short_code: "SP009",
-                type: "qualitative",
-                weight: 4,
-                objectives: []
-              }
-            ]
-          }
-        };
-        
-        setPerspectives(mockResponse.data.perspectives);
-        setDepartments(mockResponse.data.departments);
-        
-        const allObjectives = mockResponse.data.perspectives.flatMap(perspective => 
-          perspective.objectives.map(objective => ({
-            ...objective,
-            perspective_name: perspective.name,
-            perspective_type: perspective.type,
-            perspective_weight: perspective.weight,
-            perspective_id: perspective.id
-          }))
-        );
-        
-        setObjectives(allObjectives);
-        
-      } catch (err) {
-        console.error("Error fetching strategic objectives:", err);
-        setError("Failed to load strategic objectives.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchData();
-  }, []);
-  
-  const filteredObjectives = objectives.filter(objective => {
-    let matchesFilters = true;
-    
-    if (filterText) {
-      matchesFilters = matchesFilters && objective.name.toLowerCase().includes(filterText.toLowerCase());
-    }
-    
-    if (filterStatus) {
-      matchesFilters = matchesFilters && objective.status === filterStatus;
-    }
-    
-    if (filterPerspective) {
-      matchesFilters = matchesFilters && objective.perspective_name === filterPerspective;
-    }
-    
-    if (filterType) {
-      matchesFilters = matchesFilters && objective.perspective_type === filterType;
-    }
-    
-    if (filterDepartment) {
-      matchesFilters = matchesFilters && objective.department_name === filterDepartment;
-    }
-    
-    return matchesFilters;
-  });
-  
-  const totalPages = Math.ceil(filteredObjectives.length / recordsPerPage);
-  const indexOfLastRecord = currentPage * recordsPerPage;
-  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const paginatedObjectives = filteredObjectives.slice(indexOfFirstRecord, indexOfLastRecord);
+    dispatch(fetchStrategicObjectives());
+  }, [dispatch]);
   
   const handleAddNew = () => {
     setIsCreateModalOpen(true);
@@ -427,28 +215,18 @@ const StrategicObjectiveList = () => {
   
   const handleCreateSubmit = async (formData) => {
     try {
-      console.log("Creating strategic objective:", formData);
-      
-      const newObjective = {
-        id: Math.max(...objectives.map(obj => obj.id), 0) + 1,
-        name: formData.name,
-        status: 'draft',
-        department_id: formData.department_id,
-        department_name: departments.find(d => d.id.toString() === formData.department_id.toString())?.name || 'Unknown Department',
-        perspective_id: formData.perspective_id,
-        perspective_name: perspectives.find(p => p.id.toString() === formData.perspective_id.toString())?.name || 'Unknown Perspective',
-        perspective_type: perspectives.find(p => p.id.toString() === formData.perspective_id.toString())?.type || 'unknown',
-        perspective_weight: perspectives.find(p => p.id.toString() === formData.perspective_id.toString())?.weight || 0,
-        created_by: 'Current User',
-        approved_by: null
-      };
-      
-      setObjectives(prev => [...prev, newObjective]);
-      
       setIsCreateModalOpen(false);
+      toast({
+        title: "Success",
+        description: "Strategic objective created successfully",
+        variant: "success",
+      });
     } catch (err) {
-      console.error("Error creating strategic objective:", err);
-      throw err;
+      toast({
+        title: "Error",
+        description: "Failed to create strategic objective",
+        variant: "destructive",
+      });
     }
   };
   
@@ -456,17 +234,21 @@ const StrategicObjectiveList = () => {
     navigate(`/performance/strategic-objectives/edit/${objective.id}`);
   };
   
-  const handleApprove = (objective) => {
-    console.log("Approve objective:", objective);
-    
-    const updatedObjectives = objectives.map(obj => {
-      if (obj.id === objective.id) {
-        return { ...obj, status: 'approved', approved_by: 'Current User' };
-      }
-      return obj;
-    });
-    
-    setObjectives(updatedObjectives);
+  const handleApprove = async (objective) => {
+    try {
+      await dispatch(approveStrategicObjective(objective.id)).unwrap();
+      toast({
+        title: "Success",
+        description: "Strategic objective approved successfully",
+        variant: "success",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to approve strategic objective",
+        variant: "destructive",
+      });
+    }
   };
   
   const handleDelete = (objective) => {
@@ -475,30 +257,22 @@ const StrategicObjectiveList = () => {
   };
   
   const handleConfirmDelete = async (objective) => {
-    console.log("Deleting objective:", objective);
-    
-    setObjectives(prev => prev.filter(obj => obj.id !== objective.id));
+    try {
+      await dispatch(deleteStrategicObjective(objective.id)).unwrap();
+      setIsDeleteModalOpen(false);
+      toast({
+        title: "Success",
+        description: "Strategic objective deleted successfully",
+        variant: "success",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete strategic objective",
+        variant: "destructive",
+      });
+    }
   };
-
-  const handleReset = () => {
-    setFilterText('');
-    setFilterStatus('');
-    setFilterPerspective('');
-    setFilterType('');
-    setFilterDepartment('');
-  };
-  
-  const handleRecordsPerPageChange = (value) => {
-    setRecordsPerPage(Number(value));
-    setCurrentPage(1);
-  };
-  
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
-  
-  const perspectiveNames = [...new Set(objectives.map(obj => obj.perspective_name))];
-  const departmentNames = [...new Set(objectives.map(obj => obj.department_name))];
   
   if (loading) {
     return <div className="p-6 text-center">Loading strategic objectives...</div>;
@@ -510,12 +284,13 @@ const StrategicObjectiveList = () => {
 
   return (
     <div className="min-h-screen bg-white shadow-md rounded-lg">
+      <ToastContainer />
       <ObjectiveHeader />
       <div className="flex justify-between p-4 bg-gray-100">
         <div>
-          <h1 className="text-xl font-bold text-gray-800">Strategic Objectives</h1>
+          <h1 className="text-xl font-bold text-gray-800">Setup and Manage Department Strategic Objectives</h1>
           <p className="text-sm text-gray-600 mt-1">
-            Manage your organization's strategic objectives
+            Manage strategic objectives across all departments. Use the filters to find specific objectives, or create new ones.
           </p>
         </div>
         <OverallProgress progress={85} riskStatus={false} />
@@ -530,15 +305,40 @@ const StrategicObjectiveList = () => {
               label: 'Search',
               type: 'text',
               placeholder: 'Search by objective name...',
-              value: filterText,
-              onChange: (e) => setFilterText(e.target.value),
+              value: filterProps.filterText,
+              onChange: (e) => filterProps.setFilterText(e.target.value),
+            },
+            {
+              id: 'filterYear',
+              label: 'Year',
+              type: 'select',
+              value: filterProps.filterYear,
+              onChange: (e) => filterProps.setFilterYear(e.target.value),
+              options: [
+                { value: '', label: '-- All Years --' },
+                { value: filterProps.currentYear.toString(), label: filterProps.currentYear.toString() },
+                { value: (filterProps.currentYear - 1).toString(), label: (filterProps.currentYear - 1).toString() },
+                { value: (filterProps.currentYear - 2).toString(), label: (filterProps.currentYear - 2).toString() },
+                { value: (filterProps.currentYear - 3).toString(), label: (filterProps.currentYear - 3).toString() },
+              ],
+            },
+            {
+              id: 'filterDepartment',
+              label: 'Department',
+              type: 'select',
+              value: filterProps.filterDepartment,
+              onChange: (e) => filterProps.setFilterDepartment(e.target.value),
+              options: [
+                { value: '', label: '-- All Departments --' },
+                ...departmentOptions.map(dept => ({ value: dept.id, label: dept.name }))
+              ],
             },
             {
               id: 'filterStatus',
               label: 'Status',
               type: 'select',
-              value: filterStatus,
-              onChange: (e) => setFilterStatus(e.target.value),
+              value: filterProps.filterStatus,
+              onChange: (e) => filterProps.setFilterStatus(e.target.value),
               options: [
                 { value: '', label: '-- All Statuses --' },
                 { value: 'draft', label: 'Draft' },
@@ -548,22 +348,11 @@ const StrategicObjectiveList = () => {
               ],
             },
             {
-              id: 'filterDepartment',
-              label: 'Department',
-              type: 'select',
-              value: filterDepartment,
-              onChange: (e) => setFilterDepartment(e.target.value),
-              options: [
-                { value: '', label: '-- All Departments --' },
-                ...departmentNames.map(dept => ({ value: dept, label: dept }))
-              ],
-            },
-            {
               id: 'filterPerspective',
               label: 'Perspective',
               type: 'select',
-              value: filterPerspective,
-              onChange: (e) => setFilterPerspective(e.target.value),
+              value: filterProps.filterPerspective,
+              onChange: (e) => filterProps.setFilterPerspective(e.target.value),
               options: [
                 { value: '', label: '-- All Perspectives --' },
                 ...perspectiveNames.map(name => ({ value: name, label: name }))
@@ -573,12 +362,11 @@ const StrategicObjectiveList = () => {
               id: 'filterType',
               label: 'Type',
               type: 'select',
-              value: filterType,
-              onChange: (e) => setFilterType(e.target.value),
+              value: filterProps.filterType,
+              onChange: (e) => filterProps.setFilterType(e.target.value),
               options: [
                 { value: '', label: '-- All Types --' },
-                { value: 'quantitative', label: 'Quantitative' },
-                { value: 'qualitative', label: 'Qualitative' },
+                ...perspectiveTypes.map(type => ({ value: type, label: type.charAt(0).toUpperCase() + type.slice(1) }))
               ],
             },
           ]}
@@ -586,15 +374,15 @@ const StrategicObjectiveList = () => {
             {
               label: 'Reset Filters',
               variant: 'secondary',
-              onClick: handleReset,
+              onClick: filterProps.handleReset,
             },
           ]}
         />
         
         <div className="bg-gray-100 p-4 rounded-lg mb-4 shadow-sm">
           <StrategicObjectiveToolbar
-            recordsPerPage={recordsPerPage}
-            onRecordsPerPageChange={handleRecordsPerPageChange}
+            recordsPerPage={paginationProps.recordsPerPage}
+            onRecordsPerPageChange={paginationProps.handleRecordsPerPageChange}
             totalRecords={filteredObjectives.length}
             onCreateClick={handleAddNew}
           />
@@ -605,8 +393,7 @@ const StrategicObjectiveList = () => {
                 <TableHeader>Strategic Objective(s)</TableHeader>
                 <TableHeader>Strategy Perspective</TableHeader>
                 <TableHeader>Department</TableHeader>
-                <TableHeader>Created</TableHeader>
-                <TableHeader>Approved</TableHeader>
+                <TableHeader>Created By</TableHeader>
                 <TableHeader>Status</TableHeader>
                 <TableHeader>Actions</TableHeader>
               </TableRow>
@@ -614,25 +401,33 @@ const StrategicObjectiveList = () => {
             <TableBody>
               {paginatedObjectives.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                     No strategic objectives found. Click "Create Strategic Objective" to get started.
                   </TableCell>
                 </TableRow>
               ) : (
                 paginatedObjectives.map((objective) => (
-                  <TableRow key={objective.id} className="hover:bg-gray-50">
-                    <TableCell className="font-medium">{objective.name}</TableCell>
+                  <TableRow key={objective.id || `objective-${Math.random()}`} className="hover:bg-gray-50">
+                    <TableCell className="font-medium">
+                      {objective.objective?.name || objective.name || 'Unnamed Objective'}
+                    </TableCell>
                     <TableCell>
-                      <div>{objective.perspective_name}</div>
+                      <div>{objective.perspective?.name || 'N/A'}</div>
                       <div className="text-xs text-gray-500">
-                        <span className="capitalize">{objective.perspective_type}</span> • <span>{objective.perspective_weight}%</span>
+                        <span className="capitalize">{objective.perspective?.type || 'N/A'}</span> • 
+                        <span>{objective.perspective?.weight || 0}%</span>
                       </div>
                     </TableCell>
-                    <TableCell>{objective.department_name}</TableCell>
-                    <TableCell>{objective.created_by || 'N/A'}</TableCell>
-                    <TableCell>{objective.approved_by || 'Pending'}</TableCell>
                     <TableCell>
-                      <StatusBadge status={objective.status} />
+                      {objective.department_name || 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      {objective.creator ? 
+                        `${objective.creator.surname || ''} ${objective.creator.last_name || ''}` : 
+                        'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={objective.status || 'pending'} />
                     </TableCell>
                     <TableCell>
                       <StrategicObjectiveActions
@@ -651,9 +446,9 @@ const StrategicObjectiveList = () => {
           
           <div className="mt-4">
             <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
+              currentPage={paginationProps.currentPage}
+              totalPages={paginationProps.totalPages}
+              onPageChange={paginationProps.handlePageChange}
             />
           </div>
         </div>
@@ -672,8 +467,10 @@ const StrategicObjectiveList = () => {
         isOpen={isCreateModalOpen}
         closeModal={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreateSubmit}
-        perspectives={perspectives}
-        departments={departments}
+        perspectives={objectives.map(obj => obj.perspective).filter((perspective, index, self) => 
+          perspective && self.findIndex(p => p?.id === perspective?.id) === index
+        )}
+        departments={departmentOptions}
       />
     </div>
   );
