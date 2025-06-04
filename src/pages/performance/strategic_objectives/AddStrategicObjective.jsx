@@ -1,94 +1,43 @@
-import React, { useState, useEffect, Fragment } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import ObjectiveHeader from '../../../components/balancescorecard/Header';
 import OverallProgress from '../../../components/balancescorecard/OverallProgress';
-import StrategicObjectiveForm from './StrategicObjectiveForm';
-import { Dialog, Transition } from '@headlessui/react';
-import { XMarkIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { PlusIcon } from '@heroicons/react/24/outline';
 import Button from '../../../components/ui/Button';
+import CreateObjectiveModal from './CreateObjectiveModal';
+import { createStrategicObjective, fetchStrategicObjectives } from '../../../redux/strategicObjectiveSlice';
 
 const AddStrategicObjective = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [perspectives, setPerspectives] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
+  // Get perspectives from Redux store
+  const { data } = useSelector((state) => state.strategicObjectives);
+  const objectives = data?.flattenedObjectives || [];
+  
+  // Extract unique perspectives
+  const perspectives = objectives
+    .map(obj => obj.perspective)
+    .filter((perspective, index, self) => 
+      perspective && self.findIndex(p => p?.id === perspective?.id) === index
+    );
+  
   // Fetch perspectives and departments for the form
   useEffect(() => {
-    // In a real application, you would fetch from your API
+    // Fetch strategic objectives to get perspectives
+    dispatch(fetchStrategicObjectives());
+    
+    // In a real application, you would fetch departments from your API
     const fetchData = async () => {
       try {
         setLoading(true);
         
-        // Mock data based on the provided API response
-        const mockPerspectives = [
-          {
-            id: 1,
-            name: "INNOVATION, LEARNING & GROWTH",
-            short_code: "SP001",
-            type: "quantitative",
-            weight: 20
-          },
-          {
-            id: 2,
-            name: "INTERNAL PROCESSES",
-            short_code: "SP002",
-            type: "quantitative",
-            weight: 20
-          },
-          {
-            id: 3,
-            name: "FINANCIAL",
-            short_code: "SP003",
-            type: "quantitative",
-            weight: 20
-          },
-          {
-            id: 4,
-            name: "CUSTOMER",
-            short_code: "SP004",
-            type: "quantitative",
-            weight: 20
-          },
-          {
-            id: 5,
-            name: "INTEGRITY & ACCOUNTABILITY",
-            short_code: "SP005",
-            type: "qualitative",
-            weight: 4
-          },
-          {
-            id: 6,
-            name: "CUSTOMER CENTRICITY",
-            short_code: "SP006",
-            type: "qualitative",
-            weight: 4
-          },
-          {
-            id: 7,
-            name: "TEAMWORK & COLLABORATION",
-            short_code: "SP007",
-            type: "qualitative",
-            weight: 4
-          },
-          {
-            id: 8,
-            name: "EFFICIENCY & EFFECTIVENESS",
-            short_code: "SP008",
-            type: "qualitative",
-            weight: 4
-          },
-          {
-            id: 9,
-            name: "FAIRNESS & TRANSPARENCY",
-            short_code: "SP009",
-            type: "qualitative",
-            weight: 4
-          }
-        ];
-        
+        // Mock data for departments only
         const mockDepartments = [
           { id: 1, name: "Information Technology" },
           { id: 2, name: "Finance" },
@@ -98,9 +47,7 @@ const AddStrategicObjective = () => {
           { id: 6, name: "Business Technology Department" }
         ];
         
-        setPerspectives(mockPerspectives);
         setDepartments(mockDepartments);
-        
       } catch (err) {
         console.error("Error fetching data:", err);
         setError("Failed to load required data.");
@@ -110,24 +57,19 @@ const AddStrategicObjective = () => {
     };
     
     fetchData();
-  }, []);
+  }, [dispatch]);
   
   const handleSubmit = async (formData) => {
     try {
-      // In a real application, you would call your API to create the objective
-      console.log("Creating strategic objective:", formData);
+      // Dispatch the action to create the objective
+      const result = await dispatch(createStrategicObjective(formData)).unwrap();
       
       // Close the modal and redirect to the list page after successful creation
       setIsModalOpen(false);
       navigate('/performance/strategic-objectives');
     } catch (err) {
-      console.error("Error creating strategic objective:", err);
       throw err;
     }
-  };
-  
-  const handleCancel = () => {
-    setIsModalOpen(false);
   };
   
   const handleReturnToList = () => {
@@ -186,59 +128,14 @@ const AddStrategicObjective = () => {
         </div>
       </div>
       
-      {/* Strategic Objective Modal */}
-      <Transition appear show={isModalOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={() => setIsModalOpen(false)}>
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-black/25" />
-          </Transition.Child>
-
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
-              >
-                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white text-left align-middle shadow-xl transition-all">
-                  <div className="bg-teal-50 px-6 py-5 border-b border-teal-100">
-                    <div className="flex items-center justify-between">
-                      <Dialog.Title className="text-lg font-semibold text-gray-800">
-                        Create Strategic Objective
-                      </Dialog.Title>
-                      <button onClick={() => setIsModalOpen(false)} className="hover:bg-teal-100 rounded-full p-2">
-                        <XMarkIcon className="h-5 w-5" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="px-6 py-6">
-                    <StrategicObjectiveForm
-                      perspectives={perspectives}
-                      departments={departments}
-                      onSubmit={handleSubmit}
-                      onCancel={handleCancel}
-                      isModal={true}
-                    />
-                  </div>
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
-          </div>
-        </Dialog>
-      </Transition>
+      {/* Use the separate CreateObjectiveModal component */}
+      <CreateObjectiveModal
+        isOpen={isModalOpen}
+        closeModal={() => setIsModalOpen(false)}
+        onSubmit={handleSubmit}
+        perspectives={perspectives}
+        departments={departments}
+      />
     </div>
   );
 };

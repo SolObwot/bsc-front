@@ -1,163 +1,19 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchStrategicObjectives, deleteStrategicObjective, approveStrategicObjective } from '../../../redux/strategicObjectiveSlice';
+import { fetchStrategicObjectives, deleteStrategicObjective, approveStrategicObjective, createStrategicObjective } from '../../../redux/strategicObjectiveSlice';
 import useStrategicObjectiveFilters from '../../../hooks/strategicObjective/useStrategicObjectiveFilters';
 import useStrategicObjectivePagination from '../../../hooks/strategicObjective/useStrategicObjectivePagination';
 import { useToast, ToastContainer } from "../../../hooks/useToast";
 import { Table, TableHead, TableHeader, TableBody, TableRow, TableCell } from '../../../components/ui/Tables';
 import ObjectiveHeader from '../../../components/balancescorecard/Header';
-import OverallProgress from '../../../components/balancescorecard/OverallProgress';
 import FilterBox from '../../../components/ui/FilterBox';
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
-import { XMarkIcon, CheckCircleIcon, ExclamationCircleIcon, PlusIcon } from '@heroicons/react/24/outline';
-import StrategicObjectiveForm from './StrategicObjectiveForm';
 import StrategicObjectiveToolbar from './StrategicObjectiveToolbar';
 import StrategicObjectiveActions from './StrategicObjectiveActions';
 import Pagination from '../../../components/ui/Pagination';
 import StatusBadge from './StatusBadge';
-
-// Confirmation Modal Component
-const DeleteConfirmationModal = ({ isOpen, closeModal, onConfirm, objective }) => {
-  return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={closeModal}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-black/25" />
-        </Transition.Child>
-
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white text-left align-middle shadow-xl transition-all border border-red-100">
-                <div className="bg-red-50 px-6 py-5 border-b border-red-100">
-                  <div className="flex items-center justify-between">
-                    <Dialog.Title className="text-lg font-semibold text-gray-800">
-                      Delete Strategic Objective
-                    </Dialog.Title>
-                    <button onClick={closeModal} className="hover:bg-red-100 rounded-full p-2">
-                      <XMarkIcon className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="px-6 py-6">
-                  <div className="space-y-4">
-                    <p className="text-gray-700">
-                      Are you sure you want to delete this strategic objective?
-                    </p>
-                    <p className="text-red-600 text-sm">
-                      This action cannot be undone. All associated data will be permanently removed.
-                    </p>
-                    
-                    <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-600">
-                      <p className="font-medium">Objective Details:</p>
-                      <p>Name: {objective?.name}</p>
-                      <p>Status: {objective?.status}</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 flex justify-end space-x-3">
-                    <button
-                      onClick={closeModal}
-                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => {
-                        onConfirm(objective);
-                        closeModal();
-                      }}
-                      className="inline-flex items-center justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-                    >
-                      Delete Objective
-                    </button>
-                  </div>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </div>
-      </Dialog>
-    </Transition>
-  );
-};
-
-// Create Strategic Objective Modal Component
-const CreateObjectiveModal = ({ isOpen, closeModal, onSubmit, perspectives, departments }) => {
-  return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={closeModal}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-black/25" />
-        </Transition.Child>
-
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white text-left align-middle shadow-xl transition-all">
-                <div className="bg-teal-50 px-6 py-5 border-b border-teal-100">
-                  <div className="flex items-center justify-between">
-                    <Dialog.Title className="text-lg font-semibold text-gray-800">
-                      Create Strategic Objective
-                    </Dialog.Title>
-                    <button onClick={closeModal} className="hover:bg-teal-100 rounded-full p-2">
-                      <XMarkIcon className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="px-6 py-6">
-                  <StrategicObjectiveForm
-                    perspectives={perspectives}
-                    departments={departments}
-                    onSubmit={onSubmit}
-                    onCancel={closeModal}
-                    isModal={true}
-                  />
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </div>
-      </Dialog>
-    </Transition>
-  );
-};
+import DeleteObjectiveModal from './DeleteObjectiveModal';
+import CreateObjectiveModal from './CreateObjectiveModal';
 
 const StrategicObjectiveList = () => {
   const navigate = useNavigate();
@@ -215,7 +71,12 @@ const StrategicObjectiveList = () => {
   
   const handleCreateSubmit = async (formData) => {
     try {
+      await dispatch(createStrategicObjective(formData)).unwrap();
+      
       setIsCreateModalOpen(false);
+      // Refresh the list of objectives
+      dispatch(fetchStrategicObjectives());
+      
       toast({
         title: "Success",
         description: "Strategic objective created successfully",
@@ -293,7 +154,6 @@ const StrategicObjectiveList = () => {
             Manage strategic objectives across all departments. Use the filters to find specific objectives, or create new ones.
           </p>
         </div>
-        <OverallProgress progress={85} riskStatus={false} />
       </div>
       
       <div className="px-4 py-2 bg-white">
@@ -454,15 +314,14 @@ const StrategicObjectiveList = () => {
         </div>
       </div>
       
-      {/* Delete Confirmation Modal */}
-      <DeleteConfirmationModal
+      {/* Use imported modal components */}
+      <DeleteObjectiveModal
         isOpen={isDeleteModalOpen}
         closeModal={() => setIsDeleteModalOpen(false)}
         onConfirm={handleConfirmDelete}
         objective={selectedObjective}
       />
       
-      {/* Create Strategic Objective Modal */}
       <CreateObjectiveModal
         isOpen={isCreateModalOpen}
         closeModal={() => setIsCreateModalOpen(false)}

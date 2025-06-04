@@ -17,7 +17,7 @@ const StrategicObjectiveForm = ({
 }) => {
   const [formData, setFormData] = useState({
     name: '',
-    perspective_id: '',
+    strategy_perspective_id: '',
     department_id: ''
   });
   
@@ -26,11 +26,14 @@ const StrategicObjectiveForm = ({
   
   useEffect(() => {
     if (initialData) {
-      setFormData({
-        name: initialData.name || '',
-        perspective_id: initialData.perspective_id || '',
-        department_id: initialData.department_id || ''
-      });
+      // Ensure we're handling all possible data structures
+      const formValues = {
+        name: initialData.name || initialData.objective?.name || '',
+        strategy_perspective_id: String(initialData.strategy_perspective_id || initialData.perspective?.id || ''),
+        department_id: String(initialData.department_id || '')
+      };
+      
+      setFormData(formValues);
     }
   }, [initialData]);
   
@@ -57,8 +60,8 @@ const StrategicObjectiveForm = ({
       newErrors.name = 'Strategic objective is required';
     }
     
-    if (!formData.perspective_id) {
-      newErrors.perspective_id = 'Perspective is required';
+    if (!formData.strategy_perspective_id) {
+      newErrors.strategy_perspective_id = 'Perspective is required';
     }
     
     if (!formData.department_id) {
@@ -81,7 +84,6 @@ const StrategicObjectiveForm = ({
     try {
       await onSubmit(formData);
     } catch (error) {
-      console.error('Error submitting form:', error);
       // Handle error (show message, etc.)
     } finally {
       setIsSubmitting(false);
@@ -166,7 +168,7 @@ const StrategicObjectiveForm = ({
         </div>
         
         <div>
-          <label htmlFor="perspective_id" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="strategy_perspective_id" className="block text-sm font-medium text-gray-700 mb-1">
             Strategy Perspective <span className="text-red-500">*</span>
           </label>
           <div className="relative rounded-md shadow-sm">
@@ -174,12 +176,12 @@ const StrategicObjectiveForm = ({
               <ChartPieIcon className="h-5 w-5 text-gray-400" />
             </div>
             <select
-              id="perspective_id"
-              name="perspective_id"
-              value={formData.perspective_id}
+              id="strategy_perspective_id"
+              name="strategy_perspective_id"
+              value={formData.strategy_perspective_id}
               onChange={handleChange}
               className={`block w-full pl-10 pr-10 py-2 rounded-md appearance-none focus:ring-2 focus:ring-offset-0 sm:text-sm transition-colors ${
-                errors.perspective_id 
+                errors.strategy_perspective_id 
                   ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' 
                   : 'border-gray-300 focus:ring-teal-500 focus:border-teal-500 hover:border-gray-400'
               }`}
@@ -196,14 +198,14 @@ const StrategicObjectiveForm = ({
                 <path fillRule="evenodd" d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
             </div>
-            {errors.perspective_id && (
+            {errors.strategy_perspective_id && (
               <div className="absolute inset-y-0 right-0 pr-8 flex items-center pointer-events-none">
                 <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
               </div>
             )}
           </div>
-          {errors.perspective_id && (
-            <p className="mt-1 text-sm text-red-600">{errors.perspective_id}</p>
+          {errors.strategy_perspective_id && (
+            <p className="mt-1 text-sm text-red-600">{errors.strategy_perspective_id}</p>
           )}
         </div>
         

@@ -1,96 +1,45 @@
 import React, { useState, useEffect, Fragment } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ObjectiveHeader from '../../../components/balancescorecard/Header';
-import OverallProgress from '../../../components/balancescorecard/OverallProgress';
 import StrategicObjectiveForm from './StrategicObjectiveForm';
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import DeleteObjectiveModal from './DeleteObjectiveModal';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchStrategicObjective, updateStrategicObjective, deleteStrategicObjective, fetchStrategicObjectives } from '../../../redux/strategicObjectiveSlice';
+import { useToast } from "../../../hooks/useToast";
 
 const EditStrategicObjective = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { toast } = useToast();
   const { id } = useParams();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [objective, setObjective] = useState(null);
-  const [perspectives, setPerspectives] = useState([]);
-  const [departments, setDepartments] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(true); // Modal is open by default
   
-  // Fetch data for the form
+  const [isModalOpen, setIsModalOpen] = useState(true); // Modal is open by default
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [departments, setDepartments] = useState([]);
+  
+  // Get current objective and all objectives from Redux store
+  const { currentObjective, loading, error, data } = useSelector((state) => state.strategicObjectives);
+  const objectives = data?.flattenedObjectives || [];
+  
+  // Extract unique perspectives
+  const perspectives = objectives
+    .map(obj => obj.perspective)
+    .filter((perspective, index, self) => 
+      perspective && self.findIndex(p => p?.id === perspective?.id) === index
+    );
+  
+  // Fetch the objective data when component mounts
   useEffect(() => {
-    // In a real application, you would fetch from your API
+    // Fetch both the specific objective and all objectives to get perspectives
+    dispatch(fetchStrategicObjective(id));
+    dispatch(fetchStrategicObjectives());
+    
+    // Fetch departments
     const fetchData = async () => {
       try {
-        setLoading(true);
-        
-        // Mock perspectives data
-        const mockPerspectives = [
-          {
-            id: 1,
-            name: "INNOVATION, LEARNING & GROWTH",
-            short_code: "SP001",
-            type: "quantitative",
-            weight: 20
-          },
-          {
-            id: 2,
-            name: "INTERNAL PROCESSES",
-            short_code: "SP002",
-            type: "quantitative",
-            weight: 20
-          },
-          {
-            id: 3,
-            name: "FINANCIAL",
-            short_code: "SP003",
-            type: "quantitative",
-            weight: 20
-          },
-          {
-            id: 4,
-            name: "CUSTOMER",
-            short_code: "SP004",
-            type: "quantitative",
-            weight: 20
-          },
-          {
-            id: 5,
-            name: "INTEGRITY & ACCOUNTABILITY",
-            short_code: "SP005",
-            type: "qualitative",
-            weight: 4
-          },
-          {
-            id: 6,
-            name: "CUSTOMER CENTRICITY",
-            short_code: "SP006",
-            type: "qualitative",
-            weight: 4
-          },
-          {
-            id: 7,
-            name: "TEAMWORK & COLLABORATION",
-            short_code: "SP007",
-            type: "qualitative",
-            weight: 4
-          },
-          {
-            id: 8,
-            name: "EFFICIENCY & EFFECTIVENESS",
-            short_code: "SP008",
-            type: "qualitative",
-            weight: 4
-          },
-          {
-            id: 9,
-            name: "FAIRNESS & TRANSPARENCY",
-            short_code: "SP009",
-            type: "qualitative",
-            weight: 4
-          }
-        ];
-        
-        // Mock departments data
+        // Mock data for departments only
         const mockDepartments = [
           { id: 1, name: "Information Technology" },
           { id: 2, name: "Finance" },
@@ -100,47 +49,59 @@ const EditStrategicObjective = () => {
           { id: 6, name: "Business Technology Department" }
         ];
         
-        // Mock objective data
-        const mockObjective = {
-          id: parseInt(id),
-          name: "Enhance effectiveness measures",
-          perspective_id: 1,
-          department_id: 6,
-          status: "approved"
-        };
-        
-        setPerspectives(mockPerspectives);
         setDepartments(mockDepartments);
-        setObjective(mockObjective);
-        
       } catch (err) {
         console.error("Error fetching data:", err);
-        setError("Failed to load objective data.");
-      } finally {
-        setLoading(false);
       }
     };
     
     fetchData();
-  }, [id]);
+  }, [dispatch, id]);
   
   const handleSubmit = async (formData) => {
     try {
-      // In a real application, you would call your API to update the objective
-      console.log("Updating strategic objective:", formData);
-      
-      // Close the modal and redirect to the list page after successful update
+      await dispatch(updateStrategicObjective({ id, formData })).unwrap();
+      toast({
+        title: "Success",
+        description: "Strategic objective updated successfully",
+        variant: "success",
+      });
       closeModal();
     } catch (err) {
-      console.error("Error updating strategic objective:", err);
-      throw err;
+      toast({
+        title: "Error",
+        description: "Failed to update strategic objective",
+        variant: "destructive",
+      });
     }
   };
   
   const closeModal = () => {
     setIsModalOpen(false);
-    // Navigate back to the list
     navigate('/performance/strategic-objectives');
+  };
+  
+  const handleDelete = () => {
+    setIsDeleteModalOpen(true);
+  };
+  
+  const handleConfirmDelete = async (objective) => {
+    try {
+      await dispatch(deleteStrategicObjective(objective.id)).unwrap();
+      setIsDeleteModalOpen(false);
+      toast({
+        title: "Success",
+        description: "Strategic objective deleted successfully",
+        variant: "success",
+      });
+      navigate('/performance/strategic-objectives');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete strategic objective",
+        variant: "destructive",
+      });
+    }
   };
   
   if (loading) {
@@ -153,7 +114,6 @@ const EditStrategicObjective = () => {
 
   return (
     <div>
-      {/* Modal for editing strategic objective */}
       <Transition appear show={isModalOpen} as={Fragment}>
         <Dialog as="div" className="relative z-50" onClose={closeModal}>
           <Transition.Child
@@ -192,14 +152,35 @@ const EditStrategicObjective = () => {
                   </div>
 
                   <div className="px-6 py-6">
-                    <StrategicObjectiveForm
-                      initialData={objective}
-                      perspectives={perspectives}
-                      departments={departments}
-                      onSubmit={handleSubmit}
-                      onCancel={closeModal}
-                      isModal={true}
-                    />
+                    {currentObjective ? (
+                      <>
+                        <StrategicObjectiveForm
+                          initialData={{
+                            name: currentObjective.objective?.name || currentObjective.name || '',
+                            strategy_perspective_id: currentObjective.strategy_perspective_id || currentObjective.perspective?.id || '',
+                            department_id: currentObjective.department_id || ''
+                          }}
+                          perspectives={perspectives}
+                          departments={departments}
+                          onSubmit={handleSubmit}
+                          onCancel={closeModal}
+                          isModal={true}
+                        />
+                      </>
+                    ) : (
+                      <div className="text-center py-4">
+                        No objective data available. The API might have returned an empty response.
+                      </div>
+                    )}
+                    
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      {/* <button
+                        onClick={handleDelete}
+                        className="inline-flex items-center justify-center text-sm text-red-600 hover:text-red-800"
+                      >
+                        Delete this objective
+                      </button> */}
+                    </div>
                   </div>
                 </Dialog.Panel>
               </Transition.Child>
@@ -207,6 +188,13 @@ const EditStrategicObjective = () => {
           </div>
         </Dialog>
       </Transition>
+      
+      <DeleteObjectiveModal
+        isOpen={isDeleteModalOpen}
+        closeModal={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        objective={currentObjective}
+      />
     </div>
   );
 };

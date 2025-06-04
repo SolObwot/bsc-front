@@ -55,7 +55,10 @@ export const fetchStrategicObjective = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await strategicObjectiveService.getStrategicObjective(id);
-      return response.data;
+      
+      // Ensure we're returning the correct data structure
+      const objectiveData = response.data.data || response.data;
+      return objectiveData;
     } catch (error) {
       return rejectWithValue(error);
     }
