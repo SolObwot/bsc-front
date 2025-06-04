@@ -79,6 +79,10 @@ import UndertakingTemplates from './pages/undertaking/UndertakingTemplates';
 import UndertakingReview from './pages/undertaking/UndertakingReview';
 import UndertakingReports from './pages/undertaking/UndertakingReports';
 
+import StrategyPerspectiveList from './pages/performance/strategyPerspective/StrategyPerspectiveList';
+import AddStrategyPerspective from './pages/performance/strategyPerspective/AddStrategyPerspective';
+import EditStrategyPerspective from './pages/performance/strategyPerspective/EditStrategyPerspective';
+
 import React, { useEffect } from "react";
 import { ToastContainer } from 'react-toastify';
 
@@ -163,6 +167,9 @@ function App() {
                 <Route path="strategic-objectives" element={<StrategicObjectiveList />} />
                 <Route path="strategic-objectives/add" element={<AddStrategicObjective />} />
                 <Route path="strategic-objectives/edit/:id" element={<EditStrategicObjective />} />
+                <Route path="strategic-perspectives" element={<StrategyPerspectiveList />} />
+                <Route path="strategic-perspectives/add" element={<AddStrategyPerspective />} />
+                <Route path="strategic-perspectives/edit/:id" element={<EditStrategyPerspective />} />
               </Route>
               <Route path="/leave-management" element={<LeaveManagement />}>
                 <Route path="leave-requests" element={<LeaveRequests />} />

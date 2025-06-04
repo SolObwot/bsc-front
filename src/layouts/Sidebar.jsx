@@ -130,7 +130,7 @@ const navigationItems = [
       
       },
       { label: 'Setup Strategic Objectives', href: '/performance/strategic-objectives' },
-      // { label: 'Performance Review', href: '/performance/review' },
+      { label: 'Setup Strategy Perspective', href: '/performance/strategic-perspectives' },
       { label: 'Performance Reports', href: '/performance/reports' },
       // { label: 'Surveys', href: '/performance/surveys' },
       // Add more performance-related items as needed
