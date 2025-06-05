@@ -274,8 +274,7 @@ const StrategicObjectiveList = () => {
                     <TableCell>
                       <div>{objective.perspective?.name || 'N/A'}</div>
                       <div className="text-xs text-gray-500">
-                        <span className="capitalize">{objective.perspective?.type || 'N/A'}</span> • 
-                        <span>{objective.perspective?.weight || 0}%</span>
+                        <span className="capitalize">{objective.perspective?.type || 'N/A'}</span>
                       </div>
                     </TableCell>
                     <TableCell>

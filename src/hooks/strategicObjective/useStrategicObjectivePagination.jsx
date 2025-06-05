@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 
-const useStrategicObjectivePagination = (objectives = [], defaultPerPage = 20) => {
+const useStrategicObjectivePagination = (objectives = [], defaultPerPage = 50) => {
   const [recordsPerPage, setRecordsPerPage] = useState(defaultPerPage);
   const [currentPage, setCurrentPage] = useState(1);
 
