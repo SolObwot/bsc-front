@@ -4,6 +4,7 @@ import universityReducer from './universitySlice';
 import jobTitleReducer from './jobTitleSlice';
 import templateReducer from './templateSlice';
 import strategicObjectiveReducer from './strategicObjectiveSlice';
+import strategyPerspectiveReducer from './strategyPerspectiveSlice';
 
 const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ const store = configureStore({
     jobTitles: jobTitleReducer,
     templates: templateReducer,
     strategicObjectives: strategicObjectiveReducer,
+    strategyPerspective: strategyPerspectiveReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -20,7 +22,10 @@ const store = configureStore({
         ignoredActions: [
           'strategicObjectives/create/pending',
           'strategicObjectives/create/fulfilled',
-          'strategicObjectives/create/rejected'
+          'strategicObjectives/create/rejected',
+          'strategyPerspective/create/pending',
+          'strategyPerspective/create/fulfilled',
+          'strategyPerspective/create/rejected'
         ],
         ignoredPaths: ['some.path.in.state'],
       },
