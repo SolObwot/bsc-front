@@ -64,7 +64,7 @@ const EditStrategyPerspective = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to update perspective weight",
+        description: error?.response?.data?.message || "Failed to update perspective weight",
         variant: "destructive",
       });
     }
@@ -72,7 +72,7 @@ const EditStrategyPerspective = () => {
   
   const closeModal = () => {
     setIsModalOpen(false);
-    navigate('/performance/strategy-perspectives');
+    navigate('/performance/strategic-perspectives');
   };
   
   const handleDelete = () => {
@@ -88,7 +88,7 @@ const EditStrategyPerspective = () => {
         description: "Perspective weight deleted successfully",
         variant: "success",
       });
-      navigate('/performance/strategy-perspectives');
+      navigate('/performance/strategic-perspectives');
     } catch (error) {
       toast({
         title: "Error",

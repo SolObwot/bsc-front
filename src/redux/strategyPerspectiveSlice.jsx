@@ -195,7 +195,8 @@ const strategyPerspectiveSlice = createSlice({
         state.loading = false;
       })
       .addCase(updateDepartmentWeight.rejected, (state, action) => {
-        state.error = action.payload;
+        const errorMessage = action.payload?.response?.data?.message || action.error.message || 'Failed to update department weight';
+        state.error = errorMessage;
         state.loading = false;
         handleApiError(action.payload);
       })

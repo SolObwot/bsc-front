@@ -10,20 +10,16 @@ const useStrategicPerspectiveFilters = (departments = []) => {
   
   // Flatten all weights from all departments for easier filtering
   const allWeights = useMemo(() => {
-    console.log('Processing departments for weights:', departments);
     let weights = [];
     
     if (!departments || !Array.isArray(departments) || departments.length === 0) {
-      console.log('No departments data to process');
       return [];
     }
     
     departments.forEach(dept => {
-      console.log('Processing department:', dept);
       
       // Handle case where active_weights might be directly on the department
       if (dept.active_weights && Array.isArray(dept.active_weights)) {
-        console.log(`Found ${dept.active_weights.length} weights for department ${dept.name || dept.id}`);
         const weightsWithDept = dept.active_weights.map(weight => ({
           ...weight,
           department_name: dept.name || 'Unknown Department',
@@ -33,7 +29,6 @@ const useStrategicPerspectiveFilters = (departments = []) => {
       } 
       // Handle case where weights might be under a different property name
       else if (dept.weights && Array.isArray(dept.weights)) {
-        console.log(`Found ${dept.weights.length} weights for department ${dept.name || dept.id}`);
         const weightsWithDept = dept.weights.map(weight => ({
           ...weight,
           department_name: dept.name || 'Unknown Department',
@@ -43,7 +38,6 @@ const useStrategicPerspectiveFilters = (departments = []) => {
       }
       // Handle case where department might be a single weight or have a nested structure
       else if (dept.id && dept.strategy_perspective_id) {
-        console.log('Department appears to be a single weight object');
         weights.push({
           ...dept,
           department_name: dept.department?.name || 'Unknown Department',
@@ -52,7 +46,6 @@ const useStrategicPerspectiveFilters = (departments = []) => {
       }
     });
     
-    console.log('Total weights extracted:', weights.length);
     return weights;
   }, [departments]);
   

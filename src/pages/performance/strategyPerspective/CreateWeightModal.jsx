@@ -2,7 +2,6 @@ import React, { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import StrategyPerspectiveForm from './StrategyPerspectiveForm';
-import Button from '../../../components/ui/Button';
 
 const CreateWeightModal = ({ 
   isOpen, 
@@ -12,10 +11,7 @@ const CreateWeightModal = ({
   perspectives, 
   initialData = null
 }) => {
-  const handleSubmit = (formData) => {
-    onSubmit(formData);
-  };
-
+ 
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={closeModal}>
@@ -45,8 +41,8 @@ const CreateWeightModal = ({
               <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white text-left align-middle shadow-xl transition-all">
                 <div className="bg-teal-50 px-6 py-5 border-b border-teal-100">
                   <div className="flex items-center justify-between">
-                    <Dialog.Title className="text-lg font-semibold text-gray-800">
-                      {initialData ? "Edit Perspective Weight" : "Create Strategy Perspective Weight"}
+                    <Dialog.Title className="text-lg font-semibold text-gray-800 capitalize">
+                      {initialData ? "Edit Perspective Weight" : "Assign Strategy Perspective"}
                     </Dialog.Title>
                     <button onClick={closeModal} className="hover:bg-teal-100 rounded-full p-2">
                       <XMarkIcon className="h-5 w-5" />
@@ -59,27 +55,10 @@ const CreateWeightModal = ({
                     departments={departments}
                     perspectives={perspectives}
                     initialData={initialData}
-                    onSubmit={handleSubmit}
+                    onSubmit={onSubmit} 
                     onCancel={closeModal}
                     isModal={true}
                   />
-                  
-                  <div className="mt-6 flex justify-end space-x-3">
-                    <Button type="button" variant="secondary" onClick={closeModal}>
-                      Cancel
-                    </Button>
-                    <Button 
-                      type="button" 
-                      variant="primary" 
-                      onClick={() => {
-                        // Find the form and submit it
-                        const form = document.querySelector('form');
-                        if (form) form.dispatchEvent(new Event('submit', { cancelable: true }));
-                      }}
-                    >
-                      {initialData ? "Update" : "Save"}
-                    </Button>
-                  </div>
                 </div>
               </Dialog.Panel>
             </Transition.Child>
