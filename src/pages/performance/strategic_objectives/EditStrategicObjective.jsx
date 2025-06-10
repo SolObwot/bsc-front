@@ -174,12 +174,7 @@ const EditStrategicObjective = () => {
                     )}
                     
                     <div className="mt-4 pt-4 border-t border-gray-200">
-                      {/* <button
-                        onClick={handleDelete}
-                        className="inline-flex items-center justify-center text-sm text-red-600 hover:text-red-800"
-                      >
-                        Delete this objective
-                      </button> */}
+                      {/* Delete button removed as requested */}
                     </div>
                   </div>
                 </Dialog.Panel>

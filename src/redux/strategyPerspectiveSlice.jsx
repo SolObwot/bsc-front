@@ -121,9 +121,6 @@ const strategyPerspectiveSlice = createSlice({
       .addCase(fetchDepartmentWeights.fulfilled, (state, action) => {
         state.loading = false;
         
-        // Add debug logs to see the response structure
-        console.log('API Response:', action.payload);
-        
         // Extract direct array of weights if exists
         if (action.payload && action.payload.data && Array.isArray(action.payload.data)) {
           if (action.payload.data.length > 0 && action.payload.data[0].active_weights) {
@@ -152,16 +149,12 @@ const strategyPerspectiveSlice = createSlice({
           state.departments = action.payload;
         } else {
           // Single object or unknown structure
-          console.warn('Unexpected API response structure:', action.payload);
           state.departments = action.payload ? [action.payload] : [];
         }
-        
-        console.log('Processed departments:', state.departments);
       })
       .addCase(fetchDepartmentWeights.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch department weights';
-        console.error('Error fetching department weights:', action.error);
       })
       
       // Handle fetchDepartmentWeight

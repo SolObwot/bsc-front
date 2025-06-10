@@ -19,7 +19,7 @@ const StrategyPerspectiveToolbar = ({
           onClick={onCreateClick}
         >
           <DocumentPlusIcon className="h-5 w-5" aria-hidden="true" />
-          Create Strategy Perspective Weight
+          Assign Strategy Perspective Weight
         </Button>
       )}
       <div className="flex items-center gap-2 mb-4 sm:mb-0">

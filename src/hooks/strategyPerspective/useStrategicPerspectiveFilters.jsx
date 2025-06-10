@@ -1,10 +1,12 @@
 import { useState, useMemo } from 'react';
 
 const useStrategicPerspectiveFilters = (departments = []) => {
+  const currentYear = new Date().getFullYear();
   const [filterText, setFilterText] = useState('');
   const [filterDepartment, setFilterDepartment] = useState('');
   const [filterPerspectiveType, setFilterPerspectiveType] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [filterYear, setFilterYear] = useState(currentYear.toString());
   
   // Flatten all weights from all departments for easier filtering
   const allWeights = useMemo(() => {
@@ -88,15 +90,23 @@ const useStrategicPerspectiveFilters = (departments = []) => {
         matchesFilters = matchesFilters && weight.status === filterStatus;
       }
       
+      // Year filter
+      if (filterYear) {
+        const createdAt = weight.created_at ? new Date(weight.created_at) : null;
+        const weightYear = createdAt ? createdAt.getFullYear().toString() : '';
+        matchesFilters = matchesFilters && (!filterYear || weightYear === filterYear);
+      }
+      
       return matchesFilters;
     });
-  }, [allWeights, filterText, filterDepartment, filterPerspectiveType, filterStatus]);
+  }, [allWeights, filterText, filterDepartment, filterPerspectiveType, filterStatus, filterYear]);
 
   const handleReset = () => {
     setFilterText('');
     setFilterDepartment('');
     setFilterPerspectiveType('');
     setFilterStatus('');
+    setFilterYear(currentYear.toString()); // Reset to current year, not empty
   };
 
   return {
@@ -111,6 +121,9 @@ const useStrategicPerspectiveFilters = (departments = []) => {
       setFilterPerspectiveType,
       filterStatus,
       setFilterStatus,
+      filterYear,
+      setFilterYear,
+      currentYear,
       handleReset,
     }
   };

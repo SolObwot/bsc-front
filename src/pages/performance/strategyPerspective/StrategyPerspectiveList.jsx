@@ -20,11 +20,6 @@ const StrategyPerspectiveList = () => {
   
   const { departments, loading, error } = useSelector((state) => state.strategyPerspective);
   
-  // Add debug logs
-  useEffect(() => {
-    console.log('Redux State - departments:', departments);
-  }, [departments]);
-  
   // Modal states
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -34,13 +29,6 @@ const StrategyPerspectiveList = () => {
   // Use our custom hooks
   const { allWeights, filteredWeights, filterProps } = useStrategicPerspectiveFilters(departments);
   const { paginatedWeights, paginationProps } = useStrategicPerspectivePagination(filteredWeights);
-  
-  // Add debug logs - NOW CORRECTLY PLACED AFTER paginatedWeights is defined
-  useEffect(() => {
-    console.log('All weights:', allWeights);
-    console.log('Filtered weights:', filteredWeights);
-    console.log('Paginated weights:', paginatedWeights);
-  }, [allWeights, filteredWeights, paginatedWeights]);
   
   // Extract unique departments for filter
   const departmentOptions = useMemo(() => {
@@ -67,6 +55,9 @@ const StrategyPerspectiveList = () => {
   const perspectiveTypes = useMemo(() => {
     return [...new Set(allWeights.map(weight => weight.perspective?.type).filter(Boolean))];
   }, [allWeights]);
+  
+  // Current year for filter
+  const currentYear = useMemo(() => new Date().getFullYear(), []);
   
   useEffect(() => {
     dispatch(fetchDepartmentWeights());
@@ -196,6 +187,20 @@ const StrategyPerspectiveList = () => {
               onChange: (e) => filterProps.setFilterText(e.target.value),
             },
             {
+              id: 'filterYear',
+              label: 'Year',
+              type: 'select',
+              value: filterProps.filterYear || '',
+              onChange: (e) => filterProps.setFilterYear(e.target.value),
+              options: [
+                { value: '', label: '-- All Years --' },
+                { value: currentYear.toString(), label: currentYear.toString() },
+                { value: (currentYear - 1).toString(), label: (currentYear - 1).toString() },
+                { value: (currentYear - 2).toString(), label: (currentYear - 2).toString() },
+                { value: (currentYear - 3).toString(), label: (currentYear - 3).toString() },
+              ],
+            },
+            {
               id: 'filterDepartment',
               label: 'Department',
               type: 'select',
@@ -278,18 +283,6 @@ const StrategyPerspectiveList = () => {
                     ) : (
                       "No perspective weights found. Click 'Create Strategy Perspective Weight' to assign weights."
                     )}
-                    
-                    {/* Debug info - Remove in production */}
-                    <div className="mt-4 text-xs text-left bg-gray-100 p-4 rounded-md overflow-auto max-h-40">
-                      <p className="font-bold">Debug Info:</p>
-                      <p>Departments: {departments.length}</p>
-                      <p>All Weights: {allWeights.length}</p>
-                      <p>Filtered Weights: {filteredWeights.length}</p>
-                      <p>Current Filters: {Object.entries(filterProps)
-                        .filter(([key, value]) => typeof value !== 'function' && value)
-                        .map(([key, value]) => `${key}=${value}`)
-                        .join(', ') || 'None'}</p>
-                    </div>
                   </TableCell>
                 </TableRow>
               ) : (
