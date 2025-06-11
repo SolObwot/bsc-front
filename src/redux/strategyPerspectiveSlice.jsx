@@ -2,6 +2,32 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { strategyPerspectiveService } from '../services/strategyPerspective.service';
 import { handleApiError } from '../services/apiHandler';
 
+// Fetch all departments
+export const fetchDepartments = createAsyncThunk(
+  'strategyPerspective/fetchDepartments',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await strategyPerspectiveService.getDepartments();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+// Fetch all strategy perspectives
+export const fetchStrategyPerspectives = createAsyncThunk(
+  'strategyPerspective/fetchStrategyPerspectives',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await strategyPerspectiveService.getStrategyPerspectives();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
 // Fetch all department weights
 export const fetchDepartmentWeights = createAsyncThunk(
   'strategyPerspective/fetchAll',
@@ -100,6 +126,7 @@ const strategyPerspectiveSlice = createSlice({
   name: 'strategyPerspective',
   initialState: {
     departments: [],
+    perspectives: [],
     currentWeight: null,
     loading: false,
     error: null,
@@ -270,6 +297,46 @@ const strategyPerspectiveSlice = createSlice({
         state.error = action.payload;
         state.loading = false;
         handleApiError(action.payload);
+      })
+
+      // Handle fetchDepartments
+      .addCase(fetchDepartments.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchDepartments.fulfilled, (state, action) => {
+        state.loading = false;
+        try {
+          state.departments = action.payload.success ? action.payload.data : [];
+        } catch (error) {
+          state.error = 'Failed to transform department data';
+          console.error('Error transforming department data:', error);
+          state.departments = [];
+        }
+      })
+      .addCase(fetchDepartments.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch departments';
+      })
+
+      // Handle fetchStrategyPerspectives
+       .addCase(fetchStrategyPerspectives.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchStrategyPerspectives.fulfilled, (state, action) => {
+        state.loading = false;
+        try {
+          state.perspectives = action.payload.success ? action.payload.data : [];
+        } catch (error) {
+          state.error = 'Failed to transform strategy perspective data';
+          console.error('Error transforming strategy perspective data:', error);
+          state.perspectives = [];
+        }
+      })
+      .addCase(fetchStrategyPerspectives.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch strategy perspectives';
       });
   },
 });

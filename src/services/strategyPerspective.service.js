@@ -1,6 +1,26 @@
 import axios from '../lib/axios';
 
 export const strategyPerspectiveService = {
+  // Get all departments
+  getDepartments: async () => {
+    try {
+      const response = await axios.get('/departments');
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get all strategy perspectives
+  getStrategyPerspectives: async () => {
+    try {
+      const response = await axios.get('/strategy-perspectives');
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Get all department weights
   getDepartmentWeights: async () => {
     try {
@@ -24,7 +44,7 @@ export const strategyPerspectiveService = {
   // Create a new department weight
   createDepartmentWeight: async (formData) => {
     try {
-      const response = await axios.post('/department-weights/', formData);
+      const response = await axios.post('/department-weights/create-and-assign', formData);
       return response;
     } catch (error) {
       throw error;

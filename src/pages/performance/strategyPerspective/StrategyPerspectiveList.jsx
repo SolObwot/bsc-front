@@ -1,6 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchDepartmentWeights, deleteDepartmentWeight, approveDepartmentWeight, createDepartmentWeight, updateDepartmentWeight } from '../../../redux/strategyPerspectiveSlice';
+import { 
+  fetchDepartmentWeights, 
+  deleteDepartmentWeight, 
+  approveDepartmentWeight, 
+  createDepartmentWeight, 
+  updateDepartmentWeight,
+  fetchDepartments,
+  fetchStrategyPerspectives 
+} from '../../../redux/strategyPerspectiveSlice';
 import useStrategicPerspectiveFilters from '../../../hooks/strategyPerspective/useStrategicPerspectiveFilters';
 import useStrategicPerspectivePagination from '../../../hooks/strategyPerspective/useStrategicPerspectivePagination';
 import { useToast, ToastContainer } from "../../../hooks/useToast";
@@ -18,7 +26,12 @@ const StrategyPerspectiveList = () => {
   const dispatch = useDispatch();
   const { toast } = useToast();
   
-  const { departments, loading, error } = useSelector((state) => state.strategyPerspective);
+  const { 
+    departments, 
+    perspectives,
+    loading, 
+    error
+  } = useSelector((state) => state.strategyPerspective);
   
   // Modal states
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -37,19 +50,7 @@ const StrategyPerspectiveList = () => {
       name: dept.name
     }));
   }, [departments]);
-  
-  // Extract unique perspectives for the AddWeightModal
-  const allPerspectives = useMemo(() => {
-    const perspectivesMap = new Map();
-    
-    allWeights.forEach(weight => {
-      if (weight.perspective) {
-        perspectivesMap.set(weight.perspective.id, weight.perspective);
-      }
-    });
-    
-    return Array.from(perspectivesMap.values());
-  }, [allWeights]);
+
   
   // Extract unique perspective types for the filter
   const perspectiveTypes = useMemo(() => {
@@ -61,6 +62,8 @@ const StrategyPerspectiveList = () => {
   
   useEffect(() => {
     dispatch(fetchDepartmentWeights());
+    dispatch(fetchDepartments());
+    dispatch(fetchStrategyPerspectives()); 
   }, [dispatch]);
   
   const handleAddNew = () => {
@@ -340,7 +343,7 @@ const StrategyPerspectiveList = () => {
         closeModal={() => setIsAddModalOpen(false)}
         onSubmit={handleAddSubmit}
         departments={departments}
-        perspectives={allPerspectives}
+        perspectives={perspectives}
         initialData={isEditing ? selectedWeight : null}
       />
     </div>

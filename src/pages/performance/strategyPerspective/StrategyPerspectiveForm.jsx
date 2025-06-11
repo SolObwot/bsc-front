@@ -15,7 +15,6 @@ const StrategyPerspectiveForm = ({
     department_id: '',
     strategy_perspective_id: '',
     weight: '',
-   
   });
   const [errors, setErrors] = useState({});
   const [totalWeight, setTotalWeight] = useState(0);
@@ -29,7 +28,6 @@ const StrategyPerspectiveForm = ({
         department_id: String(initialData.department_id || initialData.department?.id || ''),
         strategy_perspective_id: String(initialData.strategy_perspective_id || initialData.perspective?.id || ''),
         weight: String(initialData.weight || ''),
-       
       });
     } else {
       setFormData({
@@ -133,7 +131,6 @@ const StrategyPerspectiveForm = ({
       const payload = {
         ...formData,
         weight: parseFloat(formData.weight),
-        year: new Date().getFullYear(), // Use current year automatically
       };
       
       // Only include department_id and strategy_perspective_id when creating new weight
@@ -256,8 +253,6 @@ const StrategyPerspectiveForm = ({
             </div>
           )}
         </div>
-        
-        {/* Removed year field */}
         
         <div className={`flex ${isModal ? 'justify-end' : 'justify-start'} space-x-3 pt-6`}>
           <Button
