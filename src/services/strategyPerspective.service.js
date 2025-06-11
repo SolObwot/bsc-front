@@ -34,19 +34,16 @@ export const strategyPerspectiveService = {
   // Update a department weight
   updateDepartmentWeight: async (id, formData) => {
     try {
-      // Ensure we're sending the weight field as expected by the server
       const safeData = {
         weight: formData.weight
       };
-      
-      // Add these fields if they exist in the original data
       if (formData.department_id !== undefined) safeData.department_id = formData.department_id;
       if (formData.strategy_perspective_id !== undefined) safeData.strategy_perspective_id = formData.strategy_perspective_id;
       
       const response = await axios.put(`/department-weights/${id}`, safeData);
       return response;
     } catch (error) {
-      throw error;
+      return error;
     }
   },
 
@@ -56,7 +53,7 @@ export const strategyPerspectiveService = {
       const response = await axios.delete(`/department-weights/${id}`);
       return response;
     } catch (error) {
-      throw error;
+      return error;
     }
   },
 

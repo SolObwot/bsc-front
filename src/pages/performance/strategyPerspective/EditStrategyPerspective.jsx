@@ -92,7 +92,7 @@ const EditStrategyPerspective = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to delete perspective weight",
+        description: error?.response?.data?.message || "Failed to delete perspective weight",
         variant: "destructive",
       });
     }

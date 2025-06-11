@@ -142,12 +142,10 @@ const StrategyPerspectiveList = () => {
       // Refresh the list
       dispatch(fetchDepartmentWeights());
     } catch (error) {
-      console.error('Update error:', error);
+      // console.error('Update error:', error);
       toast({
         title: "Error",
-        description: isEditing 
-          ? `Failed to update perspective weight: ${error.message || 'Unknown error'}`
-          : "Failed to create perspective weight",
+        description: error?.response?.data?.message || "Failed to update perspective weight",
         variant: "destructive",
       });
     }
@@ -157,10 +155,6 @@ const StrategyPerspectiveList = () => {
     return <div className="p-6 text-center">Loading strategy perspectives...</div>;
   }
   
-  if (error) {
-    return <div className="p-6 text-center text-red-600">{error}</div>;
-  }
-
   return (
     <div className="min-h-screen bg-white shadow-md rounded-lg">
       <ToastContainer />

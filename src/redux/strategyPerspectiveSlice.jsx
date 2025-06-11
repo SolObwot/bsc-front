@@ -47,6 +47,9 @@ export const updateDepartmentWeight = createAsyncThunk(
   async ({ id, formData }, { rejectWithValue }) => {
     try {
       const response = await strategyPerspectiveService.updateDepartmentWeight(id, formData);
+      if (response instanceof Error) {
+        return rejectWithValue(response);
+      }
       return response.data;
     } catch (error) {
       return rejectWithValue(error);
