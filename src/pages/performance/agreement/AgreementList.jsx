@@ -319,8 +319,10 @@ const AgreementList = () => {
               <TableRow>
                 <TableHeader>Agreement Name</TableHeader>
                 <TableHeader>Period</TableHeader>
-                <TableHeader>Created Date</TableHeader>
-                <TableHeader>Submitted Date</TableHeader>
+                <TableHeader>Supervisor</TableHeader>
+                <TableHeader>HOD/Line Manager</TableHeader>
+                <TableHeader>Created</TableHeader>
+                <TableHeader>Submitted</TableHeader>
                 <TableHeader>Status</TableHeader>
                 <TableHeader>Actions</TableHeader>
               </TableRow>
@@ -339,6 +341,8 @@ const AgreementList = () => {
                       <div className="text-sm font-medium text-gray-900">{agreement.title}</div>
                     </TableCell>
                     <TableCell>{agreement.period}</TableCell>
+                    <TableCell>{agreement.title}</TableCell>
+                    <TableCell>{agreement.title}</TableCell>
                     <TableCell>
                       <div>
                         {formatDate(agreement.createdDate)}
