@@ -51,6 +51,9 @@ import AgreementList from './pages/performance/agreement/AgreementList.jsx';
 import AgreementReview from './pages/performance/agreement/AgreementReview.jsx';
 import AddAgreement from './pages/performance/agreement/AddAgreement';
 import HODApproval from './pages/performance/agreement/HODApproval';
+import PerformanceMeasureViewer from './pages/performance/agreement/PerformanceMeasureViewer';
+import AddPerformanceMeasure from './pages/performance/agreement/AddPerformanceMeasure';
+import EditPerformanceMeasure from './pages/performance/agreement/EditPerformanceMeasure';
 import SelfRating from './pages/performance/appraisals/SelfRating.jsx';
 import RateAppraisalPage from './pages/performance/appraisals/RateAppraisalPage.jsx';
 import SupervisorRating from './pages/performance/appraisals/SupervisorRating.jsx';
@@ -146,6 +149,12 @@ function App() {
                 <Route path="agreement/review" element={<AgreementReview />} />
                 <Route path="agreement/hod-approval" element={<HODApproval />} />
                 <Route path="agreement/approval/:id" element={<AgreementReview />} />
+                  {/* New Routes for Performance Measures */}
+                <Route path="agreement/:agreementId/measures" element={<PerformanceMeasureViewer />} />
+                <Route path="agreement/:agreementId/measures/add" element={<AddPerformanceMeasure />} />
+                <Route path="agreement/:agreementId/strategic-objective/:strategicObjectiveId/measures/add" element={<AddPerformanceMeasure />} />
+                <Route path="agreement/:agreementId/measures/edit/:measureId" element={<EditPerformanceMeasure />} />
+                
 
                 <Route path="rating/self" element={<SelfRating />} />
                 <Route path="rating/self/edit/:id" element={<RateAppraisalPage />} />
