@@ -103,6 +103,10 @@ const AgreementList = () => {
     navigate(`/performance/agreement/edit/${agreement.id}`);
   };
 
+  const handleAddKPIs = (agreement) => {
+    navigate(`/performance/agreement/${agreement.id}/measures/add`);
+  };
+
   const handleSubmit = (agreement) => {
     setSelectedAgreement(agreement);
     setIsSubmitModalOpen(true);
@@ -134,10 +138,7 @@ const AgreementList = () => {
     }
   };
 
-  // New handler for adding KPIs
-  const handleAddKPIs = (agreement) => {
-    alert(`Coming Soon`);
-  };
+  
 
   const handleReset = () => {
     setFilterText('');

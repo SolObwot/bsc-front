@@ -150,10 +150,10 @@ function App() {
                 <Route path="agreement/hod-approval" element={<HODApproval />} />
                 <Route path="agreement/approval/:id" element={<AgreementReview />} />
                   {/* New Routes for Performance Measures */}
-                <Route path="agreement/:agreementId/measures" element={<PerformanceMeasureViewer />} />
-                <Route path="agreement/:agreementId/measures/add" element={<AddPerformanceMeasure />} />
-                <Route path="agreement/:agreementId/strategic-objective/:strategicObjectiveId/measures/add" element={<AddPerformanceMeasure />} />
-                <Route path="agreement/:agreementId/measures/edit/:measureId" element={<EditPerformanceMeasure />} />
+                <Route path="agreement/:id/measures" element={<PerformanceMeasureViewer />} />
+                <Route path="agreement/:id/measures/add" element={<AddPerformanceMeasure />} />
+                <Route path="agreement/:id/strategic-objective/:strategicObjectiveId/measures/add" element={<AddPerformanceMeasure />} />
+                <Route path="agreement/:id/measures/edit/:measureId" element={<EditPerformanceMeasure />} />
                 
 
                 <Route path="rating/self" element={<SelfRating />} />
