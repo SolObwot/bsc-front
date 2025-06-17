@@ -316,9 +316,16 @@ const AgreementList = () => {
                           onAddKPI={() => handleAddKPIs(agreement)}
                         />
                       ) : agreement.status === 'submitted' ? (
-                        <span className="text-gray-500 text-sm">
-                          Under Review
-                        </span>
+                        <div className="flex items-center gap-3">
+                          <AgreementActions
+                            agreement={agreement}
+                            onEdit={() => handleEdit(agreement)}
+                            showOnlyReviewAndPreview={true}
+                          />
+                          <span className="text-gray-500 text-sm">
+                            Under Review
+                          </span>
+                        </div>
                       ) : null}
                     </TableCell>
                   </TableRow>
