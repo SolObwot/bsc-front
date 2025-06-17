@@ -5,10 +5,10 @@ import ObjectiveHeader from '../../../components/balancescorecard/Header';
 import OverallProgress from '../../../components/balancescorecard/OverallProgress';
 import FilterBox from '../../../components/ui/FilterBox';
 import Button from '../../../components/ui/Button';
-import { DocumentPlusIcon, PencilSquareIcon, ArrowUpTrayIcon } from '@heroicons/react/20/solid';
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { DocumentPlusIcon, ArrowUpTrayIcon } from '@heroicons/react/20/solid';
+// Dialog, Transition, Fragment, XMarkIcon will be imported by SubmitAgreementModal if needed directly, or not if encapsulated
+import AgreementActions from './AgreementActions'; 
+import SubmitAgreementModal from './SubmitAgreementModal'; // Added import
 
 // Status badge component
 const StatusBadge = ({ status }) => {
@@ -32,90 +32,6 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-// Confirmation Modal Component
-const SubmitConfirmationModal = ({ isOpen, closeModal, onConfirm, agreement }) => {
-  return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={closeModal}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-black/25" />
-        </Transition.Child>
-
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white text-left align-middle shadow-xl transition-all border border-teal-100">
-                <div className="bg-teal-50 px-6 py-5 border-b border-teal-100">
-                  <div className="flex items-center justify-between">
-                    <Dialog.Title className="text-lg font-semibold text-gray-700">
-                      Submit Agreement For Review
-                    </Dialog.Title>
-                    <button onClick={closeModal} className="hover:bg-teal-100 rounded-full p-2">
-                      <XMarkIcon className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="px-6 py-6">
-                  <div className="space-y-4">
-                    <p className="text-gray-700">
-                      Are you sure you want to submit your agreement for review to your immdediate supervisor? 
-                    </p>
-                    <p className="text-amber-600 text-sm">
-                      Once submitted, you won't be able to edit the KPIs in this agreement.
-                    </p>
-                    
-                    <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-600">
-                      <p className="font-medium">Agreement Details:</p>
-                      <p>Title: {agreement?.title}</p>
-                      <p>Period: {agreement?.period}</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 flex justify-end space-x-3">
-                    <button
-                      onClick={closeModal}
-                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => {
-                        onConfirm();
-                        closeModal();
-                      }}
-                      className="inline-flex items-center justify-center rounded-md border border-transparent bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
-                    >
-                      <ArrowUpTrayIcon className="w-4 h-4 mr-1.5" />
-                      Submit Agreement
-                    </button>
-                  </div>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </div>
-      </Dialog>
-    </Transition>
-  );
-};
-
 const AgreementList = () => {
   const navigate = useNavigate();
   const [filterText, setFilterText] = useState('');
@@ -131,6 +47,11 @@ const AgreementList = () => {
     {
       id: 1,
       title: 'Performance Agreement 2025',
+      name: 'John Doe',
+      employeeName: 'John Doe',
+      employeeTitle: 'Software Developer',
+      supervisorName: 'Jane Manager',
+      hodName: 'Robert Director',
       period: 'Annual Review',
       createdDate: '2025-05-01',
       submittedDate: null,
@@ -139,6 +60,11 @@ const AgreementList = () => {
     {
       id: 2,
       title: 'Performance Agreement 2024',
+      name: 'Jane Smith',
+      employeeName: 'Jane Smith',
+      employeeTitle: 'UX Designer',
+      supervisorName: 'Mike Manager',
+      hodName: 'Sarah Director',
       period: 'Probation 6 months',
       createdDate: '2023-12-10',
       submittedDate: '2024-01-05',
@@ -182,13 +108,13 @@ const AgreementList = () => {
     setIsSubmitModalOpen(true);
   };
 
-  const handleConfirmSubmit = () => {
+  const handleConfirmSubmit = (agreementId, status) => {
     // Update agreement status in memory (no localStorage)
     const updatedAgreements = agreements.map(agreement => {
-      if (agreement.id === selectedAgreement.id) {
+      if (agreement.id === agreementId) {
         return {
           ...agreement,
-          status: 'submitted',
+          status: status,
           submittedDate: new Date().toISOString()
         };
       }
@@ -196,7 +122,21 @@ const AgreementList = () => {
     });
     
     setAgreements(updatedAgreements);
+    setIsSubmitModalOpen(false);
     alert('Agreement successfully submitted for review!');
+  };
+
+  // New handler for deleting an agreement
+  const handleDeleteConfirmation = (agreementToDelete) => {
+    if (window.confirm(`Are you sure you want to delete the agreement "${agreementToDelete.title}"? This action cannot be undone.`)) {
+      setAgreements(prevAgreements => prevAgreements.filter(ag => ag.id !== agreementToDelete.id));
+      alert('Agreement deleted successfully.');
+    }
+  };
+
+  // New handler for adding KPIs
+  const handleAddKPIs = (agreement) => {
+    alert(`Coming Soon`);
   };
 
   const handleReset = () => {
@@ -341,8 +281,8 @@ const AgreementList = () => {
                       <div className="text-sm font-medium text-gray-900">{agreement.title}</div>
                     </TableCell>
                     <TableCell>{agreement.period}</TableCell>
-                    <TableCell>{agreement.title}</TableCell>
-                    <TableCell>{agreement.title}</TableCell>
+                    <TableCell>{agreement.supervisorName}</TableCell>
+                    <TableCell>{agreement.hodName}</TableCell>
                     <TableCell>
                       <div>
                         {formatDate(agreement.createdDate)}
@@ -367,33 +307,19 @@ const AgreementList = () => {
                       <StatusBadge status={agreement.status} />
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center space-x-2">
-                        {agreement.status === 'draft' && (
-                          <>
-                            <button
-                              onClick={() => handleEdit(agreement)}
-                              className="text-blue-600 hover:text-blue-900 flex items-center space-x-1"
-                            >
-                              <PencilSquareIcon className="h-4 w-4" />
-                              <span>Edit</span>
-                            </button>
-                            
-                            <button
-                              onClick={() => handleSubmit(agreement)}
-                              className="text-teal-600 hover:text-teal-900 flex items-center space-x-1"
-                            >
-                              <ArrowUpTrayIcon className="h-4 w-4" />
-                              <span>Submit</span>
-                            </button>
-                          </>
-                        )}
-                        
-                        {agreement.status === 'submitted' && (
-                          <span className="text-gray-500 text-sm">
-                            Under Review
-                          </span>
-                        )}
-                      </div>
+                      {agreement.status === 'draft' ? (
+                        <AgreementActions
+                          agreement={agreement}
+                          onEdit={() => handleEdit(agreement)}
+                          onSubmit={() => handleSubmit(agreement)}
+                          onDelete={() => handleDeleteConfirmation(agreement)}
+                          onAddKPI={() => handleAddKPIs(agreement)}
+                        />
+                      ) : agreement.status === 'submitted' ? (
+                        <span className="text-gray-500 text-sm">
+                          Under Review
+                        </span>
+                      ) : null}
                     </TableCell>
                   </TableRow>
                 ))
@@ -404,12 +330,14 @@ const AgreementList = () => {
       </div>
       
       {/* Submit Confirmation Modal */}
-      <SubmitConfirmationModal
-        isOpen={isSubmitModalOpen}
-        closeModal={() => setIsSubmitModalOpen(false)}
-        onConfirm={handleConfirmSubmit}
-        agreement={selectedAgreement}
-      />
+      {selectedAgreement && (
+        <SubmitAgreementModal
+          isOpen={isSubmitModalOpen}
+          closeModal={() => setIsSubmitModalOpen(false)}
+          agreement={selectedAgreement}
+          onSubmit={handleConfirmSubmit}
+        />
+      )}
     </div>
   );
 };

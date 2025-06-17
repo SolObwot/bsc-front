@@ -3,15 +3,15 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
 import ObjectiveHeader from '../../../components/balancescorecard/Header';
 import OverallProgress from '../../../components/balancescorecard/OverallProgress';
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
-import { XMarkIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
-import { CalendarDaysIcon, UserCircleIcon, ClockIcon } from '@heroicons/react/20/solid';
+// Dialog, Transition, XMarkIcon, CheckCircleIcon, CalendarDaysIcon, UserCircleIcon, ClockIcon are no longer directly needed
+// if they are only used by the modals which now import them directly.
 import { Table, TableHead, TableHeader, TableBody, TableRow, TableCell } from '../../../components/ui/Tables';
 import FilterBox from '../../../components/ui/FilterBox';
 import AgreementToolbar from './AgreementToolbar';
 import AgreementActions from './AgreementActions';
 import Pagination from '../../../components/ui/Pagination';
+import AgreementApprovalModal from './AgreementApprovalModal'; 
+import StatusBadge from './AgreementStatusBadge'; // Updated import path
 
 // Mock data - all with pending_hod status
 const hodPendingAgreements = [
@@ -68,196 +68,6 @@ const hodPendingAgreements = [
     hodName: 'Elizabeth Taylor'
   }
 ];
-
-// Reuse StatusBadge from AgreementReview
-const StatusBadge = ({ status }) => {
-  const statusConfig = {
-    draft: { label: 'Draft', color: 'bg-gray-100 text-gray-700', icon: ClockIcon },
-    submitted: { label: 'Submitted for Review', color: 'bg-blue-100 text-blue-700', icon: ClockIcon },
-    pending_supervisor: { label: 'Pending Supervisor', color: 'bg-amber-100 text-amber-700', icon: ClockIcon },
-    pending_hod: { label: 'Pending HOD', color: 'bg-purple-100 text-purple-700', icon: ClockIcon },
-    approved: { label: 'Approved', color: 'bg-green-100 text-green-700', icon: CheckCircleIcon }
-  };
-
-  const config = statusConfig[status] || statusConfig.draft;
-  const Icon = config.icon;
-
-  return (
-    <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${config.color}`}>
-      <Icon className="w-3.5 h-3.5 mr-1" />
-      {config.label}
-    </span>
-  );
-};
-
-// Simplified modal for HOD approval with pre-filled employee & supervisor status
-const HODApprovalModal = ({ isOpen, closeModal, agreement, onApprove, onReject }) => {
-  // Employee and supervisor already accepted/approved in this view
-  const employeeAccepted = true;
-  const supervisorApproved = true;
-  const [hodApproved, setHodApproved] = useState(false);
-  
-  const handleHodApprove = () => {
-    setHodApproved(true);
-    onApprove('approved');
-  };
-
-  return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={closeModal}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-black/25" />
-        </Transition.Child>
-
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-xl bg-white text-left align-middle shadow-xl transition-all border border-teal-100">
-                <div className="bg-teal-50 px-6 py-5 border-b border-teal-100">
-                  <div className="flex items-center justify-between">
-                    <Dialog.Title className="text-[20px] font-semibold text-gray-700">
-                      HOD Performance Agreement Approval
-                    </Dialog.Title>
-                    <button onClick={closeModal} className="hover:bg-teal-100 rounded-full p-2">
-                      <XMarkIcon className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="px-7 pt-7 pb-4 max-h-[80vh] overflow-y-auto">
-                  {/* Agreement details */}
-                  <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                    <h3 className="font-medium text-lg text-gray-800 mb-2">{agreement?.title}</h3>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div className="flex items-center text-gray-600">
-                        <UserCircleIcon className="w-4 h-4 mr-2 text-gray-500" />
-                        <span>{agreement?.employeeName} - {agreement?.employeeTitle}</span>
-                      </div>
-                      <div className="flex items-center text-gray-600">
-                        <CalendarDaysIcon className="w-4 h-4 mr-2 text-gray-500" />
-                        <span>Period: {agreement?.period}</span>
-                      </div>
-                      <div className="flex items-center text-gray-600">
-                        <ClockIcon className="w-4 h-4 mr-2 text-gray-500" />
-                        <span>Submitted: {new Date(agreement?.submittedDate).toLocaleDateString()}</span>
-                      </div>
-                      <div>
-                        <StatusBadge status={agreement?.status} />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Employee Statement with pre-completed status */}
-                  <div className="border border-gray-200 rounded-lg p-4 mb-6">
-                    <h3 className="font-medium text-gray-800 mb-2">Approval Status</h3>
-                    <p className="text-sm text-gray-600 mb-4">
-                      <span className="font-medium">{agreement?.employeeName}</span> has accepted the performance accountabilities 
-                      of this agreement and agreed to produce the results, perform the work and meet the standards set forth in this agreement.
-                      This agreement requires your approval as Head of Department.
-                    </p>
-
-                    <div className="border-t border-gray-200 pt-4 mt-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        {/* Employee section - already accepted */}
-                        <div className="space-y-3">
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">Employee:</span>
-                            <span className="text-sm font-medium">{agreement?.employeeName}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">Status:</span>
-                            <span className="text-sm font-medium text-green-600">
-                              Accepted
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Supervisor section - already approved */}
-                        <div className="space-y-3 border-l border-gray-200 pl-4">
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">Supervisor:</span>
-                            <span className="text-sm font-medium">{agreement?.supervisorName}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">Status:</span>
-                            <span className="text-sm font-medium text-green-600">
-                              Approved
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* HOD section - pending approval */}
-                    <div className="border-t border-gray-200 pt-4 mt-4">
-                      <div className="flex justify-between mb-3">
-                        <span className="text-sm text-gray-500">Head of Department:</span>
-                        <span className="text-sm font-medium">{agreement?.hodName}</span>
-                      </div>
-                      <div className="flex justify-between mb-3">
-                        <span className="text-sm text-gray-500">Status:</span>
-                        <span className={`text-sm font-medium ${hodApproved ? 'text-green-600' : 'text-amber-600'}`}>
-                          {hodApproved ? 'Approved' : 'Pending Your Approval'}
-                        </span>
-                      </div>
-                      <div className="flex justify-end">
-                        {!hodApproved && (
-                          <button 
-                            onClick={handleHodApprove}
-                            className="text-xs bg-teal-600 text-white px-3 py-1.5 rounded hover:bg-teal-700"
-                          >
-                            Approve as HOD
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 flex justify-end space-x-3">
-                    <button
-                      onClick={closeModal}
-                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                    >
-                      Close
-                    </button>
-                    <button
-                      onClick={() => onReject && onReject('rejected')}
-                      className="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-                    >
-                      Reject
-                    </button>
-                    <button
-                      onClick={handleHodApprove}
-                      className="inline-flex justify-center rounded-md border border-transparent bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
-                    >
-                      Approve as HOD
-                    </button>
-                  </div>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </div>
-      </Dialog>
-    </Transition>
-  );
-};
 
 // Add time ago function for displaying relative dates
 const getTimeAgo = (dateString) => {
@@ -325,9 +135,9 @@ const HODApproval = () => {
     console.log('Preview agreement:', agreement);
   };
   
-  const handleApprove = (status) => {
+  const handleApprove = (status) => { // status will be 'approved' from AgreementApprovalModal
     setAgreementList(prev => 
-      prev.map(a => a.id === selectedAgreement.id ? {...a, status} : a)
+      prev.map(a => a.id === selectedAgreement.id ? {...a, status: status } : a)
     );
     setIsModalOpen(false);
     
@@ -335,7 +145,10 @@ const HODApproval = () => {
     alert(`Agreement for ${selectedAgreement.employeeName} has been approved.`);
   };
 
-  const handleReject = () => {
+  const handleReject = (newStatus) => { // newStatus will be 'rejected_by_hod'
+    setAgreementList(prev => 
+      prev.map(a => a.id === selectedAgreement.id ? {...a, status: newStatus } : a)
+    );
     setIsModalOpen(false);
     // Show rejection notification
     alert(`Agreement for ${selectedAgreement.employeeName} has been rejected.`);
@@ -521,13 +334,18 @@ const HODApproval = () => {
         </div>
       </div>
       
-      <HODApprovalModal 
-        isOpen={isModalOpen}
-        closeModal={() => setIsModalOpen(false)}
-        agreement={selectedAgreement}
-        onApprove={handleApprove}
-        onReject={handleReject}
-      />
+      {selectedAgreement && ( // Ensure selectedAgreement is not null before rendering
+        <AgreementApprovalModal 
+          isOpen={isModalOpen}
+          closeModal={() => {
+            setIsModalOpen(false);
+            setSelectedAgreement(null); // Clear selected agreement on close
+          }}
+          agreement={selectedAgreement}
+          onApprove={handleApprove}
+          onReject={handleReject}
+        />
+      )}
     </div>
   );
 };
