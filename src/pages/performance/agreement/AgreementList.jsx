@@ -6,9 +6,12 @@ import OverallProgress from '../../../components/balancescorecard/OverallProgres
 import FilterBox from '../../../components/ui/FilterBox';
 import Button from '../../../components/ui/Button';
 import { DocumentPlusIcon, ArrowUpTrayIcon } from '@heroicons/react/20/solid';
-// Dialog, Transition, Fragment, XMarkIcon will be imported by SubmitAgreementModal if needed directly, or not if encapsulated
 import AgreementActions from './AgreementActions'; 
-import SubmitAgreementModal from './SubmitAgreementModal'; // Added import
+import SubmitAgreementModal from './SubmitAgreementModal';
+import AddAgreement from './AddAgreement';
+import EditAgreement from './EditAgreement';
+import DeleteAgreementModal from './DeleteAgreementModal';
+
 
 // Status badge component
 const StatusBadge = ({ status }) => {
@@ -33,12 +36,15 @@ const StatusBadge = ({ status }) => {
 };
 
 const AgreementList = () => {
+  // Navigation hook
   const navigate = useNavigate();
   const [filterText, setFilterText] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterPeriod, setFilterPeriod] = useState('');
-  
   // Modal state
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [selectedAgreement, setSelectedAgreement] = useState(null);
 
@@ -96,12 +102,32 @@ const AgreementList = () => {
   }, [filterText, filterStatus, filterPeriod, agreements]);
 
   const handleAddNew = () => {
-    navigate('/performance/agreement/new');
+    setIsAddModalOpen(true);
   };
 
-  const handleEdit = (agreement) => {
-    navigate(`/performance/agreement/edit/${agreement.id}`);
+  // Handle the submission of a new agreement
+  const handleAddSubmit = (newAgreement) => {
+    setAgreements([newAgreement, ...agreements]);
+    setIsAddModalOpen(false);
   };
+
+  // Update the handleEdit function
+  const handleEdit = (agreement) => {
+    setSelectedAgreement(agreement);
+    setIsEditModalOpen(true);
+  };
+
+  // Handle the submission of an edited agreement
+  const handleEditSubmit = (updatedAgreement) => {
+    const updatedAgreements = agreements.map(agreement => 
+      agreement.id === updatedAgreement.id ? updatedAgreement : agreement
+    );
+    
+    setAgreements(updatedAgreements);
+    setIsEditModalOpen(false);
+    setSelectedAgreement(null);
+  };
+  
 
   const handleAddKPIs = (agreement) => {
     navigate(`/performance/agreement/${agreement.id}/measures/add`);
@@ -132,11 +158,18 @@ const AgreementList = () => {
 
   // New handler for deleting an agreement
   const handleDeleteConfirmation = (agreementToDelete) => {
-    if (window.confirm(`Are you sure you want to delete the agreement "${agreementToDelete.title}"? This action cannot be undone.`)) {
-      setAgreements(prevAgreements => prevAgreements.filter(ag => ag.id !== agreementToDelete.id));
-      alert('Agreement deleted successfully.');
-    }
+      setSelectedAgreement(agreementToDelete);
+      setIsDeleteModalOpen(true);
+    };
+
+  // Add a function to handle the actual deletion
+  const handleDeleteAgreement = (agreementId) => {
+    setAgreements(prevAgreements => prevAgreements.filter(ag => ag.id !== agreementId));
+    setSelectedAgreement(null);
+    // You could add a toast/alert here if desired
+    // alert('Agreement deleted successfully.');
   };
+
 
   
 
@@ -336,14 +369,39 @@ const AgreementList = () => {
           </Table>
         </div>
       </div>
+
+       {/* Add the modals */}
+      <AddAgreement
+        isOpen={isAddModalOpen}
+        closeModal={() => setIsAddModalOpen(false)}
+        onSubmit={handleAddSubmit}
+      />
       
-      {/* Submit Confirmation Modal */}
+      {selectedAgreement && (
+        <EditAgreement
+          isOpen={isEditModalOpen}
+          closeModal={() => setIsEditModalOpen(false)}
+          onSubmit={handleEditSubmit}
+          agreement={selectedAgreement}
+        />
+      )}
+      
       {selectedAgreement && (
         <SubmitAgreementModal
           isOpen={isSubmitModalOpen}
           closeModal={() => setIsSubmitModalOpen(false)}
           agreement={selectedAgreement}
           onSubmit={handleConfirmSubmit}
+        />
+      )}
+      
+      {/* Add Delete Agreement Modal */}
+      {selectedAgreement && (
+        <DeleteAgreementModal
+          isOpen={isDeleteModalOpen}
+          closeModal={() => setIsDeleteModalOpen(false)}
+          onConfirm={handleDeleteAgreement}
+          agreement={selectedAgreement}
         />
       )}
     </div>
