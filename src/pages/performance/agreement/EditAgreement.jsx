@@ -3,17 +3,14 @@ import CreateAgreementModal from './CreateAgreementModal';
 
 const EditAgreement = ({ isOpen, closeModal, onSubmit, agreement }) => {
   const handleSubmit = (formData) => {
-    const periodDisplay = formData.period === 'annual' 
-      ? 'Annual Review' 
-      : 'Probation 6 months';
-      
     const updatedAgreement = {
       ...agreement,
-      title: formData.name,
       name: formData.name,
-      period: periodDisplay,
+      period: formData.period,
       supervisorName: formData.supervisorName,
-      hodName: formData.hodName
+      hodName: formData.hodName,
+      supervisor_id: formData.supervisor_id,
+      hod_id: formData.hod_id
     };
     
     onSubmit(updatedAgreement);

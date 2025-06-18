@@ -1,22 +1,14 @@
 import React from 'react';
 import CreateAgreementModal from './CreateAgreementModal';
 
-const EditAgreement = ({ isOpen, closeModal, onSubmit, agreement }) => {
+const AddAgreement = ({ isOpen, closeModal, onSubmit }) => {
   const handleSubmit = (formData) => {
-    const periodDisplay = formData.period === 'annual' 
-      ? 'Annual Review' 
-      : 'Probation 6 months';
-      
-    const updatedAgreement = {
-      ...agreement,
-      title: formData.name,
+    const newAgreement = {
       name: formData.name,
-      period: periodDisplay,
-      supervisorName: formData.supervisorName,
-      hodName: formData.hodName
+      period: formData.period
     };
     
-    onSubmit(updatedAgreement);
+    onSubmit(newAgreement);
   };
 
   return (
@@ -24,9 +16,8 @@ const EditAgreement = ({ isOpen, closeModal, onSubmit, agreement }) => {
       isOpen={isOpen}
       closeModal={closeModal}
       onSubmit={handleSubmit}
-      initialData={agreement}
     />
   );
 };
 
-export default EditAgreement;
+export default AddAgreement;

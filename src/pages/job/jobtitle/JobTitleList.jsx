@@ -112,7 +112,7 @@ const JobTitleList = () => {
             <TableRow>
               <TableHeader>Short Code</TableHeader>
               <TableHeader>Job Title Name</TableHeader>
-              <TableHeader>Description</TableHeader>
+              {/* <TableHeader>Description</TableHeader> */}
               <TableHeader>Actions</TableHeader>
             </TableRow>
           </TableHead>
@@ -121,7 +121,7 @@ const JobTitleList = () => {
               <TableRow key={jobTitle.id}>
                 <TableCell>{jobTitle.short_code}</TableCell>
                 <TableCell>{jobTitle.name}</TableCell>
-                <TableCell>{jobTitle.description}</TableCell>
+                {/* <TableCell>{jobTitle.description}</TableCell> */}
                 <TableCell>
                   <JobTitleActions
                     jobTitle={jobTitle}

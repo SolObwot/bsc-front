@@ -3,6 +3,23 @@ import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
 const DeleteAgreementModal = ({ isOpen, closeModal, onConfirm, agreement }) => {
+  if (!agreement) return null;
+
+  // Use consistent property access as in AgreementList
+  const agreementName = agreement.name || agreement.title || 'Unknown';
+  
+  const supervisorName = agreement.supervisor ? 
+    `${agreement.supervisor.surname} ${agreement.supervisor.last_name}` : 
+    agreement.supervisorName || 'Not assigned';
+  
+  const hodName = agreement.hod ? 
+    `${agreement.hod.surname} ${agreement.hod.last_name}` : 
+    agreement.hodName || 'Not assigned';
+  
+  const periodDisplay = agreement.period === 'annual' ? 'Annual Review' : 
+    agreement.period === 'probation' ? 'Probation 6 months' : 
+    agreement.period;
+  
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={closeModal}>
@@ -52,10 +69,10 @@ const DeleteAgreementModal = ({ isOpen, closeModal, onConfirm, agreement }) => {
                     
                     <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-600">
                       <p className="font-medium">Agreement Details:</p>
-                      <p>Name: {agreement?.title || 'Unknown'}</p>
-                      <p>Period: {agreement?.period || 'Unknown'}</p>
-                      <p>Supervisor: {agreement?.supervisorName || 'Not assigned'}</p>
-                      <p>HOD/Line Manager: {agreement?.hodName || 'Not assigned'}</p>
+                      <p>Name: {agreementName || 'Unknown'}</p>
+                      <p>Period: {periodDisplay || 'Unknown'}</p>
+                      <p>Supervisor: {supervisorName || 'Not assigned'}</p>
+                      <p>HOD/Line Manager: {hodName || 'Not assigned'}</p>
                       <p>Status: {agreement?.status || 'Unknown'}</p>
                     </div>
                   </div>

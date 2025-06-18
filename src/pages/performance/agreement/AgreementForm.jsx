@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Button from '../../../components/ui/Button';
+import { useToast } from '../../../hooks/useToast';
 
 const AgreementForm = ({ 
   initialData = null, 
@@ -7,11 +8,14 @@ const AgreementForm = ({
   onCancel,
   isModal = false
 }) => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     period: '',
     supervisorName: '',
     hodName: '',
+    supervisor_id: '',
+    hod_id: '',
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,40 +24,38 @@ const AgreementForm = ({
   useEffect(() => {
     if (initialData) {
       setFormData({
-        name: initialData.title || '',
-        period: initialData.period === 'Annual Review' ? 'annual' : 'probation',
-        supervisorName: initialData.supervisorName || '',
-        hodName: initialData.hodName || '',
-      });
-    } else {
-      setFormData({
-        name: '',
-        period: '',
-        supervisorName: '',
-        hodName: '',
+        name: initialData.name || '',
+        period: initialData.period || '',
+        supervisorName: initialData.supervisorName || 
+                       (initialData.supervisor ? `${initialData.supervisor.surname} ${initialData.supervisor.last_name}` : ''),
+        hodName: initialData.hodName || 
+                (initialData.hod ? `${initialData.hod.surname} ${initialData.hod.last_name}` : ''),
+        supervisor_id: initialData.supervisor_id || '',
+        hod_id: initialData.hod_id || '',
       });
     }
   }, [initialData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
+    setFormData({
+      ...formData,
       [name]: value
-    }));
+    });
     
+    // Clear error for the field being changed
     if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
+      setErrors({
+        ...errors,
+        [name]: null
+      });
     }
   };
 
   const validate = () => {
     const newErrors = {};
     
-    if (!formData.name.trim()) {
+    if (!formData.name) {
       newErrors.name = 'Agreement name is required';
     }
     
@@ -68,17 +70,38 @@ const AgreementForm = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validate()) {
-      return;
-    }
-    
-    setIsSubmitting(true);
-    try {
-      await onSubmit(formData);
-    } catch (error) {
-      console.error("Submission error:", error);
-    } finally {
-      setIsSubmitting(false);
+    if (validate()) {
+      setIsSubmitting(true);
+      
+      try {
+        // Transform form data to match API expectations
+        const apiFormData = {
+          name: formData.name,
+          period: formData.period,
+        };
+        
+        // Only include supervisor_id and hod_id when editing
+        if (initialData) {
+          apiFormData.supervisor_id = formData.supervisor_id;
+          apiFormData.hod_id = formData.hod_id;
+        }
+        
+        await onSubmit(apiFormData);
+        setIsSubmitting(false);
+      } catch (error) {
+        setIsSubmitting(false);
+        toast({
+          title: "Error",
+          description: "Failed to save agreement. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } else {
+      toast({
+        title: "Validation Error",
+        description: "Please fix the highlighted errors.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -132,6 +155,7 @@ const AgreementForm = ({
                 name="supervisorName"
                 value={formData.supervisorName}
                 onChange={handleChange}
+                disabled={true}
                 placeholder="Enter supervisor name"
                 className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               />
@@ -147,6 +171,7 @@ const AgreementForm = ({
                 name="hodName"
                 value={formData.hodName}
                 onChange={handleChange}
+                disabled={true}
                 placeholder="Enter HOD name"
                 className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               />
@@ -177,5 +202,4 @@ const AgreementForm = ({
     </form>
   );
 };
-
 export default AgreementForm;

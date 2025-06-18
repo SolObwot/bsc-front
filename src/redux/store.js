@@ -5,6 +5,7 @@ import jobTitleReducer from './jobTitleSlice';
 import templateReducer from './templateSlice';
 import strategicObjectiveReducer from './strategicObjectiveSlice';
 import strategyPerspectiveReducer from './strategyPerspectiveSlice';
+import agreementReducer from './agreementSlice';
 
 const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ const store = configureStore({
     templates: templateReducer,
     strategicObjectives: strategicObjectiveReducer,
     strategyPerspective: strategyPerspectiveReducer,
+    agreements: agreementReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
