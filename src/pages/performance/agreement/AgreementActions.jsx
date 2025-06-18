@@ -54,7 +54,7 @@ const AgreementActions = ({
       {onAddKPI && (
         <button
           onClick={() => onAddKPI(agreement)}
-          className={`${buttonClass} text-green-600 hover:text-green-900`}
+          className={`${buttonClass} text-yellow-600 hover:text-yellow-900`}
         >
           <PlusIcon className={iconClass} />
           <span className="whitespace-nowrap">Add KPI</span>

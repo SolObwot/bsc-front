@@ -54,7 +54,7 @@ const CreateAgreementModal = ({
                       <InformationCircleIcon className="h-5 w-5 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
                       <p className="text-sm text-blue-700">
                         Your supervisor and HOD/line manager will be automatically added to the agreement. 
-                        You can edit this information later if it's not correct.
+                        You can edit this later if it's not correct.
                       </p>
                     </div>
                   )}

@@ -11,29 +11,7 @@ import SubmitAgreementModal from './SubmitAgreementModal';
 import AddAgreement from './AddAgreement';
 import EditAgreement from './EditAgreement';
 import DeleteAgreementModal from './DeleteAgreementModal';
-
-
-// Status badge component
-const StatusBadge = ({ status }) => {
-  const statusConfigs = {
-    draft: {
-      color: 'bg-gray-100 text-gray-700',
-      label: 'Draft'
-    },
-    submitted: {
-      color: 'bg-blue-100 text-blue-700',
-      label: 'Submitted for Review'
-    }
-  };
-
-  const config = statusConfigs[status] || statusConfigs.draft;
-
-  return (
-    <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${config.color}`}>
-      {config.label}
-    </span>
-  );
-};
+import StatusBadge from './AgreementStatusBadge';
 
 const AgreementList = () => {
   // Navigation hook
