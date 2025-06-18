@@ -39,6 +39,7 @@ const AgreementList = () => {
   const [filterText, setFilterText] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterPeriod, setFilterPeriod] = useState('');
+  const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString());
   
   // Modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -50,6 +51,7 @@ const AgreementList = () => {
   // Get agreements from Redux
   const { agreements, pagination, loading, error } = useSelector((state) => state.agreements);
   const [filteredAgreements, setFilteredAgreements] = useState([]);
+  const currentYear = useMemo(() => new Date().getFullYear(), []);
 
   // Fetch agreements when component mounts
   useEffect(() => {
@@ -79,11 +81,19 @@ const AgreementList = () => {
         return agreement.period === filterPeriod;
       });
     }
+    if (filterYear) {
+      filtered = filtered.filter(agreement => {
+        if (!agreement.created_at && !agreement.createdDate) return false;
+        const agreementYear = new Date(agreement.created_at || agreement.createdDate).getFullYear().toString();
+        return agreementYear === filterYear;
+      });
+    }
     
     setFilteredAgreements(filtered);
-  }, [filterText, filterStatus, filterPeriod, agreements]);
+  }, [filterText, filterStatus, filterPeriod, filterYear, agreements]);
 
   const handleAddNew = () => {
+    setSelectedAgreement(null);
     setIsAddModalOpen(true);
   };
 
@@ -197,6 +207,7 @@ const AgreementList = () => {
     setFilterText('');
     setFilterStatus('');
     setFilterPeriod('');
+    setFilterYear(currentYear.toString());
   };
 
   // Get unique periods for the filter dropdown
@@ -314,6 +325,20 @@ const AgreementList = () => {
                 ...periods.map(period => ({ value: period, label: period }))
               ],
             },
+            {
+              id: 'filterYear',
+              label: 'Year',
+              type: 'select',
+              value: filterYear,
+              onChange: (e) => setFilterYear(e.target.value),
+              options: [
+                { value: '', label: '-- All Years --' },
+                ...Array.from({ length: 5 }, (_, i) => currentYear - i).map(year => ({
+                  value: year.toString(),
+                  label: year.toString()
+                }))
+              ],
+            }
           ]}
           buttons={[
             {
