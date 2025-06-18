@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import Button from '../../../components/ui/Button';
 import { useToast } from '../../../hooks/useToast';
+import Button from '../../../components/ui/Button';
+import useUserSearch from '../../../hooks/agreements/useUserSearch';
+import SearchableCombobox from '../../../components/ui/SearchableCombobox';
 
 const AgreementForm = ({ 
   initialData = null, 
@@ -9,92 +11,76 @@ const AgreementForm = ({
   isModal = false
 }) => {
   const { toast } = useToast();
+  const { searchResults, loading, hasMore, searchUsers, loadMoreUsers } = useUserSearch();
+
   const [formData, setFormData] = useState({
     name: '',
     period: '',
-    supervisorName: '',
-    hodName: '',
-    supervisor_id: '',
-    hod_id: '',
+    supervisor: null,
+    hod: null,
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Initialize form with data for editing
   useEffect(() => {
     if (initialData) {
       setFormData({
         name: initialData.name || '',
         period: initialData.period || '',
-        supervisorName: initialData.supervisorName || 
-                       (initialData.supervisor ? `${initialData.supervisor.surname} ${initialData.supervisor.last_name}` : ''),
-        hodName: initialData.hodName || 
-                (initialData.hod ? `${initialData.hod.surname} ${initialData.hod.last_name}` : ''),
-        supervisor_id: initialData.supervisor_id || '',
-        hod_id: initialData.hod_id || '',
+        supervisor: initialData.supervisor || null,
+        hod: initialData.hod || null,
       });
     }
   }, [initialData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-    
-    // Clear error for the field being changed
+    setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: null
-      });
+      setErrors(prev => ({ ...prev, [name]: null }));
+    }
+  };
+
+  const handleSupervisorChange = (selectedUser) => {
+    setFormData(prev => ({ ...prev, supervisor: selectedUser }));
+    if (errors.supervisor) {
+        setErrors(prev => ({ ...prev, supervisor: null }));
+    }
+  };
+
+  const handleHodChange = (selectedUser) => {
+    setFormData(prev => ({ ...prev, hod: selectedUser }));
+     if (errors.hod) {
+        setErrors(prev => ({ ...prev, hod: null }));
     }
   };
 
   const validate = () => {
     const newErrors = {};
-    
-    if (!formData.name) {
-      newErrors.name = 'Agreement name is required';
-    }
-    
-    if (!formData.period) {
-      newErrors.period = 'Period is required';
-    }
-    
+    if (!formData.name.trim()) newErrors.name = 'Agreement name is required.';
+    if (!formData.period) newErrors.period = 'Period is required.';
+    if (initialData && !formData.supervisor) newErrors.supervisor = 'Supervisor is required.';
+    if (initialData && !formData.hod) newErrors.hod = 'HOD is required.';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (validate()) {
       setIsSubmitting(true);
-      
+      const submissionData = {
+        name: formData.name,
+        period: formData.period,
+        supervisor_id: formData.supervisor?.id || null,
+        hod_id: formData.hod?.id || null,
+      };
       try {
-        // Transform form data to match API expectations
-        const apiFormData = {
-          name: formData.name,
-          period: formData.period,
-        };
-        
-        // Only include supervisor_id and hod_id when editing
-        if (initialData) {
-          apiFormData.supervisor_id = formData.supervisor_id;
-          apiFormData.hod_id = formData.hod_id;
-        }
-        
-        await onSubmit(apiFormData);
-        setIsSubmitting(false);
+        await onSubmit(submissionData);
       } catch (error) {
+        // Parent component handles toast notifications
+      } finally {
         setIsSubmitting(false);
-        toast({
-          title: "Error",
-          description: "Failed to save agreement. Please try again.",
-          variant: "destructive",
-        });
       }
     } else {
       toast({
@@ -142,40 +128,33 @@ const AgreementForm = ({
           {errors.period && <p className="mt-1 text-sm text-red-600">{errors.period}</p>}
         </div>
         
-        {/* Only show these fields when editing */}
         {initialData && (
           <>
-            <div>
-              <label htmlFor="supervisorName" className="block text-sm font-medium text-gray-700 mb-1">
-                Supervisor Name
-              </label>
-              <input
-                type="text"
-                id="supervisorName"
-                name="supervisorName"
-                value={formData.supervisorName}
-                onChange={handleChange}
-                disabled={true}
-                placeholder="Enter supervisor name"
-                className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
+            <SearchableCombobox
+              label="Supervisor"
+              options={searchResults}
+              selected={formData.supervisor}
+              onChange={handleSupervisorChange}
+              onSearch={searchUsers}
+              onLoadMore={loadMoreUsers}
+              hasMore={hasMore}
+              loading={loading}
+              placeholder="Type to search for a supervisor..."
+              error={errors.supervisor}
+            />
             
-            <div>
-              <label htmlFor="hodName" className="block text-sm font-medium text-gray-700 mb-1">
-                HOD Name
-              </label>
-              <input
-                type="text"
-                id="hodName"
-                name="hodName"
-                value={formData.hodName}
-                onChange={handleChange}
-                disabled={true}
-                placeholder="Enter HOD name"
-                className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
+            <SearchableCombobox
+              label="HOD / Line Manager"
+              options={searchResults}
+              selected={formData.hod}
+              onChange={handleHodChange}
+              onSearch={searchUsers}
+              onLoadMore={loadMoreUsers}
+              hasMore={hasMore}
+              loading={loading}
+              placeholder="Type to search for a HOD..."
+              error={errors.hod}
+            />
           </>
         )}
         
@@ -192,14 +171,15 @@ const AgreementForm = ({
           <Button
             type="submit"
             variant="pride"
-            disabled={isSubmitting}
+            disabled={isSubmitting || loading}
             className="px-4"
           >
-            {isSubmitting ? 'Saving...' : initialData ? 'Update Agreement' : 'Create Agreement'}
+            {isSubmitting ? 'Saving...' : 'Update Agreement'}
           </Button>
         </div>
       </div>
     </form>
   );
 };
+
 export default AgreementForm;
