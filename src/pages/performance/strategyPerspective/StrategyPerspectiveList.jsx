@@ -1,18 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { 
-  fetchDepartmentWeights, 
-  deleteDepartmentWeight, 
-  approveDepartmentWeight, 
-  createDepartmentWeight, 
-  updateDepartmentWeight,
-  fetchDepartments,
-  fetchStrategyPerspectives 
-} from '../../../redux/strategyPerspectiveSlice';
+import { fetchDepartmentWeights, deleteDepartmentWeight, approveDepartmentWeight, createDepartmentWeight, updateDepartmentWeight,
+fetchDepartments,fetchStrategyPerspectives } from '../../../redux/strategyPerspectiveSlice';
 import useStrategicPerspectiveFilters from '../../../hooks/strategyPerspective/useStrategicPerspectiveFilters';
 import useStrategicPerspectivePagination from '../../../hooks/strategyPerspective/useStrategicPerspectivePagination';
 import { useToast, ToastContainer } from "../../../hooks/useToast";
-import { Table, TableHead, TableHeader, TableBody, TableRow, TableCell } from '../../../components/ui/Tables';
+import { Table, TableHead, TableBody, TableRow, TableCell, TableHeader, TableSkeleton } from '../../../components/ui/Tables';
 import ObjectiveHeader from '../../../components/balancescorecard/Header';
 import FilterBox from '../../../components/ui/FilterBox';
 import StrategyPerspectiveToolbar from './StrategyPerspectiveToolbar';
@@ -154,10 +147,6 @@ const StrategyPerspectiveList = () => {
     }
   };
   
-  if (loading && departments.length === 0) {
-    return <div className="p-6 text-center">Loading strategy perspectives...</div>;
-  }
-  
   return (
     <div className="min-h-screen bg-white shadow-md rounded-lg">
       <ToastContainer />
@@ -255,78 +244,88 @@ const StrategyPerspectiveList = () => {
             showCreateButton={true}
           />
           
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Department</TableHeader>
-                <TableHeader>Perspective</TableHeader>
-                <TableHeader>Type</TableHeader>
-                <TableHeader>Weight (%)</TableHeader>
-                <TableHeader>Status</TableHeader>
-                <TableHeader>Created By</TableHeader>
-                <TableHeader>Actions</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {paginatedWeights.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                    {departments.length === 0 ? (
-                      "No departments found. Please check API connection."
-                    ) : allWeights.length === 0 ? (
-                      "No weights found in departments. Please check department data structure."
-                    ) : filteredWeights.length === 0 ? (
-                      "No weights match your filter criteria. Try clearing filters."
-                    ) : (
-                      "No perspective weights found. Click 'Create Strategy Perspective Weight' to assign weights."
-                    )}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                paginatedWeights.map((weight) => (
-                  <TableRow key={weight.id} className="hover:bg-gray-50">
-                    <TableCell className="font-medium">
-                      {weight.department_name || 'N/A'}
-                    </TableCell>
-                    <TableCell>
-                      {weight.perspective?.name || 'N/A'}
-                    </TableCell>
-                    <TableCell>
-                      <span className="capitalize">{weight.perspective?.type || 'N/A'}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="font-semibold">{weight.weight}%</span>
-                    </TableCell>
-                    <TableCell>
-                      <StrategyPerspectiveStatusBadge status={weight.status || 'pending'} />
-                    </TableCell>
-                    <TableCell>
-                      {weight.creator ? 
-                        `${weight.creator.surname || ''} ${weight.creator.last_name || ''}` : 
-                        'N/A'}
-                    </TableCell>
-                    <TableCell>
-                      <StrategyPerspectiveActions
-                        weight={weight}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                        onApprove={handleApprove}
-                        showApproveButton={weight.status === 'pending' || weight.status === 'draft'}
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-          
-          <div className="mt-4">
-            <Pagination
-              currentPage={paginationProps.currentPage}
-              totalPages={paginationProps.totalPages}
-              onPageChange={paginationProps.handlePageChange}
+          {loading ? (
+            <TableSkeleton 
+              rows={8} 
+              columns={7} 
+              columnWidths={['15%', '20%', '10%', '10%', '15%', '15%', '15%']} 
             />
-          </div>
+          ) : (
+            <>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableHeader>Department</TableHeader>
+                    <TableHeader>Perspective</TableHeader>
+                    <TableHeader>Type</TableHeader>
+                    <TableHeader>Weight (%)</TableHeader>
+                    <TableHeader>Status</TableHeader>
+                    <TableHeader>Created By</TableHeader>
+                    <TableHeader>Actions</TableHeader>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {paginatedWeights.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                        {departments.length === 0 ? (
+                          "No departments found. Please check API connection."
+                        ) : allWeights.length === 0 ? (
+                          "No weights found in departments. Please check department data structure."
+                        ) : filteredWeights.length === 0 ? (
+                          "No weights match your filter criteria. Try clearing filters."
+                        ) : (
+                          "No perspective weights found. Click 'Create Strategy Perspective Weight' to assign weights."
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    paginatedWeights.map((weight) => (
+                      <TableRow key={weight.id} className="hover:bg-gray-50">
+                        <TableCell className="font-medium">
+                          {weight.department_name || 'N/A'}
+                        </TableCell>
+                        <TableCell>
+                          {weight.perspective?.name || 'N/A'}
+                        </TableCell>
+                        <TableCell>
+                          <span className="capitalize">{weight.perspective?.type || 'N/A'}</span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-semibold">{weight.weight}%</span>
+                        </TableCell>
+                        <TableCell>
+                          <StrategyPerspectiveStatusBadge status={weight.status || 'pending'} />
+                        </TableCell>
+                        <TableCell>
+                          {weight.creator ? 
+                            `${weight.creator.surname || ''} ${weight.creator.last_name || ''}` : 
+                            'N/A'}
+                        </TableCell>
+                        <TableCell>
+                          <StrategyPerspectiveActions
+                            weight={weight}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                            onApprove={handleApprove}
+                            showApproveButton={weight.status === 'pending' || weight.status === 'draft'}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+              
+              <div className="mt-4">
+                <Pagination
+                  currentPage={paginationProps.currentPage}
+                  totalPages={paginationProps.totalPages}
+                  onPageChange={paginationProps.handlePageChange}
+                />
+              </div>
+            </>
+          )}
         </div>
       </div>
       

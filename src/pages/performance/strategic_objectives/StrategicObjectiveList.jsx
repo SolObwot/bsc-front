@@ -5,7 +5,7 @@ import { fetchStrategicObjectives, deleteStrategicObjective, approveStrategicObj
 import useStrategicObjectiveFilters from '../../../hooks/strategicObjective/useStrategicObjectiveFilters';
 import useStrategicObjectivePagination from '../../../hooks/strategicObjective/useStrategicObjectivePagination';
 import { useToast, ToastContainer } from "../../../hooks/useToast";
-import { Table, TableHead, TableHeader, TableBody, TableRow, TableCell } from '../../../components/ui/Tables';
+import { Table, TableHead, TableBody, TableRow, TableCell, TableHeader, TableSkeleton } from '../../../components/ui/Tables';
 import ObjectiveHeader from '../../../components/balancescorecard/Header';
 import FilterBox from '../../../components/ui/FilterBox';
 import StrategicObjectiveToolbar from './StrategicObjectiveToolbar';
@@ -134,14 +134,6 @@ const StrategicObjectiveList = () => {
       });
     }
   };
-  
-  if (loading) {
-    return <div className="p-6 text-center">Loading strategic objectives...</div>;
-  }
-  
-  if (error) {
-    return <div className="p-6 text-center text-red-600">{error}</div>;
-  }
 
   return (
     <div className="min-h-screen bg-white shadow-md rounded-lg">
@@ -247,61 +239,69 @@ const StrategicObjectiveList = () => {
             onCreateClick={handleAddNew}
           />
           
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Strategic Objective(s)</TableHeader>
-                <TableHeader>Strategy Perspective</TableHeader>
-                <TableHeader>Department</TableHeader>
-                <TableHeader>Created By</TableHeader>
-                <TableHeader>Status</TableHeader>
-                <TableHeader>Actions</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {paginatedObjectives.length === 0 ? (
+          {loading ? (
+            <TableSkeleton 
+              rows={paginationProps.recordsPerPage} 
+              columns={6} 
+              columnWidths={['30%', '20%', '15%', '15%', '10%', '10%']} 
+            />
+          ) : (
+            <Table>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                    No strategic objectives found. Click "Create Strategic Objective" to get started.
-                  </TableCell>
+                  <TableHeader>Strategic Objective(s)</TableHeader>
+                  <TableHeader>Strategy Perspective</TableHeader>
+                  <TableHeader>Department</TableHeader>
+                  <TableHeader>Created By</TableHeader>
+                  <TableHeader>Status</TableHeader>
+                  <TableHeader>Actions</TableHeader>
                 </TableRow>
-              ) : (
-                paginatedObjectives.map((objective) => (
-                  <TableRow key={objective.id || `objective-${Math.random()}`} className="hover:bg-gray-50">
-                    <TableCell className="font-medium">
-                      {objective.objective?.name || objective.name || 'Unnamed Objective'}
-                    </TableCell>
-                    <TableCell>
-                      <div>{objective.perspective?.name || 'N/A'}</div>
-                      <div className="text-xs text-gray-500">
-                        <span className="capitalize">{objective.perspective?.type || 'N/A'}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {objective.department_name || 'N/A'}
-                    </TableCell>
-                    <TableCell>
-                      {objective.creator ? 
-                        `${objective.creator.surname || ''} ${objective.creator.last_name || ''}` : 
-                        'N/A'}
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={objective.status || 'pending'} />
-                    </TableCell>
-                    <TableCell>
-                      <StrategicObjectiveActions
-                        objective={objective}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                        onApprove={handleApprove}
-                        showApproveButton={objective.status === 'pending' || objective.status === 'draft'}
-                      />
+              </TableHead>
+              <TableBody>
+                {paginatedObjectives.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                      No strategic objectives found. Click "Create Strategic Objective" to get started.
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  paginatedObjectives.map((objective) => (
+                    <TableRow key={objective.id || `objective-${Math.random()}`} className="hover:bg-gray-50">
+                      <TableCell className="font-medium">
+                        {objective.objective?.name || objective.name || 'Unnamed Objective'}
+                      </TableCell>
+                      <TableCell>
+                        <div>{objective.perspective?.name || 'N/A'}</div>
+                        <div className="text-xs text-gray-500">
+                          <span className="capitalize">{objective.perspective?.type || 'N/A'}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {objective.department_name || 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        {objective.creator ? 
+                          `${objective.creator.surname || ''} ${objective.creator.last_name || ''}` : 
+                          'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge status={objective.status || 'pending'} />
+                      </TableCell>
+                      <TableCell>
+                        <StrategicObjectiveActions
+                          objective={objective}
+                          onEdit={handleEdit}
+                          onDelete={handleDelete}
+                          onApprove={handleApprove}
+                          showApproveButton={objective.status === 'pending' || objective.status === 'draft'}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
           
           <div className="mt-4">
             <Pagination

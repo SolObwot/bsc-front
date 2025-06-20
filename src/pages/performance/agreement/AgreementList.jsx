@@ -1,27 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Table, TableHead, TableHeader, TableBody, TableRow, TableCell } from '../../../components/ui/Tables';
-import { 
-  fetchAgreements, 
-  createAgreement,
-  updateAgreement,
-  deleteAgreement, 
-  submitAgreement
-} from '../../../redux/agreementSlice';
+import { Table, TableHead, TableBody, TableRow, TableCell, TableHeader, TableSkeleton } from '../../../components/ui/Tables';
+import { fetchAgreements, createAgreement,updateAgreement,deleteAgreement, submitAgreement } from '../../../redux/agreementSlice';
 import { useToast } from '../../../hooks/useToast';
 import ObjectiveHeader from '../../../components/balancescorecard/Header';
 import OverallProgress from '../../../components/balancescorecard/OverallProgress';
 import FilterBox from '../../../components/ui/FilterBox';
 import Button from '../../../components/ui/Button';
-import { 
-  PlusIcon, 
-  PencilIcon, 
-  TrashIcon,
-  DocumentTextIcon,
-  CheckCircleIcon,
-  DocumentPlusIcon
-} from '@heroicons/react/24/outline';
+import {DocumentPlusIcon} from '@heroicons/react/24/outline';
 import AgreementActions from './AgreementActions'; 
 import SubmitAgreementModal from './SubmitAgreementModal';
 import AddAgreement from './AddAgreement';
@@ -249,18 +236,6 @@ const AgreementList = () => {
     }
   };
 
-  // Show loading state
-  if (loading && agreements.length === 0) {
-    return (
-      <div className="min-h-screen bg-white shadow-md rounded-lg">
-        <ObjectiveHeader />
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
-        </div>
-      </div>
-    );
-  }
-
   // Show error state
   if (error && agreements.length === 0) {
     return (
@@ -371,144 +346,161 @@ const AgreementList = () => {
             </div>
           </div>
           
-          {/* Table */}
-                <Table>
+          {/* Conditional loading state only for the table */}
+          <div>
+            {loading && agreements.length === 0 ? (
+              <TableSkeleton 
+                rows={8} 
+                columns={8} 
+                columnWidths={['20%', '10%', '15%', '15%', '15%', '10%', '10%', '15%']} 
+              />
+            ) : error ? (
+              <div className="bg-red-50 p-4 rounded-md">
+                <h3 className="text-sm font-medium text-red-800">Error loading agreements</h3>
+                <div className="mt-2 text-sm text-red-700">
+                  <p>{error}</p>
+                </div>
+              </div>
+            ) : (
+              <Table>
                 <TableHead>
                   <TableRow>
-                  <TableHeader>Agreement Name</TableHeader>
-                  <TableHeader>Period</TableHeader>
-                  <TableHeader>Supervisor</TableHeader>
-                  <TableHeader>HOD/Line Manager</TableHeader>
-                  <TableHeader>Created</TableHeader>
-                  <TableHeader>Submitted</TableHeader>
-                  <TableHeader>Status</TableHeader>
-                  <TableHeader>Actions</TableHeader>
+                    <TableHeader>Agreement Name</TableHeader>
+                    <TableHeader>Period</TableHeader>
+                    <TableHeader>Supervisor</TableHeader>
+                    <TableHeader>HOD/Line Manager</TableHeader>
+                    <TableHeader>Created</TableHeader>
+                    <TableHeader>Submitted</TableHeader>
+                    <TableHeader>Status</TableHeader>
+                    <TableHeader>Actions</TableHeader>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {filteredAgreements.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                    No agreements found. Click "Create New Agreement" to get started.
-                    </TableCell>
-                  </TableRow>
-                  ) : (
-                  filteredAgreements.map((agreement) => (
-                    <TableRow key={agreement.id} className="hover:bg-gray-50">
-                    <TableCell>
-                      <div className="text-sm font-medium text-gray-900">{agreement.name || agreement.title}</div>
-                    </TableCell>
-                    <TableCell>
-                      {agreement.period === 'annual' ? 'Annual Review' : 
-                       agreement.period === 'probation' ? 'Probation 6 months' : 
-                       agreement.period}
-                    </TableCell>
-                    <TableCell>
-                      {agreement.supervisor ? 
-                      `${agreement.supervisor.surname} ${agreement.supervisor.last_name}` : 
-                      agreement.supervisorName || 'Not assigned'}
-                    </TableCell>
-                    <TableCell>
-                      {agreement.hod ? 
-                      `${agreement.hod.surname} ${agreement.hod.last_name}` : 
-                      agreement.hodName || 'Not assigned'}
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                      {formatDate(agreement.created_at || agreement.createdDate)}
-                      <span className="block text-xs text-gray-500 mt-1">
-                        {getTimeAgo(agreement.created_at || agreement.createdDate)}
-                      </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {agreement.submitted_at || agreement.submittedDate ? (
-                      <div>
-                        {formatDate(agreement.submitted_at || agreement.submittedDate)}
-                        <span className="block text-xs text-gray-500 mt-1">
-                        {getTimeAgo(agreement.submitted_at || agreement.submittedDate)}
-                        </span>
-                      </div>
-                      ) : (
-                      <span className="text-xs text-gray-500">Not submitted yet</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={agreement.status} />
-                    </TableCell>
-                    <TableCell>
-                      {agreement.status === 'draft' || agreement.status === 'rejected' ? (
-                      <AgreementActions
-                        agreement={agreement}
-                        onEdit={() => handleEdit(agreement)}
-                        onSubmit={() => handleSubmit(agreement)}
-                        onDelete={() => handleDeleteConfirmation(agreement)}
-                        onAddKPI={() => handleAddKPIs(agreement)}
-                      />
-                      ) : (
-                      <div className="flex items-center gap-3">
-                        <AgreementActions
-                        agreement={agreement}
-                        onEdit={() => handleEdit(agreement)}
-                        showOnlyReviewAndPreview={true}
-                        />
-                        <span className="text-gray-500 text-sm">
-                        {agreement.status === 'pending_supervisor' ? 'Pending Supervisor Review' :
-                        agreement.status === 'pending_hod' ? 'Pending HOD Review' :
-                        agreement.status === 'approved_supervisor' ? 'Approved by Supervisor' :
-                        agreement.status === 'approved' ? 'Approved' :
-                        'Under Review'}
-                        </span>
-                      </div>
-                      )}
-                    </TableCell>
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                        No agreements found. Click "Create New Agreement" to get started.
+                      </TableCell>
                     </TableRow>
-                  ))
+                  ) : (
+                    filteredAgreements.map((agreement) => (
+                      <TableRow key={agreement.id} className="hover:bg-gray-50">
+                        <TableCell>
+                          <div className="text-sm font-medium text-gray-900">{agreement.name || agreement.title}</div>
+                        </TableCell>
+                        <TableCell>
+                          {agreement.period === 'annual' ? 'Annual Review' : 
+                          agreement.period === 'probation' ? 'Probation 6 months' : 
+                          agreement.period}
+                        </TableCell>
+                        <TableCell>
+                          {agreement.supervisor ? 
+                            `${agreement.supervisor.surname} ${agreement.supervisor.last_name}` : 
+                            agreement.supervisorName || 'Not assigned'}
+                        </TableCell>
+                        <TableCell>
+                          {agreement.hod ? 
+                            `${agreement.hod.surname} ${agreement.hod.last_name}` : 
+                            agreement.hodName || 'Not assigned'}
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            {formatDate(agreement.created_at || agreement.createdDate)}
+                            <span className="block text-xs text-gray-500 mt-1">
+                              {getTimeAgo(agreement.created_at || agreement.createdDate)}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {agreement.submitted_at || agreement.submittedDate ? (
+                            <div>
+                              {formatDate(agreement.submitted_at || agreement.submittedDate)}
+                              <span className="block text-xs text-gray-500 mt-1">
+                                {getTimeAgo(agreement.submitted_at || agreement.submittedDate)}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-gray-500">Not submitted yet</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge status={agreement.status} />
+                        </TableCell>
+                        <TableCell>
+                          {agreement.status === 'draft' || agreement.status === 'rejected' ? (
+                            <AgreementActions
+                              agreement={agreement}
+                              onEdit={() => handleEdit(agreement)}
+                              onSubmit={() => handleSubmit(agreement)}
+                              onDelete={() => handleDeleteConfirmation(agreement)}
+                              onAddKPI={() => handleAddKPIs(agreement)}
+                            />
+                          ) : (
+                            <div className="flex items-center gap-3">
+                              <AgreementActions
+                                agreement={agreement}
+                                onEdit={() => handleEdit(agreement)}
+                                showOnlyReviewAndPreview={true}
+                              />
+                              <span className="text-gray-500 text-sm">
+                                {agreement.status === 'pending_supervisor' ? 'Pending Supervisor Review' :
+                                  agreement.status === 'pending_hod' ? 'Pending HOD Review' :
+                                  agreement.status === 'approved_supervisor' ? 'Approved by Supervisor' :
+                                  agreement.status === 'approved' ? 'Approved' :
+                                  'Under Review'}
+                              </span>
+                            </div>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
                   )}
                 </TableBody>
-                </Table>
-              </div>
-              </div>
+              </Table>
+            )}
+          </div>
+        </div>
 
-      <AddAgreement
-        isOpen={isAddModalOpen}
-        closeModal={() => setIsAddModalOpen(false)}
-        onSubmit={handleAddSubmit}
-      />
-      
-      {selectedAgreement && (
-        <EditAgreement
-          isOpen={isEditModalOpen}
-          closeModal={() => {
-            setIsEditModalOpen(false);
-            setSelectedAgreement(null);
-          }}
-          onSubmit={handleEditSubmit}
-          agreement={selectedAgreement}
+        <AddAgreement
+          isOpen={isAddModalOpen}
+          closeModal={() => setIsAddModalOpen(false)}
+          onSubmit={handleAddSubmit}
         />
-      )}
-      
-      {selectedAgreement && (
-        <SubmitAgreementModal
-          isOpen={isSubmitModalOpen}
-          closeModal={() => setIsSubmitModalOpen(false)}
-          agreement={selectedAgreement}
-          onSubmit={handleConfirmSubmit}
-        />
-      )}
-      
-      {/* Add Delete Agreement Modal */}
-      {selectedAgreement && (
-        <DeleteAgreementModal
-          isOpen={isDeleteModalOpen}
-          closeModal={() => {
-            setIsDeleteModalOpen(false);
-            setSelectedAgreement(null);
-          }}
-          onConfirm={() => handleDeleteAgreement(selectedAgreement.id)}
-          agreement={selectedAgreement}
-        />
-      )}
+        
+        {selectedAgreement && (
+          <EditAgreement
+            isOpen={isEditModalOpen}
+            closeModal={() => {
+              setIsEditModalOpen(false);
+              setSelectedAgreement(null);
+            }}
+            onSubmit={handleEditSubmit}
+            agreement={selectedAgreement}
+          />
+        )}
+        
+        {selectedAgreement && (
+          <SubmitAgreementModal
+            isOpen={isSubmitModalOpen}
+            closeModal={() => setIsSubmitModalOpen(false)}
+            agreement={selectedAgreement}
+            onSubmit={handleConfirmSubmit}
+          />
+        )}
+        
+        {/* Add Delete Agreement Modal */}
+        {selectedAgreement && (
+          <DeleteAgreementModal
+            isOpen={isDeleteModalOpen}
+            closeModal={() => {
+              setIsDeleteModalOpen(false);
+              setSelectedAgreement(null);
+            }}
+            onConfirm={() => handleDeleteAgreement(selectedAgreement.id)}
+            agreement={selectedAgreement}
+          />
+        )}
+      </div>
     </div>
   );
 };

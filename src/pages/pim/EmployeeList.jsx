@@ -6,7 +6,7 @@ import { userService } from '../../services/user.service';
 import FilterBox from '../../components/ui/FilterBox';
 import Button from '../../components/ui/Button';
 import { useToast } from "../../hooks/useToast";
-import { Table, TableHead, TableHeader, TableBody, TableRow, TableCell } from '../../components/ui/Tables';
+import { Table, TableHead, TableBody, TableRow, TableCell, TableHeader, TableSkeleton } from '../../components/ui/Tables';
 import DeleteUser from '../../components/users/DeleteUser';
 import EmailTruncator from '../../components/ui/EmailTruncator'; 
 import Pagination from '../../components/ui/Pagination'; 
@@ -115,13 +115,6 @@ const UsersList = () => {
 
   const paginatedUsers = filteredUsers.slice((currentPage - 1) * recordsPerPage, currentPage * recordsPerPage);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
-      </div>
-    );
-  }
 
   if (userToEdit) {
     return <UpdateUser user={userToEdit} onCancel={() => setUserToEdit(null)} />;
@@ -250,70 +243,80 @@ const UsersList = () => {
           </span>
         </div>
 
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeader>Staff Number</TableHeader>
-              <TableHeader>Display Name</TableHeader>
-              <TableHeader>Department</TableHeader>
-              <TableHeader>Unit/Branch</TableHeader>
-              <TableHeader>Email</TableHeader>
-              <TableHeader>Lock/Unlock</TableHeader>
-              <TableHeader>Actions</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {paginatedUsers.map((user, userIdx) => (
-              <TableRow key={user.email}>
-                <TableCell>{user.staff_number}</TableCell>
-                <TableCell>{`${user.surname} ${user.last_name}`}</TableCell>
-                <TableCell title={user.fullDepartment}>{user.department || 'Set Department'}</TableCell>
-                <TableCell title={user.fullUnit}>{user.unit || 'Set Unit'}</TableCell>
-                <TableCell>
-                  <EmailTruncator email={user.email} showChars={8} />
-                </TableCell>
-                <TableCell>
-                  <button 
-                    onClick={() => setEmployeeToLock(user)}
-                    className="text-red-600 hover:text-red-900 inline-flex items-center gap-x-1.5 mr-2 cursor-pointer">
-                    <LockClosedIcon className="h-5 w-5" aria-hidden="true" />
-                    <span>Lock</span>
-                  </button>
-                  <button 
-                    onClick={() => setEmployeeToUnlock(user)}
-                    className="text-green-600 hover:text-green-900 inline-flex items-center gap-x-1.5 cursor-pointer">
-                    <LockOpenIcon className="h-5 w-5" aria-hidden="true" />
-                    <span>Unlock</span>
-                  </button>
-                </TableCell>
-                <TableCell>
-                  <button 
-                    onClick={() => handleEdit(user.id)} 
-                    className="text-indigo-600 hover:text-indigo-900 inline-flex items-center gap-x-1.5 mr-2 cursor-pointer"
-                  >
-                    <PencilSquareIcon className="h-5 w-5" aria-hidden="true" />
-                    <span>Edit</span>
-                    <span className="sr-only">, {`${user.surname} ${user.last_name}`}</span>
-                  </button>
-                  <button 
-                    onClick={() => setUserToDelete(user)} 
-                    className="text-red-600 hover:text-red-900 inline-flex items-center gap-x-1.5 cursor-pointer"
-                  >
-                    <TrashIcon className="h-5 w-5" aria-hidden="true" />
-                    <span>Delete</span>
-                  </button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        {loading ? (
+          <TableSkeleton 
+            rows={8} 
+            columns={7} 
+            columnWidths={['10%', '20%', '15%', '15%', '15%', '15%', '10%']} 
+          />
+        ) : (
+          <>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableHeader>Staff Number</TableHeader>
+                  <TableHeader>Display Name</TableHeader>
+                  <TableHeader>Department</TableHeader>
+                  <TableHeader>Unit/Branch</TableHeader>
+                  <TableHeader>Email</TableHeader>
+                  <TableHeader>Lock/Unlock</TableHeader>
+                  <TableHeader>Actions</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {paginatedUsers.map((user) => (
+                  <TableRow key={user.email}>
+                    <TableCell>{user.staff_number}</TableCell>
+                    <TableCell>{`${user.surname} ${user.last_name}`}</TableCell>
+                    <TableCell title={user.fullDepartment}>{user.department || 'Set Department'}</TableCell>
+                    <TableCell title={user.fullUnit}>{user.unit || 'Set Unit'}</TableCell>
+                    <TableCell>
+                      <EmailTruncator email={user.email} showChars={8} />
+                    </TableCell>
+                    <TableCell>
+                      <button 
+                        onClick={() => setEmployeeToLock(user)}
+                        className="text-red-600 hover:text-red-900 inline-flex items-center gap-x-1.5 mr-2 cursor-pointer">
+                        <LockClosedIcon className="h-5 w-5" aria-hidden="true" />
+                        <span>Lock</span>
+                      </button>
+                      <button 
+                        onClick={() => setEmployeeToUnlock(user)}
+                        className="text-green-600 hover:text-green-900 inline-flex items-center gap-x-1.5 cursor-pointer">
+                        <LockOpenIcon className="h-5 w-5" aria-hidden="true" />
+                        <span>Unlock</span>
+                      </button>
+                    </TableCell>
+                    <TableCell>
+                      <button 
+                        onClick={() => handleEdit(user.id)} 
+                        className="text-indigo-600 hover:text-indigo-900 inline-flex items-center gap-x-1.5 mr-2 cursor-pointer"
+                      >
+                        <PencilSquareIcon className="h-5 w-5" aria-hidden="true" />
+                        <span>Edit</span>
+                        <span className="sr-only">, {`${user.surname} ${user.last_name}`}</span>
+                      </button>
+                      <button 
+                        onClick={() => setUserToDelete(user)} 
+                        className="text-red-600 hover:text-red-900 inline-flex items-center gap-x-1.5 cursor-pointer"
+                      >
+                        <TrashIcon className="h-5 w-5" aria-hidden="true" />
+                        <span>Delete</span>
+                      </button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
 
-        <Pagination
-          currentPage={currentPage}
-          totalPages={Math.ceil(filteredUsers.length / recordsPerPage)}
-          onPageChange={handlePageChange}
-          className="mt-4"
-        />
+            <Pagination
+              currentPage={currentPage}
+              totalPages={Math.ceil(filteredUsers.length / recordsPerPage)}
+              onPageChange={handlePageChange}
+              className="mt-4"
+            />
+          </>
+        )}
       </div>
 
       <DeleteUser 
