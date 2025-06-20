@@ -6,8 +6,50 @@ export const fetchAgreements = createAsyncThunk(
   'agreements/fetchAll',
   async (params, { rejectWithValue }) => {
     try {
-      const response = await agreementService.getAgreements(params);
-      return response;
+      // If a direct URL is provided, use it instead of building params
+      if (params && params.url) {
+        return await agreementService.getAgreementsFromUrl(params.url);
+      }
+      
+      // Otherwise use the standard approach with params
+      return await agreementService.getAgreements(params);
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+// New thunk to detect user department and initialize
+export const initializeWithUserDepartment = createAsyncThunk(
+  'agreements/initializeWithUserDepartment',
+  async (_, { dispatch, rejectWithValue }) => {
+    try {
+      // Step 1: Fetch user's own agreements to get department_id
+      const myAgreementsResponse = await agreementService.getAgreements({ my_agreements: true });
+      
+      // Step 2: Extract department_id from the first agreement (if any)
+      let departmentId = null;
+      
+      if (myAgreementsResponse?.data && myAgreementsResponse.data.length > 0) {
+        // Find the first agreement with a department
+        const agreementWithDept = myAgreementsResponse.data.find(
+          agreement => agreement.department_id
+        );
+        
+        if (agreementWithDept) {
+          departmentId = agreementWithDept.department_id.toString();
+        }
+      }
+      
+      // Step 3: Fetch all agreements for this department (if found)
+      if (departmentId) {
+        await dispatch(fetchAgreements({ department_id: departmentId }));
+      } else {
+        // If no department found, fetch without department filter
+        await dispatch(fetchAgreements({}));
+      }
+      
+      return { departmentId };
     } catch (error) {
       return rejectWithValue(error);
     }
@@ -108,6 +150,7 @@ const agreementSlice = createSlice({
       perPage: 20,
       total: 0
     },
+    userDepartmentId: null, // Add new state for detected department
     currentAgreement: null,
     loading: false,
     error: null,
@@ -152,6 +195,22 @@ const agreementSlice = createSlice({
       .addCase(fetchAgreements.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch agreements';
+        handleApiError(action.payload);
+      })
+      
+      // Handle the department detection thunk
+      .addCase(initializeWithUserDepartment.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(initializeWithUserDepartment.fulfilled, (state, action) => {
+        // Store the detected department ID
+        state.userDepartmentId = action.payload.departmentId;
+        // Note: The fetchAgreements thunk will handle setting state.loading = false
+      })
+      .addCase(initializeWithUserDepartment.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to initialize agreements';
         handleApiError(action.payload);
       })
       

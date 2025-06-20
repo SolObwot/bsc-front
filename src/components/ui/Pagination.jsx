@@ -7,16 +7,18 @@ const Pagination = ({
   className = '',
   previousLabel = 'Previous',
   nextLabel = 'Next',
+  prevPageUrl = null,
+  nextPageUrl = null,
 }) => {
   if (totalPages <= 1) return null;
 
   const renderPageNumbers = () => {
     const pages = [];
-    const maxPagesToShow = 10;
     const startPage = Math.max(1, currentPage - 2);
     const endPage = Math.min(totalPages, currentPage + 2);
 
-    if (startPage > 1) pages.push(<span key="start-ellipsis">...</span>);
+    if (startPage > 1) pages.push(<span key="start-ellipsis" className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700">...</span>);
+    
     for (let i = startPage; i <= endPage; i++) {
       pages.push(
         <button
@@ -33,7 +35,8 @@ const Pagination = ({
         </button>
       );
     }
-    if (endPage < totalPages) pages.push(<span key="end-ellipsis">...</span>);
+    
+    if (endPage < totalPages) pages.push(<span key="end-ellipsis" className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700">...</span>);
 
     return pages;
   };
@@ -45,19 +48,19 @@ const Pagination = ({
         aria-label="Pagination"
       >
         <button
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
+          onClick={() => prevPageUrl && onPageChange(currentPage - 1, prevPageUrl)}
+          disabled={currentPage === 1 || !prevPageUrl}
           aria-label="Go to previous page"
-          className="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50"
+          className="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {previousLabel}
         </button>
         {renderPageNumbers()}
         <button
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
+          onClick={() => nextPageUrl && onPageChange(currentPage + 1, nextPageUrl)}
+          disabled={currentPage === totalPages || !nextPageUrl}
           aria-label="Go to next page"
-          className="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50"
+          className="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {nextLabel}
         </button>

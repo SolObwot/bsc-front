@@ -79,5 +79,16 @@ export const agreementService = {
     } catch (error) {
       throw error;
     }
+  }, 
+
+   // Get agreements from a specific URL (for pagination)
+  getAgreementsFromUrl: async (url) => {
+    try {
+      const response = await axios.get(url);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }
+
 };
