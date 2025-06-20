@@ -35,7 +35,7 @@ const AgreementToolbar = ({
             onChange={(e) => onRecordsPerPageChange(Number(e.target.value))}
             className="border border-gray-300 rounded-md p-1"
           >
-            {[5, 10, 15, 20, 50].map((num) => (
+            {[5, 10, 15, 20, 50, 100].map((num) => (
               <option key={num} value={num}>{num}</option>
             ))}
           </select>

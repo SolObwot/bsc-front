@@ -93,7 +93,7 @@ const AgreementActions = ({
         </button>
       )}
       
-      {!showOnlyReviewAndPreview && onDownload && (
+      {/* {!showOnlyReviewAndPreview && onDownload && (
         <button
           onClick={() => onDownload && onDownload(agreement)}
           className={`${buttonClass} text-gray-600 hover:text-gray-900`}
@@ -101,7 +101,7 @@ const AgreementActions = ({
           <DocumentArrowDownIcon className={iconClass} />
           <span>Download</span>
         </button>
-      )}
+      )} */}
       
       {/* {!showOnlyReviewAndPreview && onViewHistory && (
         <button

@@ -135,7 +135,7 @@ const SubmitAgreementModal = ({ isOpen, closeModal, agreement, onSubmit }) => {
         <ul className="list-disc pl-5 space-y-1">
           <li>You (Employee)</li>
           <li>Your Immediate Supervisor: <span className="font-medium">{supervisorName}</span></li>
-          <li>Head of Department: <span className="font-medium">{hodName}</span></li>
+          <li>HOD/Line Manager: <span className="font-medium">{hodName}</span></li>
         </ul>
         <p className="text-amber-600 text-sm mt-3">
             Once submitted, this agreement can't be edited or modified to add/change performance measures.
