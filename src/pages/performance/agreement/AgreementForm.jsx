@@ -8,7 +8,8 @@ const AgreementForm = ({
   initialData = null, 
   onSubmit, 
   onCancel,
-  isModal = false
+  isModal = false,
+  isEditing = false
 }) => {
   const { toast } = useToast();
   const { searchResults, loading, hasMore, searchUsers, loadMoreUsers } = useUserSearch();
@@ -176,7 +177,7 @@ const AgreementForm = ({
             disabled={isSubmitting || loading}
             className="px-4"
           >
-            {isSubmitting ? 'Saving...' : 'Update Agreement'}
+            {isEditing ? "Update Agreement" : "Create Agreement"}
           </Button>
         </div>
       </div>

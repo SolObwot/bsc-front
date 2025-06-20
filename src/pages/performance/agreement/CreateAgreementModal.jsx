@@ -10,6 +10,9 @@ const CreateAgreementModal = ({
   onSubmit, 
   initialData = null 
 }) => {
+
+  const isEditing = !!initialData;
+
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={closeModal}>
@@ -64,6 +67,7 @@ const CreateAgreementModal = ({
                     onSubmit={onSubmit}
                     onCancel={closeModal}
                     isModal={true}
+                    isEditing={isEditing}
                   />
                 </div>
               </Dialog.Panel>
