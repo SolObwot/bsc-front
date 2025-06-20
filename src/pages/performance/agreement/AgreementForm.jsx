@@ -69,16 +69,18 @@ const AgreementForm = ({
     e.preventDefault();
     if (validate()) {
       setIsSubmitting(true);
+      // Create the form data with complete objects
       const submissionData = {
         name: formData.name,
         period: formData.period,
-        supervisor_id: formData.supervisor?.id || null,
+        supervisor_id: formData.supervisor?.id || null, 
         hod_id: formData.hod?.id || null,
+        supervisor: formData.supervisor,
+        hod: formData.hod
       };
       try {
         await onSubmit(submissionData);
       } catch (error) {
-        // Parent component handles toast notifications
       } finally {
         setIsSubmitting(false);
       }

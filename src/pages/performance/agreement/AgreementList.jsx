@@ -479,7 +479,10 @@ const AgreementList = () => {
       {selectedAgreement && (
         <EditAgreement
           isOpen={isEditModalOpen}
-          closeModal={() => setIsEditModalOpen(false)}
+          closeModal={() => {
+            setIsEditModalOpen(false);
+            setSelectedAgreement(null);
+          }}
           onSubmit={handleEditSubmit}
           agreement={selectedAgreement}
         />
@@ -498,7 +501,10 @@ const AgreementList = () => {
       {selectedAgreement && (
         <DeleteAgreementModal
           isOpen={isDeleteModalOpen}
-          closeModal={() => setIsDeleteModalOpen(false)}
+          closeModal={() => {
+            setIsDeleteModalOpen(false);
+            setSelectedAgreement(null);
+          }}
           onConfirm={() => handleDeleteAgreement(selectedAgreement.id)}
           agreement={selectedAgreement}
         />

@@ -37,7 +37,9 @@ const SearchableCombobox = ({
   }, [debouncedQuery, onSearch]);
 
   const observer = useRef();
+
   const lastOptionElementRef = useCallback(node => {
+
     if (loading) return;
     if (observer.current) observer.current.disconnect();
     observer.current = new IntersectionObserver(entries => {
@@ -49,12 +51,31 @@ const SearchableCombobox = ({
   }, [loading, hasMore, onLoadMore]);
 
   const displayOptions = useMemo(() => {
-    const optionSet = new Map();
+  const finalOptions = [];
+    const seenIds = new Set();
+
+    // Add the currently selected item to the list first.
     if (selected) {
-      optionSet.set(selected.id, selected);
+      finalOptions.push(selected);
+      if (selected.id != null) {
+        seenIds.add(selected.id);
+      }
     }
-    options.forEach(opt => optionSet.set(opt.id, opt));
-    return Array.from(optionSet.values());
+
+    // Add the options from the search results, avoiding duplicates if they have an ID.
+    (options || []).forEach(opt => {
+      if (opt) {
+        // Add the option if it has no ID, or if its ID hasn't been seen yet.
+        if (opt.id == null || !seenIds.has(opt.id)) {
+          finalOptions.push(opt);
+          if (opt.id != null) {
+            seenIds.add(opt.id);
+          }
+        }
+      }
+    });
+    
+    return finalOptions;
   }, [options, selected]);
 
   const getDisplayValue = (option) => {
@@ -92,7 +113,7 @@ const SearchableCombobox = ({
               ) : (
                 displayOptions.map((option, index) => (
                   <Combobox.Option
-                    key={option.id}
+                    key={option?.id || `option-${index}`}
                     ref={index === displayOptions.length - 1 ? lastOptionElementRef : null}
                     className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-teal-600 text-white' : 'text-gray-900'}`}
                     value={option}

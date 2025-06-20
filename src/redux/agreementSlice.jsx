@@ -189,8 +189,25 @@ const agreementSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateAgreement.fulfilled, (state) => {
+      .addCase(updateAgreement.fulfilled, (state, action) => {
         state.loading = false;
+        
+        // Get the complete agreement from the API response
+        const updatedAgreement = action.payload?.data;
+        
+        if (updatedAgreement) {
+          // Find the agreement in the state array
+          const index = state.agreements.findIndex(a => a.id === updatedAgreement.id);
+          if (index !== -1) {
+            // Replace it with the complete data from the server
+            state.agreements[index] = updatedAgreement;
+          }
+          
+          // Also update currentAgreement if it's the same one
+          if (state.currentAgreement?.id === updatedAgreement.id) {
+            state.currentAgreement = updatedAgreement;
+          }
+        }
       })
       .addCase(updateAgreement.rejected, (state, action) => {
         state.error = action.payload;
