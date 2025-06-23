@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAgreements, initializeWithUserDepartment } from '../../../redux/agreementSlice';
+import { fetchAllAgreements, initializeWithUserDepartment } from '../../../redux/agreementSlice';
 import ObjectiveHeader from '../../../components/balancescorecard/Header';
 import OverallProgress from '../../../components/balancescorecard/OverallProgress';
 import { Table, TableHead, TableBody, TableRow, TableCell, TableHeader, TableSkeleton } from '../../../components/ui/Tables';
@@ -59,7 +59,9 @@ const AgreementReview = ({
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [recordsPerPage, setRecordsPerPage] = useState(100);
+  
+  // Get current year for the filter options
+  const currentYear = useMemo(() => new Date().getFullYear(), []);
   
   // Filter state - initialize with departmentFilter prop if available
   const [filterStatus, setFilterStatus] = useState('');
@@ -67,6 +69,7 @@ const AgreementReview = ({
   const [filterBranch, setFilterBranch] = useState('');
   const [filterText, setFilterText] = useState('');
   const [filterPeriod, setFilterPeriod] = useState('');
+  const [filterYear, setFilterYear] = useState(currentYear.toString()); // Add year filter
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [loadingPage, setLoadingPage] = useState(false);
   const isHODApprovalPage = window.location.href.includes('status=pending_hod');
@@ -77,7 +80,8 @@ const AgreementReview = ({
       // If departmentFilter is provided as prop, use it directly
       if (departmentFilter) {
         setFilterDepartment(departmentFilter);
-        dispatch(fetchAgreements({ department_id: departmentFilter }));
+        // Call the new thunk directly
+        dispatch(fetchAllAgreements({ department_id: departmentFilter }));
       } else {
         // Otherwise, use the automatic department detection
         dispatch(initializeWithUserDepartment());
@@ -127,8 +131,15 @@ const AgreementReview = ({
       .filter(agreement => {
         if (!filterPeriod) return true;
         return agreement.period === filterPeriod;
+      })
+      // Sixth filter: Apply year filter if set
+      .filter(agreement => {
+        if (!filterYear) return true;
+        if (!agreement.created_at && !agreement.submitted_at) return false;
+        const agreementYear = new Date(agreement.submitted_at || agreement.created_at).getFullYear().toString();
+        return agreementYear === filterYear;
       });
-  }, [agreements, filterStatus, filterText, filterBranch, filterPeriod]);
+  }, [agreements, filterStatus, filterText, filterBranch, filterPeriod, filterYear]);
   
   // Find department name for the filter
   const departmentName = useMemo(() => {
@@ -153,35 +164,20 @@ const AgreementReview = ({
   // Make API request when department filter changes manually
   useEffect(() => {
     if (!isInitialLoad && filterDepartment !== '') {
-      dispatch(fetchAgreements({ department_id: filterDepartment }));
+      dispatch(fetchAllAgreements({ department_id: filterDepartment }));
     }
   }, [dispatch, filterDepartment, isInitialLoad]);
   
-  // Enhanced page change handler for URL-based pagination
+  // Simplified page change handler
   const handlePageChange = (page, url) => {
-    if (!url) return;
-    
-    setLoadingPage(true);
-    setCurrentPage(page);
-    
-    // Use the exact URL from the API for pagination
-    dispatch(fetchAgreements({ url }))
-      .finally(() => setLoadingPage(false));
+    // This is no longer needed
+    console.warn("Pagination is handled client-side after fetching all records.");
   };
 
-  // Handle records per page change
+  // Simplified records per page change
   const handleRecordsPerPageChange = (value) => {
-    const newValue = parseInt(value);
-    setRecordsPerPage(newValue);
-    setCurrentPage(1);
-    
-    // Only send department_id to API
-    const params = { per_page: newValue };
-    if (filterDepartment) {
-      params.department_id = filterDepartment;
-    }
-    
-    dispatch(fetchAgreements(params));
+    // This function is no longer needed as we fetch all records
+    console.warn("Changing records per page is not supported as all records are fetched.");
   };
   
   // Action handlers
@@ -210,7 +206,7 @@ const AgreementReview = ({
     setIsSubmitModalOpen(false);
     setSelectedAgreement(null);
     // Only send department_id
-    dispatch(fetchAgreements({
+    dispatch(fetchAllAgreements({
       department_id: filterDepartment || undefined
     }));
   };
@@ -220,7 +216,7 @@ const AgreementReview = ({
     console.log("Agreement rejected:", selectedAgreement);
     setIsApprovalModalOpen(false);
     setSelectedAgreement(null);
-    dispatch(fetchAgreements({
+    dispatch(fetchAllAgreements({
       department_id: filterDepartment || undefined
     }));
   };
@@ -255,6 +251,9 @@ const AgreementReview = ({
       case 'period':
         setFilterPeriod(value);
         break;
+      case 'year':
+        setFilterYear(value);
+        break;
       default:
         break;
     }
@@ -267,6 +266,7 @@ const AgreementReview = ({
     setFilterStatus('');
     setFilterBranch('');
     setFilterPeriod('');
+    setFilterYear(currentYear.toString()); // Reset year to current year
     setCurrentPage(1);
     
     // For department, use in this order of priority:
@@ -287,7 +287,7 @@ const AgreementReview = ({
       params.department_id = defaultDept;
     }
     
-    dispatch(fetchAgreements(params));
+    dispatch(fetchAllAgreements(params));
   };
   
   // Get unique departments with proper handling of empty values
@@ -381,14 +381,6 @@ const AgreementReview = ({
     return uniqueBranches;
   }, [agreements]);
 
-  // Calculate total pages based on server-side pagination
-  const totalPages = useMemo(() => {
-    if (pagination && pagination.total) {
-      return Math.ceil(pagination.total / recordsPerPage);
-    }
-    return 1;
-  }, [pagination, recordsPerPage]);
-
   // Format date for display
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
@@ -405,7 +397,6 @@ const AgreementReview = ({
             <p className="text-sm text-gray-600 mt-1">{description}</p>
           )}
         </div>
-        <OverallProgress progress={65} riskStatus={false} />
       </div>
       
       <div className="px-4 py-2 bg-white">
@@ -468,6 +459,20 @@ const AgreementReview = ({
                 { value: 'probation', label: 'Probation 6 months' }
               ],
             },
+            {
+              id: 'filterYear',
+              label: 'Year',
+              type: 'select',
+              value: filterYear,
+              onChange: (e) => handleFilterChange('year', e.target.value),
+              options: [
+                { value: '', label: '-- All Years --' },
+                ...Array.from({ length: 5 }, (_, i) => currentYear - i).map(year => ({
+                  value: year.toString(),
+                  label: year.toString()
+                }))
+              ],
+            },
           ]}
           buttons={[
             {
@@ -480,26 +485,16 @@ const AgreementReview = ({
         
         {/* Toolbar */}
         <div className="bg-gray-100 p-4 rounded-lg mb-4 shadow-sm relative">
-          {showHODActions && (
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
-              <div className="flex">
-                <div className="ml-3">
-                  <p className="text-sm text-yellow-700">
-                    Showing agreements pending your approval as Head of Department.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-          
+     
           <AgreementToolbar 
-            recordsPerPage={recordsPerPage}
+            recordsPerPage={agreements.length}
             onRecordsPerPageChange={handleRecordsPerPageChange}
-            totalRecords={pagination?.total || filteredAgreements.length}
+            totalRecords={filteredAgreements.length}
             showCreateButton={false}
+            showRecordsPerPage={false}
           />
           
-                {(loading && agreements.length === 0) ? (
+          {(loading && agreements.length === 0) ? (
                 <TableSkeleton 
                   rows={8} 
                   columns={7} 
@@ -595,16 +590,7 @@ const AgreementReview = ({
                 </Table>
                 )}
                 
-                {/* Pagination - Updated to use server URLs */}
-          <div className="mt-4">
-            <Pagination 
-              currentPage={pagination?.current_page || currentPage}
-              totalPages={pagination?.last_page || totalPages}
-              onPageChange={handlePageChange}
-              prevPageUrl={pagination?.prev_page_url}
-              nextPageUrl={pagination?.next_page_url}
-            />
-          </div>
+                {/* Pagination component removed as we're now handling all records client-side */}
         </div>
       </div>
       

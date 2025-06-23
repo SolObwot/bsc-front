@@ -1,75 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchAllAgreements, initializeWithUserDepartment } from '../../../redux/agreementSlice';
 import { useAuth } from '../../../hooks/useAuth';
 import ObjectiveHeader from '../../../components/balancescorecard/Header';
-import OverallProgress from '../../../components/balancescorecard/OverallProgress';
-// Dialog, Transition, XMarkIcon, CheckCircleIcon, CalendarDaysIcon, UserCircleIcon, ClockIcon are no longer directly needed
-// if they are only used by the modals which now import them directly.
-import { Table, TableHead, TableHeader, TableBody, TableRow, TableCell } from '../../../components/ui/Tables';
+import { Table, TableHead, TableHeader, TableBody, TableRow, TableCell, TableSkeleton } from '../../../components/ui/Tables';
 import FilterBox from '../../../components/ui/FilterBox';
 import AgreementToolbar from './AgreementToolbar';
 import AgreementActions from './AgreementActions';
-import Pagination from '../../../components/ui/Pagination';
 import AgreementApprovalModal from './AgreementApprovalModal'; 
-import StatusBadge from './AgreementStatusBadge'; // Updated import path
+import StatusBadge from './AgreementStatusBadge';
 
-// Mock data - all with pending_hod status
-const hodPendingAgreements = [
-  {
-    id: 1,
-    title: 'Performance Agreement 2025',
-    employeeName: 'Sarah Johnson',
-    employeeTitle: 'Marketing Specialist',
-    department: 'Marketing',
-    branch: 'Masaka',
-    period: 'Probation 6 months',
-    submittedDate: '2024-07-14',
-    status: 'pending_hod',
-    supervisorName: 'Mike Wilson',
-    hodName: 'Elizabeth Taylor'
-  },
-  {
-    id: 2,
-    title: 'Performance Agreement 2025',
-    employeeName: 'James Kamara',
-    employeeTitle: 'Financial Analyst',
-    department: 'Finance',
-    branch: 'Head Office',
-    period: 'Annual Review',
-    submittedDate: '2024-07-15',
-    status: 'pending_hod',
-    supervisorName: 'Robert Smith',
-    hodName: 'Elizabeth Taylor'
-  },
-  {
-    id: 3,
-    title: 'Performance Agreement 2025',
-    employeeName: 'Paul Mugisha',
-    employeeTitle: 'HR Officer',
-    department: 'Human Resources',
-    branch: 'Gulu',
-    period: 'Annual Review',
-    submittedDate: '2024-07-10',
-    status: 'pending_hod',
-    supervisorName: 'Jane Nakabuye',
-    hodName: 'Elizabeth Taylor'
-  },
-  {
-    id: 4,
-    title: 'Performance Agreement 2025',
-    employeeName: 'Mary Nantongo',
-    employeeTitle: 'Customer Service Rep',
-    department: 'Customer Service',
-    branch: 'Jinja',
-    period: 'Annual Review',
-    submittedDate: '2024-07-12',
-    status: 'pending_hod',
-    supervisorName: 'David Ochieng',
-    hodName: 'Elizabeth Taylor'
-  }
-];
-
-// Add time ago function for displaying relative dates
+// Helper function to calculate time ago
 const getTimeAgo = (dateString) => {
   const date = new Date(dateString);
   const now = new Date();
@@ -95,27 +37,34 @@ const HODApproval = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { id } = useParams();
+  const dispatch = useDispatch();
   
+  // Get agreements and detected department from Redux store
+  const { agreements, loading, error, userDepartmentId } = useSelector((state) => state.agreements);
+  
+  // State declarations
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAgreement, setSelectedAgreement] = useState(null);
-  const [agreementList, setAgreementList] = useState(hodPendingAgreements);
   
-  // Pagination state
+  // Pagination state - we still keep currentPage for client-side paging if needed
   const [currentPage, setCurrentPage] = useState(1);
-  const [recordsPerPage, setRecordsPerPage] = useState(5);
   
   // Filter state
   const [filterText, setFilterText] = useState('');
   const [filterBranch, setFilterBranch] = useState('');
   const [filterDepartment, setFilterDepartment] = useState('');
+  const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString());
+  const [filterPeriod, setFilterPeriod] = useState(''); // Add period filter
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [loadingPage, setLoadingPage] = useState(false);
+  
+  // Get current year for the filter options
+  const currentYear = useMemo(() => new Date().getFullYear(), []);
 
-  // Add debug logging and make the redirect conditional
+  // Check if user is HOD
   useEffect(() => {
     // This would be replaced with actual role checking logic
     const isHOD = user?.roles?.includes('HOD');
-    
-    console.log('HODApproval - User:', user);
-    console.log('HODApproval - isHOD:', isHOD);
     
     // TEMPORARILY COMMENTED OUT: HOD role check
     // if (user && !isHOD) {
@@ -124,6 +73,97 @@ const HODApproval = () => {
     // }
   }, [user, navigate]);
   
+  // Initialize with user's department - only on first load
+  useEffect(() => {
+    if (isInitialLoad) {
+      dispatch(initializeWithUserDepartment());
+      setIsInitialLoad(false);
+    }
+  }, [dispatch, isInitialLoad]);
+  
+  // Update department filter when userDepartmentId is detected
+  useEffect(() => {
+    if (userDepartmentId && filterDepartment === '') {
+      setFilterDepartment(userDepartmentId);
+    }
+  }, [userDepartmentId, filterDepartment]);
+  
+  // Make API request when department filter changes manually
+  useEffect(() => {
+    if (!isInitialLoad && filterDepartment !== '') {
+      dispatch(fetchAllAgreements({ department_id: filterDepartment }));
+    }
+  }, [dispatch, filterDepartment, isInitialLoad]);
+  
+  // Filter agreements to only show those with "pending_hod" status
+  const filteredAgreements = useMemo(() => {
+    return agreements
+      .filter(agreement => agreement.status === 'pending_hod')
+      .filter(agreement => {
+        const matchesText = filterText === '' || 
+          (agreement.creator && `${agreement.creator.surname} ${agreement.creator.last_name}`.toLowerCase().includes(filterText.toLowerCase())) ||
+          (agreement.creator?.job_title?.name || '').toLowerCase().includes(filterText.toLowerCase());
+        
+        const matchesBranch = filterBranch === '' || 
+          (agreement.creator?.unit_or_branch?.id?.toString() === filterBranch);
+        
+        const matchesDepartment = filterDepartment === '' || 
+          (agreement.department_id?.toString() === filterDepartment);
+        
+        // Add year filter logic
+        const matchesYear = filterYear === '' || (() => {
+          if (!agreement.created_at && !agreement.submitted_at) return false;
+          const agreementYear = new Date(agreement.submitted_at || agreement.created_at).getFullYear().toString();
+          return agreementYear === filterYear;
+        })();
+        
+        // Add period filter logic
+        const matchesPeriod = filterPeriod === '' || agreement.period === filterPeriod;
+        
+        return matchesText && matchesBranch && matchesDepartment && matchesYear && matchesPeriod;
+      });
+  }, [agreements, filterText, filterBranch, filterDepartment, filterYear, filterPeriod]);
+  
+  // Get unique departments with proper handling of empty values
+  const departments = useMemo(() => {
+    if (!agreements.length) return [];
+    
+    const uniqueDepartments = [];
+    const departmentMap = new Map();
+    
+    agreements.forEach(a => {
+      if (a.department && a.department.id && !departmentMap.has(a.department.id)) {
+        departmentMap.set(a.department.id, true);
+        uniqueDepartments.push({ 
+          id: a.department.id, 
+          name: a.department.name 
+        });
+      }
+    });
+    
+    return uniqueDepartments;
+  }, [agreements]);
+  
+  // Get unique branches with proper handling of empty values
+  const branches = useMemo(() => {
+    if (!agreements.length) return [];
+    
+    const uniqueBranches = [];
+    const branchMap = new Map();
+    
+    agreements.forEach(a => {
+      if (a.creator && a.creator.unit_or_branch && a.creator.unit_or_branch.id && !branchMap.has(a.creator.unit_or_branch.id)) {
+        branchMap.set(a.creator.unit_or_branch.id, true);
+        uniqueBranches.push({ 
+          id: a.creator.unit_or_branch.id, 
+          name: a.creator.unit_or_branch.name 
+        });
+      }
+    });
+    
+    return uniqueBranches;
+  }, [agreements]);
+  
   // Action handlers
   const handleReview = (agreement) => {
     setSelectedAgreement(agreement);
@@ -131,68 +171,92 @@ const HODApproval = () => {
   };
   
   const handlePreview = (agreement) => {
-    // Implement preview functionality
-    console.log('Preview agreement:', agreement);
+    alert('Preview agreement: ' + JSON.stringify(agreement, null, 2));
   };
   
-  const handleApprove = (status) => { // status will be 'approved' from AgreementApprovalModal
-    setAgreementList(prev => 
-      prev.map(a => a.id === selectedAgreement.id ? {...a, status: status } : a)
-    );
+  const handleApprove = (status) => {
     setIsModalOpen(false);
-    
-    // Show success notification
-    alert(`Agreement for ${selectedAgreement.employeeName} has been approved.`);
+    setSelectedAgreement(null);
+    // Refresh the list after approval
+    dispatch(fetchAllAgreements({ department_id: filterDepartment || undefined }));
   };
 
-  const handleReject = (newStatus) => { // newStatus will be 'rejected_by_hod'
-    setAgreementList(prev => 
-      prev.map(a => a.id === selectedAgreement.id ? {...a, status: newStatus } : a)
-    );
+  const handleReject = (newStatus) => {
     setIsModalOpen(false);
-    // Show rejection notification
-    alert(`Agreement for ${selectedAgreement.employeeName} has been rejected.`);
+    setSelectedAgreement(null);
+    // Refresh the list after rejection
+    dispatch(fetchAllAgreements({ department_id: filterDepartment || undefined }));
   };
   
   const handleRecordsPerPageChange = (value) => {
-    setRecordsPerPage(Number(value));
-    setCurrentPage(1);
+    // This function is no longer needed as we fetch all records.
+    console.warn("Changing records per page is not supported as all records are fetched.");
   };
   
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
+  const handlePageChange = (page, url) => {
+    // This is also no longer needed.
+    console.warn("Pagination is handled client-side after fetching all records.");
   };
   
   const handleReset = () => {
     setFilterText('');
     setFilterBranch('');
-    setFilterDepartment('');
+    setFilterYear(currentYear.toString()); // Reset year to current year
+    setFilterPeriod(''); // Reset period filter
+    // Keep the department filter
+    
+    // Only send department_id to API
+    const params = {};
+    if (filterDepartment) {
+      params.department_id = filterDepartment;
+    }
+    
+    dispatch(fetchAllAgreements(params));
   };
 
-  // Apply filters
-  const filteredAgreements = agreementList.filter(agreement => {
-    const matchesText = filterText === '' || 
-      agreement.employeeName.toLowerCase().includes(filterText.toLowerCase()) ||
-      agreement.employeeTitle.toLowerCase().includes(filterText.toLowerCase());
+  // Enhanced department options function
+  const getDepartmentOptions = () => {
+    const options = [{ value: '', label: '-- All Departments --' }];
     
-    const matchesBranch = filterBranch === '' || agreement.branch === filterBranch;
-    const matchesDepartment = filterDepartment === '' || agreement.department === filterDepartment;
+    // Add user's department as first option if available
+    if (user?.department_id && user?.department?.name) {
+      options.push({ 
+        value: user.department_id.toString(), 
+        label: `${user.department.name} (Your Department)`,
+        className: 'font-bold text-blue-600'
+      });
+    }
     
-    // Always filter for pending_hod status
-    const matchesStatus = agreement.status === 'pending_hod';
+    // Add department from userDepartmentId if it's not already included
+    if (userDepartmentId && !options.some(opt => opt.value === userDepartmentId)) {
+      const deptName = agreements.find(a => 
+        a.department && a.department_id.toString() === userDepartmentId
+      )?.department?.name || 'Your Department';
+      
+      options.push({ 
+        value: userDepartmentId, 
+        label: `${deptName}`,
+        className: 'font-bold text-green-600'
+      });
+    }
     
-    return matchesText && matchesBranch && matchesDepartment && matchesStatus;
-  });
-  
-  // Apply pagination
-  const totalPages = Math.ceil(filteredAgreements.length / recordsPerPage);
-  const indexOfLastRecord = currentPage * recordsPerPage;
-  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const paginatedAgreements = filteredAgreements.slice(indexOfFirstRecord, indexOfLastRecord);
+    // Add other departments
+    departments.forEach(dept => {
+      // Skip if already added as user's department or detected department
+      if ((!user?.department_id || dept.id.toString() !== user.department_id.toString()) &&
+          (dept.id.toString() !== userDepartmentId)) {
+        options.push({ value: dept.id.toString(), label: dept.name });
+      }
+    });
+    
+    return options;
+  };
 
-  // Get unique values for filter options
-  const branches = [...new Set(agreementList.map(a => a.branch))];
-  const departments = [...new Set(agreementList.map(a => a.department))];
+  // Format date for display
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString();
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 shadow-md rounded-lg">
@@ -204,7 +268,6 @@ const HODApproval = () => {
             Review and approve performance agreements pending your approval as Head of Department
           </p>
         </div>
-        <OverallProgress progress={65} riskStatus={false} />
       </div>
       
       <div className="px-4 py-2 bg-white">
@@ -225,10 +288,7 @@ const HODApproval = () => {
               type: 'select',
               value: filterDepartment,
               onChange: (e) => setFilterDepartment(e.target.value),
-              options: [
-                { value: '', label: '-- All Departments --' },
-                ...departments.map(dept => ({ value: dept, label: dept }))
-              ],
+              options: getDepartmentOptions(),
             },
             {
               id: 'filterBranch',
@@ -238,7 +298,33 @@ const HODApproval = () => {
               onChange: (e) => setFilterBranch(e.target.value),
               options: [
                 { value: '', label: '-- All Branches/Units --' },
-                ...branches.map(branch => ({ value: branch, label: branch }))
+                ...branches.map(branch => ({ value: branch.id.toString(), label: branch.name }))
+              ],
+            },
+            {
+              id: 'filterPeriod',
+              label: 'Period',
+              type: 'select',
+              value: filterPeriod,
+              onChange: (e) => setFilterPeriod(e.target.value),
+              options: [
+                { value: '', label: '-- All Periods --' },
+                { value: 'annual', label: 'Annual Review' },
+                { value: 'probation', label: 'Probation 6 months' }
+              ],
+            },
+            {
+              id: 'filterYear',
+              label: 'Year',
+              type: 'select',
+              value: filterYear,
+              onChange: (e) => setFilterYear(e.target.value),
+              options: [
+                { value: '', label: '-- All Years --' },
+                ...Array.from({ length: 5 }, (_, i) => currentYear - i).map(year => ({
+                  value: year.toString(),
+                  label: year.toString()
+                }))
               ],
             },
           ]}
@@ -256,90 +342,117 @@ const HODApproval = () => {
             <div className="flex">
               <div className="ml-3">
                 <p className="text-sm text-yellow-700">
-                  Showing agreements pending your approval as Head of Department.
+                  Showing agreements pending your approval as Head of Department or Line Manager. 
+                  You can review, approve, or reject these agreements.
                 </p>
               </div>
             </div>
           </div>
           
           <AgreementToolbar 
-            recordsPerPage={recordsPerPage}
+            recordsPerPage={agreements.length}
             onRecordsPerPageChange={handleRecordsPerPageChange}
             totalRecords={filteredAgreements.length}
-            showCreateButton={false} // Hide the Create New Agreement button
+            showCreateButton={false}
+            showRecordsPerPage={false}
           />
           
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Employee</TableHeader>
-                <TableHeader>Department</TableHeader>
-                <TableHeader>Branch/Unit</TableHeader>
-                <TableHeader>Period</TableHeader>
-                <TableHeader>Submitted</TableHeader>
-                <TableHeader>Status</TableHeader>
-                <TableHeader>Actions</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {paginatedAgreements.length === 0 ? (
+          {(loading && agreements.length === 0) ? (
+            <TableSkeleton 
+              rows={8} 
+              columns={7} 
+              columnWidths={['20%', '15%', '15%', '10%', '15%', '10%', '15%']} 
+            />
+          ) : loadingPage ? (
+            <div className="absolute inset-0 bg-white bg-opacity-70 z-10 flex items-center justify-center">
+              <TableSkeleton 
+                rows={8} 
+                columns={7} 
+                columnWidths={['20%', '15%', '15%', '10%', '15%', '10%', '15%']} 
+              />
+            </div>
+          ) : error ? (
+            <div className="bg-red-50 p-4 rounded-md">
+              <h3 className="text-sm font-medium text-red-800">Error loading agreements</h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>{error}</p>
+              </div>
+            </div>
+          ) : (
+            <Table>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                    No agreements pending your approval at this time.
-                  </TableCell>
+                  <TableHeader>Employee</TableHeader>
+                  <TableHeader>Department</TableHeader>
+                  <TableHeader>Branch/Unit</TableHeader>
+                  <TableHeader>Period</TableHeader>
+                  <TableHeader>Submitted</TableHeader>
+                  <TableHeader>Status</TableHeader>
+                  <TableHeader>Actions</TableHeader>
                 </TableRow>
-              ) : (
-                paginatedAgreements.map((agreement) => (
-                  <TableRow key={agreement.id} className="hover:bg-gray-50">
-                    <TableCell>
-                      <div className="text-sm font-medium text-gray-900">{agreement.employeeName}</div>
-                      <div className="text-xs text-gray-500">{agreement.employeeTitle}</div>
-                    </TableCell>
-                    <TableCell>{agreement.department}</TableCell>
-                    <TableCell>{agreement.branch}</TableCell>
-                    <TableCell>{agreement.period}</TableCell>
-                    <TableCell>
-                      <div>
-                        {new Date(agreement.submittedDate).toLocaleDateString()}
-                        <span className="block text-xs text-gray-500 mt-1">
-                          {getTimeAgo(agreement.submittedDate)}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={agreement.status} />
-                    </TableCell>
-                    <TableCell>
-                      <AgreementActions
-                        agreement={agreement}
-                        onReview={handleReview}
-                        onPreview={(agreement) => console.log('Preview agreement:', agreement)}
-                        showReviewAsApprove={true}
-                        showOnlyReviewAndPreview={true}
-                      />
+              </TableHead>
+              <TableBody>
+                {filteredAgreements.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                      No agreements pending your approval at this time.
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-          
-          <div className="mt-4">
-            <Pagination 
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-            />
-          </div>
+                ) : (
+                  filteredAgreements.map((agreement) => (
+                    <TableRow key={agreement.id} className="hover:bg-gray-50">
+                      <TableCell>
+                        <div className="text-sm font-medium text-gray-900">
+                          {agreement.creator ? 
+                            `${agreement.creator.surname} ${agreement.creator.last_name}${agreement.creator.other_name ? ' ' + agreement.creator.other_name : ''}` : 
+                            'Unknown'}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {agreement.creator?.job_title?.name || 'N/A'}
+                        </div>
+                      </TableCell>
+                      <TableCell>{agreement.department ? agreement.department.name : 'N/A'}</TableCell>
+                      <TableCell>{agreement.creator?.unit_or_branch?.name || 'Head Office'}</TableCell>
+                      <TableCell>
+                        {agreement.period === 'annual' ? 'Annual Review' : 
+                        agreement.period === 'probation' ? 'Probation 6 months' : 
+                        agreement.period}
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          {formatDate(agreement.submitted_at)}
+                          <span className="block text-xs text-gray-500 mt-1">
+                            {getTimeAgo(agreement.submitted_at)}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge status={agreement.status} />
+                      </TableCell>
+                      <TableCell>
+                        <AgreementActions
+                          agreement={agreement}
+                          onReview={agreement.status === 'pending_hod' ? handleReview : undefined}
+                          onPreview={handlePreview}
+                          showReviewAsApprove={true}
+                          showOnlyReviewAndPreview={true}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
         </div>
       </div>
       
-      {selectedAgreement && ( // Ensure selectedAgreement is not null before rendering
+      {selectedAgreement && (
         <AgreementApprovalModal 
           isOpen={isModalOpen}
           closeModal={() => {
             setIsModalOpen(false);
-            setSelectedAgreement(null); // Clear selected agreement on close
+            setSelectedAgreement(null);
           }}
           agreement={selectedAgreement}
           onApprove={handleApprove}

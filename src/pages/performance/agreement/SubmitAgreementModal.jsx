@@ -13,7 +13,7 @@ const SubmitAgreementModal = ({ isOpen, closeModal, agreement, onSubmit }) => {
 
    const handleSubmit = async () => {
       try {
-        const result = await dispatch(submitAgreement(agreement.id)).unwrap();
+        await dispatch(submitAgreement(agreement.id)).unwrap();
         
         closeModal();
         toast({
@@ -22,7 +22,7 @@ const SubmitAgreementModal = ({ isOpen, closeModal, agreement, onSubmit }) => {
         });
         
         if (onSubmit) {
-          onSubmit(agreement.id, 'pending_supervisor');
+          onSubmit();
         }
       } catch (error) {
         toast({

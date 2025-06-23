@@ -2,10 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Table, TableHead, TableBody, TableRow, TableCell, TableHeader, TableSkeleton } from '../../../components/ui/Tables';
-import { fetchAgreements, createAgreement,updateAgreement,deleteAgreement, submitAgreement } from '../../../redux/agreementSlice';
+import { createAgreement,updateAgreement,deleteAgreement, fetchMyAgreements } from '../../../redux/agreementSlice';
 import { useToast } from '../../../hooks/useToast';
 import ObjectiveHeader from '../../../components/balancescorecard/Header';
-import OverallProgress from '../../../components/balancescorecard/OverallProgress';
 import FilterBox from '../../../components/ui/FilterBox';
 import Button from '../../../components/ui/Button';
 import {DocumentPlusIcon} from '@heroicons/react/24/outline';
@@ -42,7 +41,16 @@ const AgreementList = () => {
 
   // Fetch agreements when component mounts
   useEffect(() => {
-    dispatch(fetchAgreements({ my_agreements: true }));
+    // Using fetchMyAgreements with unwrap to catch any errors
+    dispatch(fetchMyAgreements())
+      .unwrap()
+      .catch(error => {
+        toast({
+          title: "Error",
+          description: "Failed to load agreements. Please try again.",
+          variant: "destructive",
+        });
+      });
   }, [dispatch]);
 
   // Apply filters when filter state or agreements change
@@ -93,7 +101,8 @@ const AgreementList = () => {
         title: "Success",
         description: "Agreement created successfully!",
       });
-      dispatch(fetchAgreements({ my_agreements: true }));
+      // Refresh agreements
+      await dispatch(fetchMyAgreements()).unwrap();
     } catch (error) {
       toast({
         title: "Error",
@@ -121,7 +130,8 @@ const AgreementList = () => {
         title: "Success",
         description: "Agreement updated successfully!",
       });
-      dispatch(fetchAgreements({ my_agreements: true }));
+      // Refresh agreements
+      await dispatch(fetchMyAgreements()).unwrap();
       setSelectedAgreement(null);
     } catch (error) {
       toast({
@@ -141,27 +151,17 @@ const AgreementList = () => {
     setIsSubmitModalOpen(true);
   };
 
-  const handleConfirmSubmit = async (agreementId, status) => {
-    setIsSubmitModalOpen(false);
-    
-    setFilteredAgreements(prevAgreements => 
-      prevAgreements.map(agreement => 
-        agreement.id === agreementId 
-          ? {...agreement, status: status || 'pending_supervisor'} 
-          : agreement
-      )
-    );
-    
+  const handleConfirmSubmit = async () => {
+     setSelectedAgreement(null);
     try {
-      await dispatch(fetchAgreements({ my_agreements: true })).unwrap();
+      await dispatch(fetchMyAgreements()).unwrap();
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to refresh agreements after submission. Please try again.",
+        title: "Data Refresh Failed",
+        description: "Could not refresh the agreements list after submission.",
         variant: "destructive",
       });
     }
-    setSelectedAgreement(null);
   };
 
   // New handler for deleting an agreement
@@ -179,7 +179,8 @@ const AgreementList = () => {
         title: "Success",
         description: "Agreement deleted successfully!",
       });
-      dispatch(fetchAgreements({ my_agreements: true }));
+      // Refresh agreements
+      await dispatch(fetchMyAgreements()).unwrap();
       setSelectedAgreement(null);
     } catch (error) {
       toast({
@@ -245,7 +246,7 @@ const AgreementList = () => {
           <div className="bg-red-50 p-4 rounded-md">
             <h3 className="text-sm font-medium text-red-800">Error loading agreements</h3>
             <div className="mt-2 text-sm text-red-700">
-              <p>{error}</p>
+              <p>{typeof error === 'object' && error !== null ? error.message : error}</p>
             </div>
           </div>
         </div>
@@ -256,9 +257,13 @@ const AgreementList = () => {
   return (
     <div className="min-h-screen bg-white shadow-md rounded-lg">
       <ObjectiveHeader />
-      <div className="flex justify-between p-4 bg-gray-100">
-        <h1 className="text-xl font-bold text-gray-800">My Performance Agreements</h1>
-        <OverallProgress progress={90} riskStatus={false} />
+      <div className="flex justify-between p-4">
+        <div>
+          <h1 className="text-xl font-bold text-gray-800">My Agreements</h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Setup your performance agreements and submit them for review.
+          </p>
+        </div>
       </div>
       
       <div className="px-4 py-2 bg-white">
@@ -358,7 +363,7 @@ const AgreementList = () => {
               <div className="bg-red-50 p-4 rounded-md">
                 <h3 className="text-sm font-medium text-red-800">Error loading agreements</h3>
                 <div className="mt-2 text-sm text-red-700">
-                  <p>{error}</p>
+                  <p>{typeof error === 'object' && error !== null ? error.message : error}</p>
                 </div>
               </div>
             ) : (
