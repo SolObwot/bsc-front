@@ -19,10 +19,41 @@ export const fetchAgreements = createAsyncThunk(
   }
 );
 
-// New thunk to detect user department and initialize
+// --- NEW THUNK TO FETCH AND AGGREGATE ALL PAGES ---
+export const fetchAllAgreements = createAsyncThunk(
+  'agreements/fetchAllPaginated',
+  async (params, { rejectWithValue }) => {
+    try {
+      // Fetch the first page to get pagination metadata
+      const firstPageResponse = await agreementService.getAgreements({ ...params, page: 1 });
+      const totalPages = firstPageResponse.last_page;
+      let allAgreements = firstPageResponse.data;
+
+      // If there is more than one page, fetch the rest
+      if (totalPages > 1) {
+        const pagePromises = [];
+        for (let page = 2; page <= totalPages; page++) {
+          pagePromises.push(agreementService.getAgreements({ ...params, page }));
+        }
+        // Fetch all remaining pages concurrently
+        const subsequentPageResponses = await Promise.all(pagePromises);
+        const subsequentAgreements = subsequentPageResponses.flatMap(response => response.data);
+        allAgreements = [...allAgreements, ...subsequentAgreements];
+      }
+      
+      // Return the complete, aggregated list of agreements
+      return allAgreements;
+
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+// Update the initializeWithUserDepartment thunk to use the new fetcher
 export const initializeWithUserDepartment = createAsyncThunk(
   'agreements/initializeWithUserDepartment',
-  async (_, { dispatch, rejectWithValue }) => {
+  async (params, { dispatch, rejectWithValue }) => { // Accept params
     try {
       // Step 1: Fetch user's own agreements to get department_id
       const myAgreementsResponse = await agreementService.getAgreements({ my_agreements: true });
@@ -31,25 +62,40 @@ export const initializeWithUserDepartment = createAsyncThunk(
       let departmentId = null;
       
       if (myAgreementsResponse?.data && myAgreementsResponse.data.length > 0) {
-        // Find the first agreement with a department
         const agreementWithDept = myAgreementsResponse.data.find(
           agreement => agreement.department_id
         );
-        
         if (agreementWithDept) {
           departmentId = agreementWithDept.department_id.toString();
         }
       }
       
-      // Step 3: Fetch all agreements for this department (if found)
+      // Step 3: Check if we're in the AgreementList context (preserve my_agreements)
+      if (params && params.my_agreements) {
+        // Just return the agreements we already fetched instead of fetching all department agreements
+        return { departmentId, agreements: myAgreementsResponse.data };
+      }
+      
+      // Otherwise, proceed with department-wide fetch (for other views)
       if (departmentId) {
-        await dispatch(fetchAgreements({ department_id: departmentId }));
+        await dispatch(fetchAllAgreements({ ...params, department_id: departmentId }));
       } else {
-        // If no department found, fetch without department filter
-        await dispatch(fetchAgreements({}));
+        await dispatch(fetchAllAgreements(params));
       }
       
       return { departmentId };
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const fetchMyAgreements = createAsyncThunk(
+  'agreements/fetchMyAgreements',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await agreementService.getAgreements({ my_agreements: true });
+      return response;
     } catch (error) {
       return rejectWithValue(error);
     }
@@ -150,7 +196,7 @@ const agreementSlice = createSlice({
       perPage: 20,
       total: 0
     },
-    userDepartmentId: null, // Add new state for detected department
+    userDepartmentId: null, 
     currentAgreement: null,
     loading: false,
     error: null,
@@ -198,22 +244,89 @@ const agreementSlice = createSlice({
         handleApiError(action.payload);
       })
       
+      // --- ADD HANDLER FOR THE NEW THUNK ---
+      .addCase(fetchAllAgreements.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllAgreements.fulfilled, (state, action) => {
+        state.loading = false;
+        // The payload is the full list of agreements
+        state.agreements = action.payload;
+        // Reset pagination as we now have all data client-side
+        state.pagination = {
+          currentPage: 1,
+          totalPages: 1,
+          perPage: action.payload.length,
+          total: action.payload.length,
+        };
+      })
+      .addCase(fetchAllAgreements.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch all agreements';
+        handleApiError(action.payload);
+      })
+      
       // Handle the department detection thunk
       .addCase(initializeWithUserDepartment.pending, (state) => {
         state.loading = true;
         state.error = null;
-      })
-      .addCase(initializeWithUserDepartment.fulfilled, (state, action) => {
+            })
+            .addCase(initializeWithUserDepartment.fulfilled, (state, action) => {
         // Store the detected department ID
         state.userDepartmentId = action.payload.departmentId;
-        // Note: The fetchAgreements thunk will handle setting state.loading = false
-      })
-      .addCase(initializeWithUserDepartment.rejected, (state, action) => {
+        
+        // If we have agreements in the payload, use those (for my_agreements case)
+        if (action.payload.agreements) {
+          state.agreements = action.payload.agreements;
+          state.pagination = {
+            currentPage: 1,
+            totalPages: 1,
+            perPage: action.payload.agreements.length,
+            total: action.payload.agreements.length,
+          };
+          state.loading = false;
+        }
+        // Otherwise, fetchAllAgreements will handle setting the state
+            })
+            .addCase(initializeWithUserDepartment.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to initialize agreements';
         handleApiError(action.payload);
       })
-      
+
+      // Fetch my agreements
+      .addCase(fetchMyAgreements.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchMyAgreements.fulfilled, (state, action) => {
+        state.loading = false;
+
+         if (action.payload && action.payload.data) {
+          state.agreements = action.payload.data;
+          state.pagination = {
+            currentPage: action.payload.current_page,
+            totalPages: action.payload.last_page,
+            perPage: action.payload.per_page,
+            total: action.payload.total
+          };
+        } else {
+          state.agreements = [];
+          state.pagination = {
+            currentPage: 1,
+            totalPages: 1,
+            perPage: 20,
+            total: 0
+          };
+        }
+      })
+      .addCase(fetchMyAgreements.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch my agreements';
+        handleApiError(action.payload);
+      })
+
       // Fetch one agreement
       .addCase(fetchAgreement.pending, (state) => {
         state.loading = true;
@@ -295,20 +408,28 @@ const agreementSlice = createSlice({
         state.error = null;
       })
       .addCase(submitAgreement.fulfilled, (state, action) => {
-         state.loading = false;
-            let updatedAgreement;
-            
-            if (action.payload && action.payload.data) {
-                updatedAgreement = action.payload.data;
-            } else if (action.payload && action.payload.id) {
-                updatedAgreement = action.payload;
-            } else {
-                return;
-            }
-                state.agreements = state.agreements.map(agreement => 
-                agreement.id === updatedAgreement.id ? updatedAgreement : agreement
-            );
-        })
+        state.loading = false;
+        let updatedAgreement;
+        
+        if (action.payload && action.payload.data) {
+          updatedAgreement = action.payload.data;
+        } else if (action.payload && action.payload.id) {
+          updatedAgreement = action.payload;
+        } else {
+          return;
+        }
+        
+        // Update the agreement in the state
+        const index = state.agreements.findIndex(a => a.id === updatedAgreement.id);
+        if (index !== -1) {
+          state.agreements[index] = updatedAgreement;
+        }
+        
+        // Also update currentAgreement if it's the same one
+        if (state.currentAgreement?.id === updatedAgreement.id) {
+          state.currentAgreement = updatedAgreement;
+        }
+      })
       .addCase(submitAgreement.rejected, (state, action) => {
         state.error = action.payload;
         state.loading = false;
