@@ -19,7 +19,6 @@ export const fetchAgreements = createAsyncThunk(
   }
 );
 
-// --- NEW THUNK TO FETCH AND AGGREGATE ALL PAGES ---
 export const fetchAllAgreements = createAsyncThunk(
   'agreements/fetchAllPaginated',
   async (params, { rejectWithValue }) => {
@@ -50,7 +49,6 @@ export const fetchAllAgreements = createAsyncThunk(
   }
 );
 
-// Update the initializeWithUserDepartment thunk to use the new fetcher
 export const initializeWithUserDepartment = createAsyncThunk(
   'agreements/initializeWithUserDepartment',
   async (params, { dispatch, rejectWithValue }) => { // Accept params
@@ -189,7 +187,9 @@ export const hodApproveAgreement = createAsyncThunk(
 const agreementSlice = createSlice({
   name: 'agreements',
   initialState: {
-    agreements: [],
+    myAgreements: [], // For the user's own agreements
+    departmentAgreements: [], // For department-level views (HOD, Review)
+    agreements: [], // Kept for backward compatibility
     pagination: {
       currentPage: 1,
       totalPages: 1,
@@ -203,6 +203,10 @@ const agreementSlice = createSlice({
   },
   reducers: {
     deleteAgreementFromState: (state, action) => {
+      // Update both lists to be safe
+      state.myAgreements = state.myAgreements.filter(agreement => agreement.id !== action.payload);
+      state.departmentAgreements = state.departmentAgreements.filter(agreement => agreement.id !== action.payload);
+      // For backward compatibility
       state.agreements = state.agreements.filter(agreement => agreement.id !== action.payload);
     },
     setCurrentPage: (state, action) => {
@@ -221,7 +225,10 @@ const agreementSlice = createSlice({
         
         // Handle the paginated response
         if (action.payload && action.payload.data) {
+          state.departmentAgreements = action.payload.data;
+          // For backward compatibility
           state.agreements = action.payload.data;
+          
           state.pagination = {
             currentPage: action.payload.current_page,
             totalPages: action.payload.last_page,
@@ -229,7 +236,10 @@ const agreementSlice = createSlice({
             total: action.payload.total
           };
         } else {
+          state.departmentAgreements = [];
+          // For backward compatibility
           state.agreements = [];
+          
           state.pagination = {
             currentPage: 1,
             totalPages: 1,
@@ -252,7 +262,10 @@ const agreementSlice = createSlice({
       .addCase(fetchAllAgreements.fulfilled, (state, action) => {
         state.loading = false;
         // The payload is the full list of agreements
+        state.departmentAgreements = action.payload;
+        // For backward compatibility
         state.agreements = action.payload;
+        
         // Reset pagination as we now have all data client-side
         state.pagination = {
           currentPage: 1,
@@ -271,14 +284,17 @@ const agreementSlice = createSlice({
       .addCase(initializeWithUserDepartment.pending, (state) => {
         state.loading = true;
         state.error = null;
-            })
-            .addCase(initializeWithUserDepartment.fulfilled, (state, action) => {
+      })
+      .addCase(initializeWithUserDepartment.fulfilled, (state, action) => {
         // Store the detected department ID
         state.userDepartmentId = action.payload.departmentId;
         
         // If we have agreements in the payload, use those (for my_agreements case)
         if (action.payload.agreements) {
+          state.myAgreements = action.payload.agreements;
+          // For backward compatibility
           state.agreements = action.payload.agreements;
+          
           state.pagination = {
             currentPage: 1,
             totalPages: 1,
@@ -288,8 +304,8 @@ const agreementSlice = createSlice({
           state.loading = false;
         }
         // Otherwise, fetchAllAgreements will handle setting the state
-            })
-            .addCase(initializeWithUserDepartment.rejected, (state, action) => {
+      })
+      .addCase(initializeWithUserDepartment.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to initialize agreements';
         handleApiError(action.payload);
@@ -303,8 +319,11 @@ const agreementSlice = createSlice({
       .addCase(fetchMyAgreements.fulfilled, (state, action) => {
         state.loading = false;
 
-         if (action.payload && action.payload.data) {
+        if (action.payload && action.payload.data) {
+          state.myAgreements = action.payload.data;
+          // For backward compatibility
           state.agreements = action.payload.data;
+          
           state.pagination = {
             currentPage: action.payload.current_page,
             totalPages: action.payload.last_page,
@@ -312,7 +331,10 @@ const agreementSlice = createSlice({
             total: action.payload.total
           };
         } else {
+          state.myAgreements = [];
+          // For backward compatibility
           state.agreements = [];
+          
           state.pagination = {
             currentPage: 1,
             totalPages: 1,
@@ -368,10 +390,21 @@ const agreementSlice = createSlice({
         const updatedAgreement = action.payload?.data;
         
         if (updatedAgreement) {
-          // Find the agreement in the state array
+          // Update myAgreements list
+          const myIndex = state.myAgreements.findIndex(a => a.id === updatedAgreement.id);
+          if (myIndex !== -1) {
+            state.myAgreements[myIndex] = updatedAgreement;
+          }
+          
+          // Update departmentAgreements list
+          const depIndex = state.departmentAgreements.findIndex(a => a.id === updatedAgreement.id);
+          if (depIndex !== -1) {
+            state.departmentAgreements[depIndex] = updatedAgreement;
+          }
+          
+          // For backward compatibility
           const index = state.agreements.findIndex(a => a.id === updatedAgreement.id);
           if (index !== -1) {
-            // Replace it with the complete data from the server
             state.agreements[index] = updatedAgreement;
           }
           
@@ -380,31 +413,7 @@ const agreementSlice = createSlice({
             state.currentAgreement = updatedAgreement;
           }
         }
-      })
-      .addCase(updateAgreement.rejected, (state, action) => {
-        state.error = action.payload;
-        state.loading = false;
-        handleApiError(action.payload);
-      })
-      
-      // Delete agreement
-      .addCase(deleteAgreement.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(deleteAgreement.fulfilled, (state, action) => {
-        state.loading = false;
-        state.agreements = state.agreements.filter(agreement => agreement.id !== action.payload);
-      })
-      .addCase(deleteAgreement.rejected, (state, action) => {
-        state.error = action.payload;
-        state.loading = false;
-        handleApiError(action.payload);
-      })
-      
-      // Submit agreement
-      .addCase(submitAgreement.pending, (state) => {
-        state.loading = true;
+        
         state.error = null;
       })
       .addCase(submitAgreement.fulfilled, (state, action) => {

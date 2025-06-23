@@ -35,7 +35,7 @@ const AgreementList = () => {
   const [selectedAgreement, setSelectedAgreement] = useState(null);
 
   // Get agreements from Redux
-  const { agreements, pagination, loading, error } = useSelector((state) => state.agreements);
+  const { myAgreements: agreements, pagination, loading, error } = useSelector((state) => state.agreements);
   const [filteredAgreements, setFilteredAgreements] = useState([]);
   const currentYear = useMemo(() => new Date().getFullYear(), []);
 

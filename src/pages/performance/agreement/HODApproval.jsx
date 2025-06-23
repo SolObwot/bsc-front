@@ -40,7 +40,7 @@ const HODApproval = () => {
   const dispatch = useDispatch();
   
   // Get agreements and detected department from Redux store
-  const { agreements, loading, error, userDepartmentId } = useSelector((state) => state.agreements);
+  const { departmentAgreements: agreements, loading, error, userDepartmentId } = useSelector((state) => state.agreements);
   
   // State declarations
   const [isModalOpen, setIsModalOpen] = useState(false);

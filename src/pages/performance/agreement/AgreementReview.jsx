@@ -50,7 +50,8 @@ const AgreementReview = ({
   const dispatch = useDispatch();
   
   // Get agreements and detected department from Redux store
-  const { agreements, pagination, loading, error, userDepartmentId } = useSelector((state) => state.agreements);
+  const { departmentAgreements: agreements, pagination, loading, error, userDepartmentId } = useSelector((state) => state.agreements);
+
   
   // State declarations
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
