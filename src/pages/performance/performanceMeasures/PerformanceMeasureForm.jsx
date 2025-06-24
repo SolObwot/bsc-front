@@ -1,11 +1,23 @@
 import React, { useState, forwardRef, useImperativeHandle } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { createPerformanceMeasure, deletePerformanceMeasure } from '../../../redux/performanceMeasureSlice';
 import StrategicObjectiveModal from '../../../components/balancescorecard/modals/StrategicObjectiveModal';
 import PerformanceIndicatorModal from '../../../components/balancescorecard/modals/PerformanceIndicatorModal';
 import AppraisalModal from '../../../components/balancescorecard/modals/AppraisalModal';
 import AppraisalApprovalModal from '../../../components/balancescorecard/modals/AppraisalApprovalModal';
+import { useToast } from '../../../hooks/useToast';
 
-const PerformanceMeasureForm = forwardRef(({ objectives, isQualitative, onDataChange }, ref) => {
-  // Modal statessd
+const PerformanceMeasureForm = forwardRef(({ objectives, isQualitative, onDataChange, agreementId }, ref) => {
+  const dispatch = useDispatch();
+  const { toast } = useToast();
+  
+  // Get loading and error states from Redux
+  const { 
+    loading: { create: isCreating, delete: isDeleting },
+    error: { create: createError, delete: deleteError }
+  } = useSelector((state) => state.performanceMeasure);
+  
+  // Modal states
   const [isStrategicModalOpen, setIsStrategicModalOpen] = useState(false);
   const [isIndicatorModalOpen, setIsIndicatorModalOpen] = useState(false);
   const [isAppraisalModalOpen, setIsAppraisalModalOpen] = useState(false);
@@ -88,92 +100,168 @@ const PerformanceMeasureForm = forwardRef(({ objectives, isQualitative, onDataCh
     }
   };
 
-  const handleSaveIndicator = (formData) => {
-    const updatedObjectives = [...objectives];
-    
+  const handleSaveIndicator = async (formData) => {
+    // For API integration
+    const apiData = {
+      name: formData.name,
+      strategic_objective_id: selectedStrategicObjective.id,
+      department_perspective_id: selectedObjective.id,
+      target_value: formData.targetValue,
+      measurement_type: formData.measurementType,
+      agreement_id: agreementId,
+      weight: parseFloat(formData.weight || "0"),
+      description: formData.description || ""
+    };
+
     if (isEditing && editingIndicator) {
-      // Update existing indicator
+      // Handle update logic here
+      // For now, update local state
+      const updatedObjectives = [...objectives];
+      
       for (const objective of updatedObjectives) {
         for (const subObj of objective.subObjectives) {
-          const indicatorIndex = subObj.indicators.findIndex(ind => ind.id === formData.id);
+          const indicatorIndex = subObj.indicators.findIndex(ind => ind.id === editingIndicator.id);
           if (indicatorIndex !== -1) {
-            // Update the indicator
-            subObj.indicators[indicatorIndex] = { ...subObj.indicators[indicatorIndex], ...formData };
+            // Update the indicator with new values but keep the original ID
+            subObj.indicators[indicatorIndex] = { 
+              ...formData,
+              id: editingIndicator.id
+            };
             // Notify the parent component about the change
             onDataChange(updatedObjectives);
+            
+            // Show success message
+            toast({
+              title: "Success",
+              description: "Performance measure updated successfully",
+            });
+            
             break;
           }
         }
       }
+      
+      // Close modal and reset editing state
+      setIsIndicatorModalOpen(false);
+      setIsEditing(false);
+      setEditingIndicator(null);
     } else if (selectedStrategicObjective) {
-      // Add new indicator
-      for (const objective of updatedObjectives) {
-        const subObjIndex = objective.subObjectives.findIndex(
-          subObj => subObj.id === selectedStrategicObjective.id
-        );
+      try {
+        // Create new performance measure via API
+        const result = await dispatch(createPerformanceMeasure(apiData)).unwrap();
         
-        if (subObjIndex !== -1) {
-          // Generate a new ID (in a real app, this would be handled by the backend)
-          const newId = Math.max(
-            ...objective.subObjectives[subObjIndex].indicators.map(ind => ind.id), 
-            0
-          ) + 1;
-          
-          // Add the new indicator
-          objective.subObjectives[subObjIndex].indicators.push({
-            ...formData,
-            id: newId
-          });
-          
-          // Notify the parent component about the change
-          onDataChange(updatedObjectives);
-          break;
+        // Handle successful creation
+        toast({
+          title: "Success",
+          description: "Performance measure created successfully",
+        });
+        
+        // Add to local state
+        const updatedObjectives = [...objectives];
+        for (const objective of updatedObjectives) {
+          if (objective.id === selectedObjective.id) {
+            const subObjIndex = objective.subObjectives.findIndex(
+              subObj => subObj.id === selectedStrategicObjective.id
+            );
+            
+            if (subObjIndex !== -1) {
+              // Add the new indicator with the API response data
+              objective.subObjectives[subObjIndex].indicators.push({
+                id: result.id,
+                name: result.name,
+                targetValue: result.target_value,
+                measurementType: result.measurement_type,
+                weight: formData.weight || "0%",
+                description: formData.description || ""
+              });
+              
+              // Notify the parent component about the change
+              onDataChange(updatedObjectives);
+              break;
+            }
+          }
         }
+        
+        // Close modal
+        setIsIndicatorModalOpen(false);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to create performance measure",
+          variant: "destructive",
+        });
       }
     }
-    
-    // Reset modal state
-    setIsIndicatorModalOpen(false);
-    setIsEditing(false);
-    setEditingIndicator(null);
   };
 
   const handleIndicatorEdit = (indicator, index, indicators) => {
+    // Find the parent objective and strategic objective for this indicator
     let parentObjective = null;
+    let mainObjective = null;
+    
     for (const objective of objectives) {
       for (const subObj of objective.subObjectives) {
         if (subObj.indicators.some(ind => ind.id === indicator.id)) {
           parentObjective = subObj;
+          mainObjective = objective;
           break;
         }
       }
       if (parentObjective) break;
     }
     
-    if (parentObjective) {
-      handleIndicatorModalOpen(selectedObjective, parentObjective, indicator, true);
+    if (parentObjective && mainObjective) {
+      handleIndicatorModalOpen(mainObjective, parentObjective, indicator, true);
     } else {
       console.error('Could not find parent objective for indicator:', indicator);
     }
   };
   
-  const handleDeleteIndicator = () => {
-    if (!selectedIndicator) return;
+  const handleDeleteIndicator = async () => {
+    if (!selectedIndicator || !selectedIndicator.id) {
+      toast({
+        title: "Error",
+        description: "No indicator selected for deletion",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    const updatedObjectives = [...objectives];
-    
-    // Find and remove the indicator
-    for (const objective of updatedObjectives) {
-      for (const subObj of objective.subObjectives) {
-        const indicatorIndex = subObj.indicators.findIndex(ind => ind.id === selectedIndicator.id);
-        if (indicatorIndex !== -1) {
-          // Remove the indicator
-          subObj.indicators.splice(indicatorIndex, 1);
-          // Notify the parent component about the change
-          onDataChange(updatedObjectives);
-          break;
+    try {
+      // Delete via API
+      await dispatch(deletePerformanceMeasure(selectedIndicator.id)).unwrap();
+      
+      // Update local state
+      const updatedObjectives = [...objectives];
+      let indicatorRemoved = false;
+      
+      for (const objective of updatedObjectives) {
+        for (const subObj of objective.subObjectives) {
+          const indicatorIndex = subObj.indicators.findIndex(ind => ind.id === selectedIndicator.id);
+          if (indicatorIndex !== -1) {
+            // Remove the indicator
+            subObj.indicators.splice(indicatorIndex, 1);
+            indicatorRemoved = true;
+            break;
+          }
         }
+        if (indicatorRemoved) break;
       }
+      
+      // Notify the parent component about the change
+      if (indicatorRemoved) {
+        onDataChange(updatedObjectives);
+        toast({
+          title: "Success",
+          description: "Performance measure deleted successfully",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete performance measure",
+        variant: "destructive",
+      });
     }
     
     // Close the modal and reset state
@@ -200,6 +288,7 @@ const PerformanceMeasureForm = forwardRef(({ objectives, isQualitative, onDataCh
         isEditing={isEditing}
         editData={editingIndicator}
         onSave={handleSaveIndicator}
+        isLoading={isCreating}
       />
 
       <AppraisalModal 
@@ -228,8 +317,13 @@ const PerformanceMeasureForm = forwardRef(({ objectives, isQualitative, onDataCh
           setSelectedIndicator(null);
           setApprovalModalCurrentIndex(0);
         }}
+        isLoading={isDeleting}
+        modalType="delete"
+        title="Delete Performance Measure"
+        message="Are you sure you want to delete this performance measure? This action cannot be undone."
       />
     </>
   );
 });
+
 export default PerformanceMeasureForm;
