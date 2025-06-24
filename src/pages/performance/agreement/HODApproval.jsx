@@ -85,11 +85,14 @@ const HODApproval = () => {
   }, [dispatch, isInitialLoad]);
   
   // Update department filter when userDepartmentId is detected
-  useEffect(() => {
+ useEffect(() => {
+    // This effect sets the filter ONCE when the user's department is detected.
+    // It is stabilized to prevent re-triggering data fetches on subsequent re-renders.
     if (userDepartmentId && filterDepartment === '') {
       setFilterDepartment(userDepartmentId);
     }
-  }, [userDepartmentId, filterDepartment]);
+  }, [userDepartmentId]); // <-- Corrected dependencies
+  
   
   // Make API request when department filter changes manually
   useEffect(() => {

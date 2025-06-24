@@ -91,12 +91,13 @@ const AgreementReview = ({
   }, [dispatch, departmentFilter, isInitialLoad]);
   
   // Update department filter when userDepartmentId is detected
-  useEffect(() => {
-    // Only update if we don't have a departmentFilter prop and userDepartmentId exists
+   useEffect(() => {
+    // This effect should only run when the user's department is detected.
+    // It sets the filter ONCE if it's not already set.
     if (!departmentFilter && userDepartmentId && filterDepartment === '') {
       setFilterDepartment(userDepartmentId);
     }
-  }, [userDepartmentId, departmentFilter, filterDepartment]);
+  }, [userDepartmentId, departmentFilter]);
   
   // Apply all filters client-side since API only supports department_id
   const filteredAgreements = useMemo(() => {
