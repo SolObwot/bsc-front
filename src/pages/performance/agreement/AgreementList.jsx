@@ -147,7 +147,7 @@ const AgreementList = () => {
   };
 
   const handleAddKPIs = (agreement) => {
-    navigate(`/performance/agreement/${agreement.id}/measures/add`);
+    navigate(`/performance/measures/add/${agreement.id}`);
   };
 
   const handleSubmit = (agreement) => {
