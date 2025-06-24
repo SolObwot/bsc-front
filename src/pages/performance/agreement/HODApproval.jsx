@@ -195,8 +195,6 @@ const HODApproval = () => {
 
       setIsModalOpen(false);
       setSelectedAgreement(null);
-      await dispatch(fetchAllAgreements({ department_id: filterDepartment || undefined })).unwrap();
-
     } catch (error) {
       toast({
         title: "Error",
@@ -225,8 +223,6 @@ const HODApproval = () => {
 
         setIsModalOpen(false);
         setSelectedAgreement(null);
-        await dispatch(fetchAllAgreements({ department_id: filterDepartment || undefined })).unwrap();
-
       } catch (error) {
         toast({
           title: "Error",
