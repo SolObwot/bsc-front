@@ -215,6 +215,12 @@ const agreementSlice = createSlice({
     error: null,
   },
   reducers: {
+    resetMyAgreements: (state) => {
+      state.myAgreements = [];
+      // For backward compatibility
+      state.agreements = [];
+      state.error = null;
+    },
     deleteAgreementFromState: (state, action) => {
       // Update both lists to be safe
       state.myAgreements = state.myAgreements.filter(
@@ -535,6 +541,6 @@ const agreementSlice = createSlice({
   },
 });
 
-export const { deleteAgreementFromState, setCurrentPage } =
+export const { resetMyAgreements, deleteAgreementFromState, setCurrentPage } =
   agreementSlice.actions;
 export default agreementSlice.reducer;

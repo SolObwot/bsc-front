@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Table, TableHead, TableBody, TableRow, TableCell, TableHeader, TableSkeleton } from '../../../components/ui/Tables';
-import { createAgreement,updateAgreement,deleteAgreement, fetchMyAgreements } from '../../../redux/agreementSlice';
+import { createAgreement,updateAgreement,deleteAgreement, fetchMyAgreements, resetMyAgreements } from '../../../redux/agreementSlice';
 import { useToast } from '../../../hooks/useToast';
 import ObjectiveHeader from '../../../components/balancescorecard/Header';
 import FilterBox from '../../../components/ui/FilterBox';
@@ -51,6 +51,10 @@ const AgreementList = () => {
           variant: "destructive",
         });
       });
+    
+    return () => {
+      dispatch(resetMyAgreements());
+    };
   }, [dispatch]);
 
   // Apply filters when filter state or agreements change
