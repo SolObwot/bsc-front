@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import Modal from '../../../components/ui/Modal';
 import StatusBadge from './AgreementStatusBadge'; 
 import { UserCircleIcon, CalendarDaysIcon, ClockIcon } from '@heroicons/react/20/solid';
+import { useToast } from '../../../hooks/useToast';
 
 const AgreementApprovalModal = ({ isOpen, closeModal, agreement, onApprove, onReject }) => {
   const [supervisorApproved, setSupervisorApproved] = useState(false);
   const [hodApproved, setHodApproved] = useState(false);
   const [comments, setComments] = useState('');
+  const { toast } = useToast();
+
 
   useEffect(() => {
     if (agreement) {
@@ -16,10 +19,16 @@ const AgreementApprovalModal = ({ isOpen, closeModal, agreement, onApprove, onRe
     // Reset comments when modal opens with a new agreement
     setComments('');
   }, [agreement]);
+
+
   
   const handleSupervisorApprove = () => {
     if (comments.trim() === '') {
-      alert('Please provide comments before approving the agreement');
+      toast({
+        title: "Error",
+        description: "Please provide comments before approving the agreement.",
+        variant: "destructive",
+      });
       return;
     }
     onApprove({
@@ -30,7 +39,11 @@ const AgreementApprovalModal = ({ isOpen, closeModal, agreement, onApprove, onRe
   
   const handleHodApprove = () => {
     if (comments.trim() === '') {
-      alert('Please provide comments before approving the agreement');
+      toast({
+        title: "Error",
+        description: "Please provide comments before approving the agreement.",
+        variant: "destructive",
+      });
       return;
     }
     onApprove({
@@ -41,20 +54,43 @@ const AgreementApprovalModal = ({ isOpen, closeModal, agreement, onApprove, onRe
   
   const handleReject = () => {
     if (comments.trim() === '') {
-      alert('Please provide comments explaining why you are rejecting this agreement');
+      toast({
+        title: "Error",
+        description: "Please provide comments explaining why you are rejecting this agreement.",
+        variant: "destructive",
+      });
       return;
     }
     onReject({
       action: 'reject',
-      comment: comments
+      comment: comments,
+      rejection_reason: comments
     });
   };
 
   if (!agreement) return null;
 
+// Extract employee name from creator object
+  const employeeName = agreement.creator ? 
+    `${agreement.creator.surname} ${agreement.creator.last_name}${agreement.creator.other_name ? ' ' + agreement.creator.other_name : ''}` : 
+    'Unknown';
+  
+  // Extract job title
+  const employeeTitle = agreement.creator?.job_title?.name || 'N/A';
+  
+  // Format period for display
+  const periodDisplay = agreement.period === 'annual' ? 'Annual Review' : 
+                        agreement.period === 'probation' ? 'Probation 6 months' : 
+                        agreement.period;
+  
+  // Get supervisor and HOD names (these might need to be adjusted based on your data structure)
+  const supervisorName = agreement.supervisor ? `${agreement.supervisor.surname} ${agreement.supervisor.last_name}${agreement.supervisor.other_name ? ' ' + agreement.supervisor.other_name : ''}` : 'Not Assigned';
+  const hodName = agreement.hod ? `${agreement.hod.surname} ${agreement.hod.last_name}${agreement.hod.other_name ? ' ' + agreement.hod.other_name : ''}` : 'Not Assigned';
+
   const isSupervisorActionable = agreement.status === 'pending_supervisor';
   const isHodActionable = agreement.status === 'pending_hod';
   const isApproved = agreement.status === 'approved';
+
 
   const footerButtons = (
     <>
@@ -111,19 +147,19 @@ const AgreementApprovalModal = ({ isOpen, closeModal, agreement, onApprove, onRe
     >
       {/* Agreement details */}
       <div className="bg-gray-50 rounded-lg p-4 mb-6">
-        <h3 className="font-medium text-lg text-gray-800 mb-2">{agreement?.title}</h3>
+        <h3 className="font-medium text-lg text-gray-800 mb-2">{agreement.name}</h3>
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div className="flex items-center text-gray-600">
             <UserCircleIcon className="w-4 h-4 mr-2 text-gray-500" />
-            <span>{agreement?.employeeName} - {agreement?.employeeTitle}</span>
+            <span>{employeeName}</span>
           </div>
           <div className="flex items-center text-gray-600">
             <CalendarDaysIcon className="w-4 h-4 mr-2 text-gray-500" />
-            <span>Period: {agreement?.period}</span>
+            <span>Period: {periodDisplay}</span>
           </div>
           <div className="flex items-center text-gray-600">
             <ClockIcon className="w-4 h-4 mr-2 text-gray-500" />
-            <span>Submitted: {new Date(agreement?.submittedDate).toLocaleDateString()}</span>
+            <span>Submitted: {agreement.submitted_at ? new Date(agreement.submitted_at).toLocaleDateString() : 'Not submitted'}</span>
           </div>
           <div>
             <StatusBadge status={agreement?.status} />
@@ -135,7 +171,7 @@ const AgreementApprovalModal = ({ isOpen, closeModal, agreement, onApprove, onRe
       <div className="border border-gray-200 rounded-lg p-4 mb-6">
         <h3 className="font-medium text-gray-800 mb-2">Statement of the Employee | Approval Status</h3>
         <p className="text-sm text-gray-600 mb-4">
-          <span className="font-medium">{agreement?.employeeName}</span> has accepted the performance accountabilities of this agreement and agreed to produce the results, perform the work and meet the standards set forth in this agreement. 
+          <span className="font-medium">{employeeName}</span> has accepted the performance accountabilities of this agreement and agreed to produce the results, perform the work and meet the standards set forth in this agreement. 
           {agreement?.status === 'pending_supervisor' && (
             <span> This agreement requires your approval as the Immediate Supervisor.</span>
           )}
@@ -155,7 +191,7 @@ const AgreementApprovalModal = ({ isOpen, closeModal, agreement, onApprove, onRe
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Employee:</span>
-                <span className="text-sm font-medium">{agreement?.employeeName}</span>
+                <span className="text-sm font-medium">{employeeName}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Status:</span>
@@ -168,7 +204,7 @@ const AgreementApprovalModal = ({ isOpen, closeModal, agreement, onApprove, onRe
             <div className="space-y-3 border-l border-gray-200 pl-4">
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Supervisor:</span>
-                <span className="text-sm font-medium">{agreement?.supervisorName}</span>
+                <span className="text-sm font-medium">{supervisorName}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Status:</span>
@@ -183,7 +219,7 @@ const AgreementApprovalModal = ({ isOpen, closeModal, agreement, onApprove, onRe
         <div className="border-t border-gray-200 pt-4 mt-4">
           <div className="flex justify-between mb-3">
             <span className="text-sm text-gray-500">Head of Department:</span>
-            <span className="text-sm font-medium">{agreement?.hodName}</span>
+            <span className="text-sm font-medium">{hodName}</span>
           </div>
           <div className="flex justify-between mb-3">
             <span className="text-sm text-gray-500">Status:</span>
@@ -197,8 +233,8 @@ const AgreementApprovalModal = ({ isOpen, closeModal, agreement, onApprove, onRe
       {/* Comments Section - Added similar to HODApprovalModal */}
       <div className="mb-6">
         <label htmlFor="comments" className="block text-sm font-medium text-gray-700 mb-1">
-          {agreement?.status === 'pending_supervisor' ? 'Supervisor Comments' : 'HOD Comments'}
-        </label>
+          {agreement?.status === 'pending_supervisor' ? 'Supervisor Comments' : 'HOD Comments'} <span className="text-red-500">*</span>
+        </label> 
         <textarea
           id="comments"
           rows={4}
@@ -212,9 +248,9 @@ const AgreementApprovalModal = ({ isOpen, closeModal, agreement, onApprove, onRe
       <div className="bg-gray-50 p-4 rounded-lg text-sm text-gray-600">
         <p className="font-medium mb-1">Notifications will be sent to:</p>
         <ul className="list-disc pl-5 space-y-1">
-          <li>Employee: <span className="font-medium">{agreement?.employeeName}</span></li>
-          <li>Immediate Supervisor: <span className="font-medium">{agreement?.supervisorName}</span></li>
-          <li>Head of Department: <span className="font-medium">{agreement?.hodName}</span></li>
+          <li>Employee: <span className="font-medium">{employeeName}</span></li>
+          <li>Immediate Supervisor: <span className="font-medium">{supervisorName}</span></li>
+          <li>Head of Department/Line Manager: <span className="font-medium">{hodName}</span></li>
         </ul>
       </div>
     </Modal>

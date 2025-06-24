@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAllAgreements, initializeWithUserDepartment } from '../../../redux/agreementSlice';
+import { fetchAllAgreements, initializeWithUserDepartment, hodApproveAgreement } from '../../../redux/agreementSlice';
 import { useAuth } from '../../../hooks/useAuth';
 import ObjectiveHeader from '../../../components/balancescorecard/Header';
 import { Table, TableHead, TableHeader, TableBody, TableRow, TableCell, TableSkeleton } from '../../../components/ui/Tables';
@@ -10,6 +10,8 @@ import AgreementToolbar from './AgreementToolbar';
 import AgreementActions from './AgreementActions';
 import AgreementApprovalModal from './AgreementApprovalModal'; 
 import StatusBadge from './AgreementStatusBadge';
+import { useToast } from '../../../hooks/useToast';
+
 
 // Helper function to calculate time ago
 const getTimeAgo = (dateString) => {
@@ -38,6 +40,7 @@ const HODApproval = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const dispatch = useDispatch();
+  const { toast } = useToast();
   
   // Get agreements and detected department from Redux store
   const { departmentAgreements: agreements, loading, error, userDepartmentId } = useSelector((state) => state.agreements);
@@ -174,29 +177,65 @@ const HODApproval = () => {
     alert('Preview agreement: ' + JSON.stringify(agreement, null, 2));
   };
   
-  const handleApprove = (status) => {
-    setIsModalOpen(false);
-    setSelectedAgreement(null);
-    // Refresh the list after approval
-    dispatch(fetchAllAgreements({ department_id: filterDepartment || undefined }));
+  const handleApprove = async (approvalData) => {
+    try {
+      await dispatch(hodApproveAgreement({
+        id: selectedAgreement.id,
+        data: {
+          action: approvalData.action,
+          comment: approvalData.comment
+        }
+      })).unwrap();
+
+      toast({
+        title: "Success",
+        description: "Agreement has been approved successfully",
+        variant: "success",
+      });
+
+      setIsModalOpen(false);
+      setSelectedAgreement(null);
+      await dispatch(fetchAllAgreements({ department_id: filterDepartment || undefined })).unwrap();
+
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to approve agreement",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleReject = (newStatus) => {
-    setIsModalOpen(false);
-    setSelectedAgreement(null);
-    // Refresh the list after rejection
-    dispatch(fetchAllAgreements({ department_id: filterDepartment || undefined }));
-  };
-  
-  const handleRecordsPerPageChange = (value) => {
-    // This function is no longer needed as we fetch all records.
-    console.warn("Changing records per page is not supported as all records are fetched.");
-  };
-  
-  const handlePageChange = (page, url) => {
-    // This is also no longer needed.
-    console.warn("Pagination is handled client-side after fetching all records.");
-  };
+   const handleReject = async (rejectionData) => {
+    try {
+        await dispatch(hodApproveAgreement({
+          id: selectedAgreement.id,
+          data: {
+            action: rejectionData.action,
+            comment: rejectionData.comment,
+            rejection_reason: rejectionData.comment
+          }
+        })).unwrap();
+
+        toast({
+          title: "Success",
+          description: "Agreement has been rejected successfully",
+          variant: "success",
+        });
+
+        setIsModalOpen(false);
+        setSelectedAgreement(null);
+        await dispatch(fetchAllAgreements({ department_id: filterDepartment || undefined })).unwrap();
+
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to reject agreement",
+          variant: "destructive",
+        });
+      }
+    };
+
   
   const handleReset = () => {
     setFilterText('');
@@ -351,7 +390,6 @@ const HODApproval = () => {
           
           <AgreementToolbar 
             recordsPerPage={agreements.length}
-            onRecordsPerPageChange={handleRecordsPerPageChange}
             totalRecords={filteredAgreements.length}
             showCreateButton={false}
             showRecordsPerPage={false}
@@ -370,13 +408,6 @@ const HODApproval = () => {
                 columns={7} 
                 columnWidths={['20%', '15%', '15%', '10%', '15%', '10%', '15%']} 
               />
-            </div>
-          ) : error ? (
-            <div className="bg-red-50 p-4 rounded-md">
-              <h3 className="text-sm font-medium text-red-800">Error loading agreements</h3>
-              <div className="mt-2 text-sm text-red-700">
-                <p>{error}</p>
-              </div>
             </div>
           ) : (
             <Table>

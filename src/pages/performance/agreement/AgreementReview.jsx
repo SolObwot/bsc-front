@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAllAgreements, initializeWithUserDepartment } from '../../../redux/agreementSlice';
+import { fetchAllAgreements, initializeWithUserDepartment, supervisorApproveAgreement } from '../../../redux/agreementSlice';
 import ObjectiveHeader from '../../../components/balancescorecard/Header';
 import OverallProgress from '../../../components/balancescorecard/OverallProgress';
 import { Table, TableHead, TableBody, TableRow, TableCell, TableHeader, TableSkeleton } from '../../../components/ui/Tables';
 import FilterBox from '../../../components/ui/FilterBox';
 import AgreementToolbar from './AgreementToolbar';
 import AgreementActions from './AgreementActions';
-import Pagination from '../../../components/ui/Pagination';
 import { useAuth } from '../../../hooks/useAuth';
+import { useToast } from '../../../hooks/useToast';
 import SubmitAgreementModal from './SubmitAgreementModal'; 
 import AgreementApprovalModal from './AgreementApprovalModal'; 
 import StatusBadge from './AgreementStatusBadge';
@@ -48,10 +48,10 @@ const AgreementReview = ({
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const dispatch = useDispatch();
+  const { toast } = useToast();
   
   // Get agreements and detected department from Redux store
   const { departmentAgreements: agreements, pagination, loading, error, userDepartmentId } = useSelector((state) => state.agreements);
-
   
   // State declarations
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
@@ -73,7 +73,6 @@ const AgreementReview = ({
   const [filterYear, setFilterYear] = useState(currentYear.toString()); // Add year filter
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [loadingPage, setLoadingPage] = useState(false);
-  const isHODApprovalPage = window.location.href.includes('status=pending_hod');
   
   // Initialize with user's department - only on first load
   useEffect(() => {
@@ -168,19 +167,7 @@ const AgreementReview = ({
       dispatch(fetchAllAgreements({ department_id: filterDepartment }));
     }
   }, [dispatch, filterDepartment, isInitialLoad]);
-  
-  // Simplified page change handler
-  const handlePageChange = (page, url) => {
-    // This is no longer needed
-    console.warn("Pagination is handled client-side after fetching all records.");
-  };
-
-  // Simplified records per page change
-  const handleRecordsPerPageChange = (value) => {
-    // This function is no longer needed as we fetch all records
-    console.warn("Changing records per page is not supported as all records are fetched.");
-  };
-  
+    
   // Action handlers
   const handleReview = (agreement) => {
     setSelectedAgreement(agreement);
@@ -202,26 +189,67 @@ const AgreementReview = ({
     alert("View history for agreement: " + agreement.name);
   };
 
-  const handleApproveOrUpdateStatus = (newStatus) => {
-    setIsApprovalModalOpen(false);
-    setIsSubmitModalOpen(false);
-    setSelectedAgreement(null);
-    // Only send department_id
-    dispatch(fetchAllAgreements({
-      department_id: filterDepartment || undefined
-    }));
-  };
+  // Updated function to only handle supervisor approval
+ const handleApproveOrUpdateStatus = async (approvalData) => {
+  try {
+    await dispatch(supervisorApproveAgreement({
+      id: selectedAgreement.id,
+      data: {
+        action: approvalData.action,
+        comment: approvalData.comment    
+      }
+    })).unwrap();
 
-  const handleReject = () => {
-    // Implement rejection logic using Redux actions
-    console.log("Agreement rejected:", selectedAgreement);
+    toast({
+      title: "Success",
+      description: "Agreement has been approved as supervisor",
+      variant: "success",
+    });
+    
     setIsApprovalModalOpen(false);
     setSelectedAgreement(null);
-    dispatch(fetchAllAgreements({
-      department_id: filterDepartment || undefined
-    }));
-  };
+    await dispatch(fetchAllAgreements({ department_id: filterDepartment || undefined })).unwrap();
+    
+  } catch (error) {
+    toast({
+      title: "Error",
+      description: error.message || "Failed to approve agreement",
+      variant: "destructive",
+    });
+  }
+};
+  
+  // Updated function to only handle supervisor rejection
+  const handleReject = async (rejectionData) => {
+    try {
+      await dispatch(supervisorApproveAgreement({
+        id: selectedAgreement.id,
+        data: {
+          action: rejectionData.action,
+          comment: rejectionData.comment,
+          rejection_reason: rejectionData.comment
+        }
+      })).unwrap();
 
+      toast({
+        title: "Success",
+        description: "Agreement has been rejected as supervisor",
+        variant: "success",
+      });
+
+      setIsApprovalModalOpen(false);
+      setSelectedAgreement(null);
+      await dispatch(fetchAllAgreements({ department_id: filterDepartment || undefined })).unwrap();
+
+    } catch (error) {
+          toast({
+            title: "Error",
+            description: "An unexpected error occurred during rejection",
+            variant: "destructive",
+          });
+        }
+  };
+  
   const handleInitialSubmitAction = (agreementId, newStatus) => {
     // Find the agreement to submit
     const agreementToSubmit = agreements.find(a => a.id === agreementId);
@@ -486,10 +514,8 @@ const AgreementReview = ({
         
         {/* Toolbar */}
         <div className="bg-gray-100 p-4 rounded-lg mb-4 shadow-sm relative">
-     
           <AgreementToolbar 
             recordsPerPage={agreements.length}
-            onRecordsPerPageChange={handleRecordsPerPageChange}
             totalRecords={filteredAgreements.length}
             showCreateButton={false}
             showRecordsPerPage={false}
@@ -509,14 +535,7 @@ const AgreementReview = ({
                   columnWidths={['20%', '15%', '15%', '10%', '15%', '10%', '15%']}
                   />
                 </div>
-                ) : error ? (
-                <div className="bg-red-50 p-4 rounded-md">
-                  <h3 className="text-sm font-medium text-red-800">Error loading agreements</h3>
-                  <div className="mt-2 text-sm text-red-700">
-                  <p>{error}</p>
-                  </div>
-                </div>
-                ) : (
+                ) :(
                 <Table>
                   <TableHead>
                   <TableRow>

@@ -452,10 +452,17 @@ const agreementSlice = createSlice({
       })
       .addCase(supervisorApproveAgreement.fulfilled, (state, action) => {
         state.loading = false;
-        const updatedAgreement = action.payload.data;
-        state.agreements = state.agreements.map(agreement => 
-          agreement.id === updatedAgreement.id ? updatedAgreement : agreement
-        );
+        const updatedAgreement = action.payload.agreement;
+        
+        if (updatedAgreement && updatedAgreement.id) {
+          // Update both lists for consistency
+          state.departmentAgreements = state.departmentAgreements.map(agreement =>
+            agreement.id === updatedAgreement.id ? updatedAgreement : agreement
+          );
+          state.agreements = state.agreements.map(agreement =>
+            agreement.id === updatedAgreement.id ? updatedAgreement : agreement
+          );
+        }
       })
       .addCase(supervisorApproveAgreement.rejected, (state, action) => {
         state.error = action.payload;
@@ -470,10 +477,17 @@ const agreementSlice = createSlice({
       })
       .addCase(hodApproveAgreement.fulfilled, (state, action) => {
         state.loading = false;
-        const updatedAgreement = action.payload.data;
-        state.agreements = state.agreements.map(agreement => 
+        const updatedAgreement = action.payload.agreement;
+
+        if (updatedAgreement && updatedAgreement.id) {
+        // Update both lists for consistency
+        state.departmentAgreements = state.departmentAgreements.map(agreement =>
           agreement.id === updatedAgreement.id ? updatedAgreement : agreement
         );
+        state.agreements = state.agreements.map(agreement =>
+          agreement.id === updatedAgreement.id ? updatedAgreement : agreement
+        );
+      }
       })
       .addCase(hodApproveAgreement.rejected, (state, action) => {
         state.error = action.payload;

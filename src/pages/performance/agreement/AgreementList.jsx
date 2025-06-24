@@ -359,13 +359,6 @@ const AgreementList = () => {
                 columns={8} 
                 columnWidths={['20%', '10%', '15%', '15%', '15%', '10%', '10%', '15%']} 
               />
-            ) : error ? (
-              <div className="bg-red-50 p-4 rounded-md">
-                <h3 className="text-sm font-medium text-red-800">Error loading agreements</h3>
-                <div className="mt-2 text-sm text-red-700">
-                  <p>{typeof error === 'object' && error !== null ? error.message : error}</p>
-                </div>
-              </div>
             ) : (
               <Table>
                 <TableHead>
