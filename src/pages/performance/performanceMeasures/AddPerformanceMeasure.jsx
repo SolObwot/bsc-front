@@ -12,6 +12,8 @@ import PerformanceMeasureForm from './PerformanceMeasureForm';
 import { useToast } from '../../../hooks/useToast';
 import Button from '../../../components/ui/Button';
 import { CheckCircleIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '../../../hooks/useAuth';
+
 
 const AddPerformanceMeasure = () => {
   const navigate = useNavigate();
@@ -28,7 +30,10 @@ const AddPerformanceMeasure = () => {
     loading: { department: isLoading },
     error: { department: error }
   } = useSelector((state) => state.performanceMeasure);
-  
+
+  // Get the authenticated user from Redux store
+  const { user } = useAuth();
+        
   // Local state for transformed objectives
   const [objectives, setObjectives] = useState({
     quantitative: [],
@@ -63,7 +68,7 @@ const AddPerformanceMeasure = () => {
       const transformPerspectiveToObjective = (perspective) => {
         // Get objectives for this perspective
         const perspectiveObjectives = perspective.objectives || {};
-        
+
         // Convert object to array if needed
         const objectivesArray = Array.isArray(perspectiveObjectives) 
           ? perspectiveObjectives 
@@ -84,8 +89,10 @@ const AddPerformanceMeasure = () => {
           progress: 0,
           dueDate: '31 Dec, 2024',
           assignee: {
-            name: department.hod?.surname + ' ' + department.hod?.last_name || 'Department Head',
-            avatar: department.hod?.profile_photo_url || '/placeholder.svg',
+            name: `${user?.surname || ''} ${user?.last_name || ''}`.trim() || 'Current User',
+            surname: user?.surname || '',
+            lastName: user?.last_name || '',
+            avatar: user?.profile_photo_url || '/placeholder.svg',
           },
           lastUpdated: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
           created: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
@@ -252,21 +259,21 @@ const AddPerformanceMeasure = () => {
   }
 
   // Show error state
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-100 shadow-md rounded-lg">
-        <ObjectiveHeader />
-        <div className="p-4">
-          <div className="bg-red-50 p-4 rounded-md">
-            <h3 className="text-sm font-medium text-red-800">Error loading department objectives</h3>
-            <div className="mt-2 text-sm text-red-700">
-              <p>{typeof error === 'object' && error !== null ? error.message : error}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // if (error) {
+  //   return (
+  //     <div className="min-h-screen bg-gray-100 shadow-md rounded-lg">
+  //       <ObjectiveHeader />
+  //       <div className="p-4">
+  //         <div className="bg-red-50 p-4 rounded-md">
+  //           <h3 className="text-sm font-medium text-red-800">Error loading department objectives</h3>
+  //           <div className="mt-2 text-sm text-red-700">
+  //             <p>{typeof error === 'object' && error !== null ? error.message : error}</p>
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="min-h-screen bg-gray-100 shadow-md rounded-lg">

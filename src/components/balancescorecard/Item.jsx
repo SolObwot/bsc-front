@@ -295,9 +295,14 @@ const ObjectiveItem = ({
             </div>
             
             <div className="flex items-center">
-              <Avatar className="h-7 w-7">
+              <Avatar 
+              className="h-7 w-7"
+              name={objective.assignee.name}
+              surname={objective.assignee.surname}
+              lastName={objective.assignee.lastName}
+              >
                 <span className="text-xs font-medium text-teal-800">
-                  {objective.assignee.name.charAt(0)}
+                  {objective.assignee.name}
                 </span>
               </Avatar>
               <span className="text-xs ml-1 hidden sm:inline">{objective.assignee.name}</span>
@@ -503,12 +508,12 @@ const ObjectiveItem = ({
                     </div>
                     <div title={subObj.name}>
                       <div className='flex items-center'>
-                        <span className="text-xs font-medium text-gray-800 truncate max-w-[180px] capitalize">
+                        <span className="text-xs font-medium text-gray-800 truncate capitalize">
                           {subObj.name} 
                           {showIndicators && " |"}
                         </span>
                         {showIndicators && (
-                          <span className="flex items-center text-xs text-gray-500">
+                          <span className="flex items-center text-xs text-gray-500 ml-2">
                             <DocumentTextIcon className="w-3 h-3 mr-1" />
                             {(subObj.indicators || []).length} Performance Indicator(s)
                           </span>

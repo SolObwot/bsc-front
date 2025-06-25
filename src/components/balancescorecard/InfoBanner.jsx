@@ -10,7 +10,10 @@ const InfoBanner = () => {
         </div>
         <div className="ml-3 flex-1 md:flex md:justify-between">
           <p className="text-sm">
-            This is a friendly reminder that all you need to do on this tab is to set your agreement. To submit your agreement for review,{' '}
+            This is a friendly reminder that all you need to do on this tab is to add your performance measure/indicator for your agreement. To submit your agreement for review,{' '}
+            <a href="#" className="font-medium whitespace-nowrap underline hover:text-blue-600">
+              click here
+            </a>. To start an appraisal,{' '}
             <a href="#" className="font-medium whitespace-nowrap underline hover:text-blue-600">
               click here
             </a>.
