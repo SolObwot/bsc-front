@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchDepartmentObjectives } from '../../../redux/performanceMeasureSlice';
+import { 
+  fetchDepartmentObjectives, 
+  fetchAllDashboardPerformanceMeasures 
+} from '../../../redux/performanceMeasureSlice';
 import ObjectiveHeader from '../../../components/balancescorecard/Header';
 import ObjectiveTabs from '../../../components/balancescorecard/Tabs';
 import OverallProgress from '../../../components/balancescorecard/OverallProgress';
@@ -22,13 +25,14 @@ const AddPerformanceMeasure = () => {
   const { id: agreementId } = useParams(); // Get agreement ID from URL
   const [activeTab, setActiveTab] = useState('active');
   const [savingMeasures, setSavingMeasures] = useState(false);
+  const [fetchingMeasures, setFetchingMeasures] = useState(false);
   
   // Get data from Redux store
   const { 
     department,
     perspectives,
-    loading: { department: isLoading },
-    error: { department: error }
+    loading: { department: isLoading, allDashboardMeasures: isDashboardLoading },
+    error: { department: error, allDashboardMeasures: dashboardError }
   } = useSelector((state) => state.performanceMeasure);
 
   // Get the authenticated user from Redux store
@@ -39,6 +43,9 @@ const AddPerformanceMeasure = () => {
     quantitative: [],
     qualitative: []
   });
+  
+  // Local state for dashboard performance measures
+  const [dashboardMeasures, setDashboardMeasures] = useState([]);
   
   // Form handlers
   const formRef = useRef();
@@ -58,6 +65,26 @@ const AddPerformanceMeasure = () => {
         });
       });
   }, [dispatch]);
+  
+  // Fetch dashboard performance measures when component mounts
+  useEffect(() => {
+    setFetchingMeasures(true);
+    dispatch(fetchAllDashboardPerformanceMeasures({ agreement_id: agreementId }))
+      .unwrap()
+      .then((measures) => {
+        setDashboardMeasures(measures);
+      })
+      .catch(error => {
+        toast({
+          title: "Error",
+          description: "Failed to load dashboard performance measures. Please try again.",
+          variant: "destructive",
+        });
+      })
+      .finally(() => {
+        setFetchingMeasures(false);
+      });
+  }, [dispatch, agreementId]);
 
   // Transform API data to component format
   useEffect(() => {
@@ -99,10 +126,14 @@ const AddPerformanceMeasure = () => {
           keyResults: safeObjectivesArray.length,
           status: 'In Progress',
           comments: 0,
+          // Important: Store the department_perspective_id for API integration
+          department_perspective_id: perspective.id,
           subObjectives: safeObjectivesArray.map(obj => ({
             id: obj.id,
             name: obj.name,
             weight: `${Math.round((perspective.weight / safeObjectivesArray.length) * 10) / 10}%`,
+            // Store the department_objective_id for API integration
+            department_objective_id: obj.department_objective_id || obj.id,
             // Create empty indicators array that will be filled when measures are added
             indicators: []
           }))
@@ -115,6 +146,74 @@ const AddPerformanceMeasure = () => {
       });
     }
   }, [department, perspectives]);
+
+  // Populate dashboard performance measures to appropriate strategic objectives
+  useEffect(() => {
+    if (dashboardMeasures.length > 0 && objectives.quantitative.length > 0) {
+      // Deep clone the objectives to avoid direct state mutation
+      const updatedQuantitativeObjectives = JSON.parse(JSON.stringify(objectives.quantitative));
+      const updatedQualitativeObjectives = JSON.parse(JSON.stringify(objectives.qualitative));
+      
+      // For each dashboard measure, find the corresponding strategic objective and add it as an indicator
+      dashboardMeasures.forEach(measure => {
+        // First check if this is a quantitative or qualitative measure
+        // Typically this would be determined by the perspective type
+        let targetObjectives = updatedQuantitativeObjectives;
+        
+        // If you need to determine whether a measure is qualitative, add logic here
+        // For example, based on measure.department_objective.strategy_perspective_id
+        
+        // Find the correct main objective (perspective)
+        let perspectiveFound = false;
+        
+        for (const objective of targetObjectives) {
+          // Find the corresponding strategic objective using department_objective from the measure
+          if (measure.department_objective && 
+              objective.department_perspective_id === measure.department_objective.strategy_perspective_id) {
+            
+            // Find the strategic objective that matches the measure's strategic_objective_id
+            const subObjIndex = objective.subObjectives.findIndex(
+              subObj => subObj.id === measure.strategic_objective_id
+            );
+            
+            if (subObjIndex !== -1) {
+              // Check if indicator already exists (avoid duplicates)
+              const existingIndicator = objective.subObjectives[subObjIndex].indicators.find(
+                ind => ind.id === measure.id
+              );
+              
+              if (!existingIndicator) {
+                // Add the measure as an indicator
+                objective.subObjectives[subObjIndex].indicators.push({
+                  id: measure.id,
+                  name: measure.name,
+                  targetValue: measure.target_value,
+                  measurementType: measure.measurement_type,
+                  weight: `${measure.net_weight}%`,
+                  description: measure.description || ""
+                });
+              }
+              
+              perspectiveFound = true;
+              break;
+            }
+          }
+        }
+        
+        // If not found in quantitative, check qualitative (if needed)
+        if (!perspectiveFound && measure.department_objective) {
+          // Similar logic for qualitative objectives
+          // ...
+        }
+      });
+      
+      // Update state with populated indicators
+      setObjectives({
+        quantitative: updatedQuantitativeObjectives,
+        qualitative: updatedQualitativeObjectives
+      });
+    }
+  }, [dashboardMeasures, objectives.quantitative.length, objectives.qualitative.length]);
 
   // Helper function to get the current form handlers
   const getFormHandlers = () => {
@@ -243,7 +342,7 @@ const AddPerformanceMeasure = () => {
   const handlers = getFormHandlers();
 
   // Show loading state
-  if (isLoading) {
+  if (isLoading || fetchingMeasures) {
     return (
       <div className="min-h-screen bg-gray-100 shadow-md rounded-lg">
         <ObjectiveHeader />
@@ -252,28 +351,13 @@ const AddPerformanceMeasure = () => {
           <OverallProgress progress={0} riskStatus={false} />
         </div>
         <div className="p-8 text-center">
-          <p className="text-gray-500">Loading department objectives...</p>
+          <p className="text-gray-500">
+            {isLoading ? 'Loading department objectives...' : 'Loading performance measures...'}
+          </p>
         </div>
       </div>
     );
   }
-
-  // Show error state
-  // if (error) {
-  //   return (
-  //     <div className="min-h-screen bg-gray-100 shadow-md rounded-lg">
-  //       <ObjectiveHeader />
-  //       <div className="p-4">
-  //         <div className="bg-red-50 p-4 rounded-md">
-  //           <h3 className="text-sm font-medium text-red-800">Error loading department objectives</h3>
-  //           <div className="mt-2 text-sm text-red-700">
-  //             <p>{typeof error === 'object' && error !== null ? error.message : error}</p>
-  //           </div>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // }
 
   return (
     <div className="min-h-screen bg-gray-100 shadow-md rounded-lg">

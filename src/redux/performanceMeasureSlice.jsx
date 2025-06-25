@@ -100,10 +100,89 @@ export const deletePerformanceMeasure = createAsyncThunk(
     }
 );
 
+// Fetch ALL dashboard performance measures across all pages concurrently
+export const fetchAllDashboardPerformanceMeasures = createAsyncThunk(
+    'performanceMeasure/fetchAllDashboardPerformanceMeasures',
+    async (params, { rejectWithValue }) => {
+        try {
+            // Fetch the first page to get pagination metadata
+            const firstPageResponse = await performanceMeasureService.getDashboardPerformanceMeasures({
+                ...params,
+                page: 1,
+            });
+            const totalPages = firstPageResponse.last_page;
+            let allMeasures = firstPageResponse.data;
+
+            // If there is more than one page, fetch the rest
+            if (totalPages > 1) {
+                const pagePromises = [];
+                for (let page = 2; page <= totalPages; page++) {
+                    pagePromises.push(
+                        performanceMeasureService.getDashboardPerformanceMeasures({ ...params, page })
+                    );
+                }
+                // Fetch all remaining pages concurrently
+                const subsequentPageResponses = await Promise.all(pagePromises);
+                const subsequentMeasures = subsequentPageResponses.flatMap(
+                    (response) => response.data
+                );
+                allMeasures = [...allMeasures, ...subsequentMeasures];
+            }
+
+            // Return the complete, aggregated list of dashboard performance measures
+            return allMeasures;
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: error.message });
+        }
+    }
+);
+
+// Fetch ALL performance measures by creator across all pages concurrently
+export const fetchAllPerformanceMeasuresByCreator = createAsyncThunk(
+    'performanceMeasure/fetchAllPerformanceMeasuresByCreator',
+    async ({ createdBy, ...params }, { rejectWithValue }) => {
+        try {
+            // Fetch the first page to get pagination metadata
+            const firstPageResponse = await performanceMeasureService.getPerformanceMeasuresByCreator(
+                createdBy,
+                { ...params, page: 1 }
+            );
+            const totalPages = firstPageResponse.last_page;
+            let allMeasures = firstPageResponse.data;
+
+            // If there is more than one page, fetch the rest
+            if (totalPages > 1) {
+                const pagePromises = [];
+                for (let page = 2; page <= totalPages; page++) {
+                    pagePromises.push(
+                        performanceMeasureService.getPerformanceMeasuresByCreator(
+                            createdBy, 
+                            { ...params, page }
+                        )
+                    );
+                }
+                // Fetch all remaining pages concurrently
+                const subsequentPageResponses = await Promise.all(pagePromises);
+                const subsequentMeasures = subsequentPageResponses.flatMap(
+                    (response) => response.data
+                );
+                allMeasures = [...allMeasures, ...subsequentMeasures];
+            }
+
+            // Return the complete, aggregated list of performance measures by creator
+            return allMeasures;
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: error.message });
+        }
+    }
+);
+
 // Initial state
 const initialState = {
     department: null,
     perspectives: [],
+    dashboardPerformanceMeasures: [], 
+    creatorPerformanceMeasures: [],  
     measures: {
         data: [],
         pagination: {
@@ -120,7 +199,9 @@ const initialState = {
         allMeasures: false, // New loading state
         create: false,
         update: false,
-        delete: false
+        delete: false,
+        allDashboardMeasures: false,
+        allCreatorMeasures: false
     },
     error: {
         department: null,
@@ -128,7 +209,9 @@ const initialState = {
         allMeasures: null, // New error state
         create: null,
         update: null,
-        delete: null
+        delete: null,
+        allDashboardMeasures: null,
+        allCreatorMeasures: null,
     }
 };
 
@@ -247,6 +330,34 @@ const performanceMeasureSlice = createSlice({
         builder.addCase(deletePerformanceMeasure.rejected, (state, action) => {
             state.loading.delete = false;
             state.error.delete = action.payload || { message: 'Failed to delete performance measure' };
+        });
+
+                // Dashboard performance measures (all pages)
+        builder.addCase(fetchAllDashboardPerformanceMeasures.pending, (state) => {
+            state.loading.allDashboardMeasures = true;
+            state.error.allDashboardMeasures = null;
+        });
+        builder.addCase(fetchAllDashboardPerformanceMeasures.fulfilled, (state, action) => {
+            state.loading.allDashboardMeasures = false;
+            state.dashboardPerformanceMeasures = action.payload;
+        });
+        builder.addCase(fetchAllDashboardPerformanceMeasures.rejected, (state, action) => {
+            state.loading.allDashboardMeasures = false;
+            state.error.allDashboardMeasures = action.payload || { message: "Failed to fetch all dashboard performance measures" };
+        });
+
+        // Performance measures by creator (all pages)
+        builder.addCase(fetchAllPerformanceMeasuresByCreator.pending, (state) => {
+            state.loading.allCreatorMeasures = true;
+            state.error.allCreatorMeasures = null;
+        });
+        builder.addCase(fetchAllPerformanceMeasuresByCreator.fulfilled, (state, action) => {
+            state.loading.allCreatorMeasures = false;
+            state.creatorPerformanceMeasures = action.payload;
+        });
+        builder.addCase(fetchAllPerformanceMeasuresByCreator.rejected, (state, action) => {
+            state.loading.allCreatorMeasures = false;
+            state.error.allCreatorMeasures = action.payload || { message: "Failed to fetch all performance measures by creator" };
         });
     }
 });

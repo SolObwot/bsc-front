@@ -21,6 +21,27 @@ export const performanceMeasureService = {
     }
   },
 
+    // Get performance measures from dashboard for authenticated user
+  getDashboardPerformanceMeasures: async (params = {}) => {
+    try {
+      const response = await axios.get('/performance-measures/dashboard', { params });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get performance measures by creator
+  getPerformanceMeasuresByCreator: async (createdBy, params = {}) => {
+    try {
+      const requestParams = { ...params, created_by: createdBy };
+      const response = await axios.get('/performance-measures', { params: requestParams });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Get a specific performance measure
   getPerformanceMeasure: async (id) => {
     try {

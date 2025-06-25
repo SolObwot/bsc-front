@@ -101,98 +101,93 @@ const PerformanceMeasureForm = forwardRef(({ objectives, isQualitative, onDataCh
   };
 
   const handleSaveIndicator = async (formData) => {
-    // For API integration
-    const apiData = {
-      name: formData.name,
-      strategic_objective_id: selectedStrategicObjective.id,
-      department_perspective_id: selectedObjective.id,
-      target_value: formData.targetValue,
-      measurement_type: formData.measurementType,
-      agreement_id: agreementId,
-      weight: parseFloat(formData.weight || "0"),
-      description: formData.description || ""
-    };
+      // For API integration
+      const apiData = {
+        name: formData.name,
+        net_weight: parseFloat(formData.weight || "0"), // Make sure to use net_weight, not weight
+        measurement_type: formData.measurementType,
+        target_value: formData.targetValue,
+        strategic_objective_id: selectedStrategicObjective.id,
+        department_perspective_objective_id: selectedStrategicObjective.department_objective_id || 
+                                          (selectedObjective && selectedObjective.department_perspective_id ? 
+                                              selectedObjective.department_perspective_id : 
+                                              selectedObjective.id),
+        agreement_id: agreementId || null
+      };
 
-    if (isEditing && editingIndicator) {
-      // Handle update logic here
-      // For now, update local state
-      const updatedObjectives = [...objectives];
-      
-      for (const objective of updatedObjectives) {
+      // ...existing code...
+      if (isEditing && editingIndicator) {
+        try {
+          await dispatch(updatePerformanceMeasure({ id: editingIndicator.id, ...apiData })).unwrap();
+
+          // Update local state
+          const updatedObjectives = [...objectives];
+          for (const objective of updatedObjectives) {
         for (const subObj of objective.subObjectives) {
           const indicatorIndex = subObj.indicators.findIndex(ind => ind.id === editingIndicator.id);
           if (indicatorIndex !== -1) {
-            // Update the indicator with new values but keep the original ID
-            subObj.indicators[indicatorIndex] = { 
-              ...formData,
-              id: editingIndicator.id
+            subObj.indicators[indicatorIndex] = {
+          ...formData,
+          id: editingIndicator.id
             };
-            // Notify the parent component about the change
             onDataChange(updatedObjectives);
-            
-            // Show success message
             toast({
-              title: "Success",
-              description: "Performance measure updated successfully",
+          title: "Success",
+          description: "Performance measure updated successfully",
             });
-            
             break;
           }
         }
-      }
-      
-      // Close modal and reset editing state
-      setIsIndicatorModalOpen(false);
-      setIsEditing(false);
-      setEditingIndicator(null);
-    } else if (selectedStrategicObjective) {
-      try {
-        // Create new performance measure via API
-        const result = await dispatch(createPerformanceMeasure(apiData)).unwrap();
-        
-        // Handle successful creation
-        toast({
-          title: "Success",
-          description: "Performance measure created successfully",
-        });
-        
-        // Add to local state
-        const updatedObjectives = [...objectives];
-        for (const objective of updatedObjectives) {
-          if (objective.id === selectedObjective.id) {
-            const subObjIndex = objective.subObjectives.findIndex(
-              subObj => subObj.id === selectedStrategicObjective.id
-            );
-            
-            if (subObjIndex !== -1) {
-              // Add the new indicator with the API response data
-              objective.subObjectives[subObjIndex].indicators.push({
-                id: result.id,
-                name: result.name,
-                targetValue: result.target_value,
-                measurementType: result.measurement_type,
-                weight: formData.weight || "0%",
-                description: formData.description || ""
-              });
-              
-              // Notify the parent component about the change
-              onDataChange(updatedObjectives);
-              break;
-            }
+          }
+          setIsIndicatorModalOpen(false);
+          setIsEditing(false);
+          setEditingIndicator(null);
+        } catch {
+          toast({
+        title: "Error",
+        description: "Could not update the performance measure. Please check your input and try again.",
+        variant: "destructive",
+          });
+        }
+      } else if (selectedStrategicObjective) {
+        try {
+          const payload = await dispatch(createPerformanceMeasure(apiData)).unwrap();
+          // Add to local state
+          const updatedObjectives = [...objectives];
+          for (const objective of updatedObjectives) {
+        if (objective.id === selectedObjective.id) {
+          const subObjIndex = objective.subObjectives.findIndex(
+            subObj => subObj.id === selectedStrategicObjective.id
+          );
+          if (subObjIndex !== -1) {
+            objective.subObjectives[subObjIndex].indicators.push({
+          id: payload.id,
+          name: payload.name,
+          targetValue: payload.target_value,
+          measurementType: payload.measurement_type,
+          weight: formData.weight || "0%",
+          description: formData.description || ""
+            });
+            onDataChange(updatedObjectives);
+            break;
           }
         }
-        
-        // Close modal
-        setIsIndicatorModalOpen(false);
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: error.message || "Failed to create performance measure",
-          variant: "destructive",
-        });
+          }
+          toast({
+        title: "Success",
+        description: "Performance measure created successfully",
+          });
+          setIsIndicatorModalOpen(false);
+        } catch (e) {
+          toast({
+        title: "Error",
+        description: "Could not create the performance measure. Please check your input and try again.",
+        variant: "destructive",
+          });
+        }
       }
-    }
-  };
+      // ...existing code...
+    };
 
   const handleIndicatorEdit = (indicator, index, indicators) => {
     // Find the parent objective and strategic objective for this indicator
@@ -259,7 +254,7 @@ const PerformanceMeasureForm = forwardRef(({ objectives, isQualitative, onDataCh
     } catch (error) {
       toast({
         title: "Error",
-        description: error.message || "Failed to delete performance measure",
+        description: "An error occurred while deleting the performance measure. Please try again.",
         variant: "destructive",
       });
     }
