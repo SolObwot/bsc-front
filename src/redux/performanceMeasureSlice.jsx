@@ -31,7 +31,6 @@ export const fetchAllPerformanceMeasures = createAsyncThunk(
     'performanceMeasure/fetchAllPerformanceMeasures',
     async (params, { rejectWithValue }) => {
         try {
-            // Fetch the first page to get pagination metadata
             const firstPageResponse = await performanceMeasureService.getPerformanceMeasures({
                 ...params,
                 page: 1,
@@ -39,7 +38,6 @@ export const fetchAllPerformanceMeasures = createAsyncThunk(
             const totalPages = firstPageResponse.last_page;
             let allMeasures = firstPageResponse.data;
 
-            // If there is more than one page, fetch the rest
             if (totalPages > 1) {
                 const pagePromises = [];
                 for (let page = 2; page <= totalPages; page++) {
@@ -47,7 +45,6 @@ export const fetchAllPerformanceMeasures = createAsyncThunk(
                         performanceMeasureService.getPerformanceMeasures({ ...params, page })
                     );
                 }
-                // Fetch all remaining pages concurrently
                 const subsequentPageResponses = await Promise.all(pagePromises);
                 const subsequentMeasures = subsequentPageResponses.flatMap(
                     (response) => response.data
@@ -55,7 +52,6 @@ export const fetchAllPerformanceMeasures = createAsyncThunk(
                 allMeasures = [...allMeasures, ...subsequentMeasures];
             }
 
-            // Return the complete, aggregated list of performance measures
             return allMeasures;
         } catch (error) {
             return rejectWithValue(error.response?.data || { message: error.message });
@@ -63,13 +59,25 @@ export const fetchAllPerformanceMeasures = createAsyncThunk(
     }
 );
 
+// Fetch a specific performance measure by ID
+export const fetchPerformanceMeasureById = createAsyncThunk(
+    'performanceMeasure/fetchPerformanceMeasureById',
+    async (id, { rejectWithValue }) => {
+        try {
+            const response = await performanceMeasureService.getPerformanceMeasure(id);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: error.message });
+        }
+    }
+);
 
 export const createPerformanceMeasure = createAsyncThunk(
     'performanceMeasure/createPerformanceMeasure',
     async (measureData, { rejectWithValue }) => {
         try {
             const response = await performanceMeasureService.createPerformanceMeasure(measureData);
-            return response.data;
+            return response;
         } catch (error) {
             return rejectWithValue(error.response?.data || { message: error.message });
         }
@@ -81,9 +89,9 @@ export const updatePerformanceMeasure = createAsyncThunk(
     async ({ id, data }, { rejectWithValue }) => {
         try {
             const response = await performanceMeasureService.updatePerformanceMeasure(id, data);
-            return response.data;
+            return response;
         } catch (error) {
-            return rejectWithValue(error.response?.data || { message: error.message });
+            throw error;
         }
     }
 );
@@ -103,33 +111,31 @@ export const deletePerformanceMeasure = createAsyncThunk(
 // Fetch ALL dashboard performance measures across all pages concurrently
 export const fetchAllDashboardPerformanceMeasures = createAsyncThunk(
     'performanceMeasure/fetchAllDashboardPerformanceMeasures',
-    async (params, { rejectWithValue }) => {
+    async ({ agreement_id }, { rejectWithValue }) => {
+        if (!agreement_id) {
+            return rejectWithValue({ message: "The agreement_id parameter is required." });
+        }
+
         try {
-            // Fetch the first page to get pagination metadata
             const firstPageResponse = await performanceMeasureService.getDashboardPerformanceMeasures({
-                ...params,
+                agreement_id,
                 page: 1,
             });
             const totalPages = firstPageResponse.last_page;
             let allMeasures = firstPageResponse.data;
 
-            // If there is more than one page, fetch the rest
             if (totalPages > 1) {
                 const pagePromises = [];
                 for (let page = 2; page <= totalPages; page++) {
                     pagePromises.push(
-                        performanceMeasureService.getDashboardPerformanceMeasures({ ...params, page })
+                        performanceMeasureService.getDashboardPerformanceMeasures({ agreement_id, page })
                     );
                 }
-                // Fetch all remaining pages concurrently
                 const subsequentPageResponses = await Promise.all(pagePromises);
-                const subsequentMeasures = subsequentPageResponses.flatMap(
-                    (response) => response.data
-                );
+                const subsequentMeasures = subsequentPageResponses.flatMap((response) => response.data);
                 allMeasures = [...allMeasures, ...subsequentMeasures];
             }
 
-            // Return the complete, aggregated list of dashboard performance measures
             return allMeasures;
         } catch (error) {
             return rejectWithValue(error.response?.data || { message: error.message });
@@ -142,7 +148,6 @@ export const fetchAllPerformanceMeasuresByCreator = createAsyncThunk(
     'performanceMeasure/fetchAllPerformanceMeasuresByCreator',
     async ({ createdBy, ...params }, { rejectWithValue }) => {
         try {
-            // Fetch the first page to get pagination metadata
             const firstPageResponse = await performanceMeasureService.getPerformanceMeasuresByCreator(
                 createdBy,
                 { ...params, page: 1 }
@@ -150,7 +155,6 @@ export const fetchAllPerformanceMeasuresByCreator = createAsyncThunk(
             const totalPages = firstPageResponse.last_page;
             let allMeasures = firstPageResponse.data;
 
-            // If there is more than one page, fetch the rest
             if (totalPages > 1) {
                 const pagePromises = [];
                 for (let page = 2; page <= totalPages; page++) {
@@ -161,7 +165,6 @@ export const fetchAllPerformanceMeasuresByCreator = createAsyncThunk(
                         )
                     );
                 }
-                // Fetch all remaining pages concurrently
                 const subsequentPageResponses = await Promise.all(pagePromises);
                 const subsequentMeasures = subsequentPageResponses.flatMap(
                     (response) => response.data
@@ -169,7 +172,6 @@ export const fetchAllPerformanceMeasuresByCreator = createAsyncThunk(
                 allMeasures = [...allMeasures, ...subsequentMeasures];
             }
 
-            // Return the complete, aggregated list of performance measures by creator
             return allMeasures;
         } catch (error) {
             return rejectWithValue(error.response?.data || { message: error.message });
@@ -201,7 +203,8 @@ const initialState = {
         update: false,
         delete: false,
         allDashboardMeasures: false,
-        allCreatorMeasures: false
+        allCreatorMeasures: false,
+        fetchSingle: false
     },
     error: {
         department: null,
@@ -212,6 +215,7 @@ const initialState = {
         delete: null,
         allDashboardMeasures: null,
         allCreatorMeasures: null,
+        fetchSingle: null
     }
 };
 
@@ -283,6 +287,20 @@ const performanceMeasureSlice = createSlice({
                 state.loading.allMeasures = false;
                 state.error.allMeasures = action.payload || { message: "Failed to fetch all performance measures" };
             });
+
+        // Fetch a single performance measure
+        builder.addCase(fetchPerformanceMeasureById.pending, (state) => {
+            state.loading.fetchSingle = true;
+            state.error.fetchSingle = null;
+        });
+        builder.addCase(fetchPerformanceMeasureById.fulfilled, (state, action) => {
+            state.loading.fetchSingle = false;
+            state.selectedPerformanceMeasure = action.payload;
+        });
+        builder.addCase(fetchPerformanceMeasureById.rejected, (state, action) => {
+            state.loading.fetchSingle = false;
+            state.error.fetchSingle = action.payload || { message: 'Failed to fetch performance measure' };
+        });
         
         // Create measure
         builder.addCase(createPerformanceMeasure.pending, (state) => {
@@ -291,7 +309,6 @@ const performanceMeasureSlice = createSlice({
         });
         builder.addCase(createPerformanceMeasure.fulfilled, (state, action) => {
             state.loading.create = false;
-            // Optimistic update - add to first page if on first page
             if (state.measures.pagination.currentPage === 1) {
                 state.measures.data = [action.payload, ...state.measures.data.slice(0, -1)];
             }

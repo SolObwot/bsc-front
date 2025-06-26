@@ -116,6 +116,12 @@ const AgreementList = () => {
     }
   };
 
+  
+  const handlePreview = (agreement) => {
+    // Implement preview functionality
+    alert("Preview agreement: " + agreement.name);
+  };
+
   // Update the handleEdit function
   const handleEdit = (agreement) => {
     setSelectedAgreement(agreement);
@@ -443,6 +449,7 @@ const AgreementList = () => {
                                 agreement={agreement}
                                 onEdit={() => handleEdit(agreement)}
                                 showOnlyReviewAndPreview={true}
+                                onPreview={handlePreview}
                               />
                               <span className="text-gray-500 text-sm">
                                 {agreement.status === 'pending_supervisor' ? 'Pending Supervisor Review' :

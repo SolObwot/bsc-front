@@ -12,22 +12,23 @@ import InfoBanner from '../../../components/balancescorecard/InfoBanner';
 import ObjectiveListHeader from '../../../components/balancescorecard/ListHeader';
 import ObjectiveItem from '../../../components/balancescorecard/Item';
 import PerformanceMeasureForm from './PerformanceMeasureForm';
+import DeletePerformanceMeasure from './DeletePerformanceMeasure';
 import { useToast } from '../../../hooks/useToast';
 import Button from '../../../components/ui/Button';
 import { CheckCircleIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../../../hooks/useAuth';
 
-
 const AddPerformanceMeasure = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { toast } = useToast();
-  const { id: agreementId } = useParams(); // Get agreement ID from URL
+  const { id: agreementId } = useParams();
   const [activeTab, setActiveTab] = useState('active');
   const [savingMeasures, setSavingMeasures] = useState(false);
   const [fetchingMeasures, setFetchingMeasures] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedPerformanceMeasure, setSelectedPerformanceMeasure] = useState(null);
   
-  // Get data from Redux store
   const { 
     department,
     perspectives,
@@ -35,28 +36,23 @@ const AddPerformanceMeasure = () => {
     error: { department: error, allDashboardMeasures: dashboardError }
   } = useSelector((state) => state.performanceMeasure);
 
-  // Get the authenticated user from Redux store
   const { user } = useAuth();
         
-  // Local state for transformed objectives
   const [objectives, setObjectives] = useState({
     quantitative: [],
     qualitative: []
   });
   
-  // Local state for dashboard performance measures
   const [dashboardMeasures, setDashboardMeasures] = useState([]);
   
-  // Form handlers
   const formRef = useRef();
 
-  // Fetch department objectives when component mounts
+  useEffect(() => {}, [selectedPerformanceMeasure]);
+
   useEffect(() => {
     dispatch(fetchDepartmentObjectives())
       .unwrap()
-      .then(() => {
-        // Successfully loaded department objectives
-      })
+      .then(() => {})
       .catch(error => {
         toast({
           title: "Error",
@@ -66,49 +62,41 @@ const AddPerformanceMeasure = () => {
       });
   }, [dispatch]);
   
-  // Fetch dashboard performance measures when component mounts
   useEffect(() => {
     setFetchingMeasures(true);
     dispatch(fetchAllDashboardPerformanceMeasures({ agreement_id: agreementId }))
       .unwrap()
       .then((measures) => {
-        setDashboardMeasures(measures);
+          setDashboardMeasures(measures);
       })
-      .catch(error => {
-        toast({
-          title: "Error",
-          description: "Failed to load dashboard performance measures. Please try again.",
-          variant: "destructive",
-        });
+      .catch((error) => {
+          toast({
+              title: "Error",
+              description: error.message || "Failed to load dashboard performance measures. Please try again.",
+              variant: "destructive",
+          });
       })
       .finally(() => {
-        setFetchingMeasures(false);
+          setFetchingMeasures(false);
       });
   }, [dispatch, agreementId]);
 
-  // Transform API data to component format
   useEffect(() => {
     if (department && perspectives) {
       const quantitativePerspectives = perspectives.filter(p => p.type === 'quantitative');
       const qualitativePerspectives = perspectives.filter(p => p.type === 'qualitative');
       
       const transformPerspectiveToObjective = (perspective) => {
-        // Get objectives for this perspective
         const perspectiveObjectives = perspective.objectives || {};
-
-        // Convert object to array if needed
         const objectivesArray = Array.isArray(perspectiveObjectives) 
           ? perspectiveObjectives 
           : Object.values(perspectiveObjectives);
-        
-        // Ensure we have an array even if objectives is null/undefined
         const safeObjectivesArray = objectivesArray.length > 0 ? objectivesArray : [{
           id: `default-${perspective.id}`,
           name: "General Objectives",
           weight: perspective.weight
         }];
         
-        // Transform to the format expected by the component
         return {
           id: perspective.id,
           title: perspective.name,
@@ -126,15 +114,12 @@ const AddPerformanceMeasure = () => {
           keyResults: safeObjectivesArray.length,
           status: 'In Progress',
           comments: 0,
-          // Important: Store the department_perspective_id for API integration
           department_perspective_id: perspective.id,
           subObjectives: safeObjectivesArray.map(obj => ({
             id: obj.id,
             name: obj.name,
             weight: `${Math.round((perspective.weight / safeObjectivesArray.length) * 10) / 10}%`,
-            // Store the department_objective_id for API integration
             department_objective_id: obj.department_objective_id || obj.id,
-            // Create empty indicators array that will be filled when measures are added
             indicators: []
           }))
         };
@@ -147,43 +132,29 @@ const AddPerformanceMeasure = () => {
     }
   }, [department, perspectives]);
 
-  // Populate dashboard performance measures to appropriate strategic objectives
   useEffect(() => {
     if (dashboardMeasures.length > 0 && objectives.quantitative.length > 0) {
-      // Deep clone the objectives to avoid direct state mutation
       const updatedQuantitativeObjectives = JSON.parse(JSON.stringify(objectives.quantitative));
       const updatedQualitativeObjectives = JSON.parse(JSON.stringify(objectives.qualitative));
       
-      // For each dashboard measure, find the corresponding strategic objective and add it as an indicator
       dashboardMeasures.forEach(measure => {
-        // First check if this is a quantitative or qualitative measure
-        // Typically this would be determined by the perspective type
         let targetObjectives = updatedQuantitativeObjectives;
-        
-        // If you need to determine whether a measure is qualitative, add logic here
-        // For example, based on measure.department_objective.strategy_perspective_id
-        
-        // Find the correct main objective (perspective)
         let perspectiveFound = false;
         
         for (const objective of targetObjectives) {
-          // Find the corresponding strategic objective using department_objective from the measure
           if (measure.department_objective && 
               objective.department_perspective_id === measure.department_objective.strategy_perspective_id) {
             
-            // Find the strategic objective that matches the measure's strategic_objective_id
             const subObjIndex = objective.subObjectives.findIndex(
               subObj => subObj.id === measure.strategic_objective_id
             );
             
             if (subObjIndex !== -1) {
-              // Check if indicator already exists (avoid duplicates)
               const existingIndicator = objective.subObjectives[subObjIndex].indicators.find(
                 ind => ind.id === measure.id
               );
               
               if (!existingIndicator) {
-                // Add the measure as an indicator
                 objective.subObjectives[subObjIndex].indicators.push({
                   id: measure.id,
                   name: measure.name,
@@ -200,14 +171,9 @@ const AddPerformanceMeasure = () => {
           }
         }
         
-        // If not found in quantitative, check qualitative (if needed)
-        if (!perspectiveFound && measure.department_objective) {
-          // Similar logic for qualitative objectives
-          // ...
-        }
+        if (!perspectiveFound && measure.department_objective) {}
       });
       
-      // Update state with populated indicators
       setObjectives({
         quantitative: updatedQuantitativeObjectives,
         qualitative: updatedQualitativeObjectives
@@ -215,7 +181,6 @@ const AddPerformanceMeasure = () => {
     }
   }, [dashboardMeasures, objectives.quantitative.length, objectives.qualitative.length]);
 
-  // Helper function to get the current form handlers
   const getFormHandlers = () => {
     return formRef.current ? {
       handleStrategicModalOpen: (objective) => 
@@ -238,17 +203,16 @@ const AddPerformanceMeasure = () => {
     } : {};
   };
 
-  // Handle data changes from PerformanceMeasureForm
   const handleDataChange = (newObjectives) => {
     if (activeTab === 'active') {
-      setObjectives(prev => ({
+      setObjectives((prev) => ({
         ...prev,
-        quantitative: newObjectives
+        quantitative: Array.isArray(newObjectives) ? newObjectives : [],
       }));
     } else {
-      setObjectives(prev => ({
+      setObjectives((prev) => ({
         ...prev,
-        qualitative: newObjectives
+        qualitative: Array.isArray(newObjectives) ? newObjectives : [],
       }));
     }
   };
@@ -263,13 +227,10 @@ const AddPerformanceMeasure = () => {
           indicator, 
           true
         );
-      } else {
-        console.error('Could not find parent objective for indicator:', indicator);
-      }
+      } else {}
     }
   };
 
-  // Helper function to find the parent strategic objective for an indicator
   const findParentObjective = (indicator) => {
     for (const objective of displayedObjectives) {
       for (const subObj of objective.subObjectives) {
@@ -281,7 +242,6 @@ const AddPerformanceMeasure = () => {
     return null;
   };
 
-  // Helper function to find the main objective
   const findMainObjective = (indicator) => {
     for (const objective of displayedObjectives) {
       for (const subObj of objective.subObjectives) {
@@ -293,18 +253,14 @@ const AddPerformanceMeasure = () => {
     return null;
   };
 
-  // Get current objectives based on active tab
   const displayedObjectives = activeTab === 'active' 
-    ? objectives.quantitative 
-    : (activeTab === 'draft' ? objectives.qualitative : []);
-    
-  // Handle saving all performance measures
+  ? objectives.quantitative || [] 
+  : (activeTab === 'draft' ? objectives.qualitative || [] : []);
+  
   const handleSaveAllMeasures = async () => {
     try {
       setSavingMeasures(true);
       
-      // All saved measures are tracked in the PerformanceMeasureForm component
-      // Check if there are any measures to save
       const allIndicators = displayedObjectives.flatMap(objective => 
         objective.subObjectives.flatMap(subObj => subObj.indicators)
       );
@@ -319,13 +275,11 @@ const AddPerformanceMeasure = () => {
         return;
       }
       
-      // Notify that all measures have been saved
       toast({
         title: "Success",
         description: "All performance measures have been saved successfully.",
       });
       
-      // Navigate back to the agreement
       navigate(`/performance/agreements/${agreementId}`);
     } catch (error) {
       toast({
@@ -338,10 +292,13 @@ const AddPerformanceMeasure = () => {
     }
   };
 
-  // Store handlers reference
+  const handleDeleteClick = (performanceMeasure) => {
+    setSelectedPerformanceMeasure(performanceMeasure);
+    setIsDeleteModalOpen(true);
+  };
+
   const handlers = getFormHandlers();
 
-  // Show loading state
   if (isLoading || fetchingMeasures) {
     return (
       <div className="min-h-screen bg-gray-100 shadow-md rounded-lg">
@@ -399,9 +356,7 @@ const AddPerformanceMeasure = () => {
                 handlers.handleAppraisalModalOpen && handlers.handleAppraisalModalOpen(indicator, index, indicators || [])
               }
               onIndicatorEdit={handleIndicatorEdit}
-              onIndicatorDelete={(indicator, index, indicators) => 
-                handlers.handleApprovalModalOpen && handlers.handleApprovalModalOpen(indicator, index, indicators || [])
-              }
+              onIndicatorDelete={(indicator) => handleDeleteClick(indicator)}
               onStrategicObjectiveEdit={(objective) => 
                 handlers.handleApprovalModalOpen && handlers.handleApprovalModalOpen(objective, 0, [])
               }
@@ -415,7 +370,6 @@ const AddPerformanceMeasure = () => {
         )}
       </div>
 
-      {/* Save button */}
       <div className="flex justify-end px-4 py-4">
         <Button
           variant="pride"
@@ -428,7 +382,6 @@ const AddPerformanceMeasure = () => {
         </Button>
       </div>
 
-      {/* Use PerformanceMeasureForm for modal handling and data management */}
       <PerformanceMeasureForm
         objectives={displayedObjectives}
         isQualitative={activeTab !== 'active'}
@@ -436,6 +389,18 @@ const AddPerformanceMeasure = () => {
         agreementId={agreementId}
         ref={formRef}
       />
+
+      {isDeleteModalOpen && selectedPerformanceMeasure && (
+      <DeletePerformanceMeasure
+        isOpen={isDeleteModalOpen}
+        closeModal={() => setIsDeleteModalOpen(false)}
+        performanceMeasureId={selectedPerformanceMeasure.id}
+        prevObjectives={activeTab === 'active' ? objectives.quantitative : objectives.qualitative}
+        onDataChange={(updatedObjectives) => {
+          handleDataChange(updatedObjectives);
+        }}
+      />
+    )}
     </div>
   );
 };
