@@ -451,13 +451,13 @@ const AgreementList = () => {
                                 showOnlyReviewAndPreview={true}
                                 onPreview={handlePreview}
                               />
-                              <span className="text-gray-500 text-sm">
+                              {/* <span className="text-gray-500 text-sm">
                                 {agreement.status === 'pending_supervisor' ? 'Pending Supervisor Review' :
                                   agreement.status === 'pending_hod' ? 'Pending HOD Review' :
                                   agreement.status === 'approved_supervisor' ? 'Approved by Supervisor' :
                                   agreement.status === 'approved' ? 'Approved' :
                                   'Under Review'}
-                              </span>
+                              </span> */}
                             </div>
                           )}
                         </TableCell>

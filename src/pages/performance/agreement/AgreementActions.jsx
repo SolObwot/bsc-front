@@ -27,7 +27,7 @@ const AgreementActions = ({
   const iconClass = "h-4 w-4";
 
   return (
-    <div className="flex space-x-3">
+    <div className="flex lg:flex-nowrap space-x-2 sm:space-x-5 sm:flex-wrap">
       {/* Edit action */}
       {onEdit && (
         <button

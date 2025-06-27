@@ -299,23 +299,6 @@ const AddPerformanceMeasure = () => {
 
   const handlers = getFormHandlers();
 
-  if (isLoading || fetchingMeasures) {
-    return (
-      <div className="min-h-screen bg-gray-100 shadow-md rounded-lg">
-        <ObjectiveHeader />
-        <div className="flex justify-between">
-          <ObjectiveTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-          <OverallProgress progress={0} riskStatus={false} />
-        </div>
-        <div className="p-8 text-center">
-          <p className="text-gray-500">
-            {isLoading ? 'Loading department objectives...' : 'Loading performance measures...'}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-100 shadow-md rounded-lg">
       <ObjectiveHeader />
@@ -327,50 +310,62 @@ const AddPerformanceMeasure = () => {
       <ObjectiveListHeader activeTab={activeTab} />
       
       <div className="px-4 py-2">
-        {displayedObjectives.length === 0 ? (
-          <div className="bg-white p-8 text-center rounded-lg shadow-sm">
-            <p className="text-gray-500">No {activeTab === 'active' ? 'quantitative' : 'qualitative'} objectives found.</p>
+        {(isLoading || fetchingMeasures) ? (
+          <div className="bg-white p-8 rounded-lg shadow-sm">
+            <div className="animate-pulse space-y-6">
+              <div className="h-6 bg-gray-200 rounded w-1/3 mx-auto" />
+              <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto" />
+              <div className="h-32 bg-gray-200 rounded-lg mt-8" />
+              <div className="h-4 bg-gray-200 rounded w-1/4 mx-auto mt-6" />
+              <div className="h-4 bg-gray-200 rounded w-1/4 mx-auto" />
+            </div>
           </div>
         ) : (
-          displayedObjectives.map((objective, index) => (
-            <ObjectiveItem 
-              key={index} 
-              objective={objective}
-              subObjectives={objective.subObjectives || []}
-              
-              showAddStrategicButton={false}
-              showAddKPIButton={true}
-              addKPIButtonLabel="Add Performance Indicator"
-              showTargetValue={true}
-              
-              displayMode={activeTab === 'active' ? 'standard' : 'direct-indicators'}
-              isQualitative={activeTab !== 'active'}
-              
-              onAddKPIClick={(strategicObjective) => 
-                handlers.handleIndicatorModalOpen && handlers.handleIndicatorModalOpen(objective, strategicObjective)
-              }
-              onActionSelect={(action) => 
-                handlers.handleActionSelect && handlers.handleActionSelect(action, objective)
-              }
-              onIndicatorClick={(indicator, index, indicators) => 
-                handlers.handleAppraisalModalOpen && handlers.handleAppraisalModalOpen(indicator, index, indicators || [])
-              }
-              onIndicatorEdit={handleIndicatorEdit}
-              onIndicatorDelete={(indicator) => handleDeleteClick(indicator)}
-              onStrategicObjectiveEdit={(objective) => 
-                handlers.handleApprovalModalOpen && handlers.handleApprovalModalOpen(objective, 0, [])
-              }
-              
-              renderStrategicModal={false}
-              renderIndicatorModal={false}
-              renderAppraisalModal={false}
-              renderAppraisalApprovalModal={false}
-            />
-          ))
+          displayedObjectives.length === 0 ? (
+            <div className="bg-white p-8 text-center rounded-lg shadow-sm">
+              <p className="text-gray-500">No {activeTab === 'active' ? 'quantitative' : 'qualitative'} objectives found.</p>
+            </div>
+          ) : (
+            displayedObjectives.map((objective, index) => (
+              <ObjectiveItem 
+                key={index} 
+                objective={objective}
+                subObjectives={objective.subObjectives || []}
+                
+                showAddStrategicButton={false}
+                showAddKPIButton={true}
+                addKPIButtonLabel="Add Performance Indicator"
+                showTargetValue={true}
+                
+                displayMode={activeTab === 'active' ? 'standard' : 'direct-indicators'}
+                isQualitative={activeTab !== 'active'}
+                
+                onAddKPIClick={(strategicObjective) => 
+                  handlers.handleIndicatorModalOpen && handlers.handleIndicatorModalOpen(objective, strategicObjective)
+                }
+                onActionSelect={(action) => 
+                  handlers.handleActionSelect && handlers.handleActionSelect(action, objective)
+                }
+                onIndicatorClick={(indicator, index, indicators) => 
+                  handlers.handleAppraisalModalOpen && handlers.handleAppraisalModalOpen(indicator, index, indicators || [])
+                }
+                onIndicatorEdit={handleIndicatorEdit}
+                onIndicatorDelete={(indicator) => handleDeleteClick(indicator)}
+                onStrategicObjectiveEdit={(objective) => 
+                  handlers.handleApprovalModalOpen && handlers.handleApprovalModalOpen(objective, 0, [])
+                }
+                
+                renderStrategicModal={false}
+                renderIndicatorModal={false}
+                renderAppraisalModal={false}
+                renderAppraisalApprovalModal={false}
+              />
+            ))
+          )
         )}
       </div>
 
-      <div className="flex justify-end px-4 py-4">
+      {/* <div className="flex justify-end px-4 py-4">
         <Button
           variant="pride"
           onClick={handleSaveAllMeasures}
@@ -380,7 +375,7 @@ const AddPerformanceMeasure = () => {
           <CheckCircleIcon className="h-5 w-5" />
           {savingMeasures ? 'Saving...' : 'Save All Measures & Return'}
         </Button>
-      </div>
+      </div> */}
 
       <PerformanceMeasureForm
         objectives={displayedObjectives}
