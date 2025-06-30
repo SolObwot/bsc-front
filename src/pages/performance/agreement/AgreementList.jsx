@@ -248,21 +248,21 @@ const AgreementList = () => {
   };
 
   // Show error state
-  if (error && agreements.length === 0) {
-    return (
-      <div className="min-h-screen bg-white shadow-md rounded-lg">
-        <ObjectiveHeader />
-        <div className="p-4">
-          <div className="bg-red-50 p-4 rounded-md">
-            <h3 className="text-sm font-medium text-red-800">Error loading agreements</h3>
-            <div className="mt-2 text-sm text-red-700">
-              <p>{typeof error === 'object' && error !== null ? error.message : error}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // if (error && agreements.length === 0) {
+  //   return (
+  //     <div className="min-h-screen bg-white shadow-md rounded-lg">
+  //       <ObjectiveHeader />
+  //       <div className="p-4">
+  //         <div className="bg-red-50 p-4 rounded-md">
+  //           <h3 className="text-sm font-medium text-red-800">Error loading agreements</h3>
+  //           <div className="mt-2 text-sm text-red-700">
+  //             <p>{typeof error === 'object' && error !== null ? error.message : error}</p>
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="min-h-screen bg-white shadow-md rounded-lg">

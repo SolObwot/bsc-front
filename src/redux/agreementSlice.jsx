@@ -108,7 +108,7 @@ export const fetchMyAgreements = createAsyncThunk(
       });
       return response;
     } catch (error) {
-      return rejectWithValue(error);
+      throw error;
     }
   }
 );
@@ -120,7 +120,7 @@ export const fetchAgreement = createAsyncThunk(
       const response = await agreementService.getAgreement(id);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error);
+      throw error;
     }
   }
 );
