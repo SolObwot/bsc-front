@@ -120,6 +120,7 @@ const AddPerformanceMeasure = () => {
             name: obj.name,
             weight: `${Math.round((perspective.weight / safeObjectivesArray.length) * 10) / 10}%`,
             department_objective_id: obj.department_objective_id || obj.id,
+            strategy_perspective_id: obj.strategy_perspective_id,
             indicators: []
           }))
         };
