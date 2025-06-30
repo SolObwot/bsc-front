@@ -20,7 +20,32 @@ const StrategyPerspectiveForm = ({
   const [totalWeight, setTotalWeight] = useState(0);
   const [departmentWeights, setDepartmentWeights] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
+  // --- New state for quantitative/qualitative totals ---
+  const [totalQuantitativeWeight, setTotalQuantitativeWeight] = useState(0);
+  const [totalQualitativeWeight, setTotalQualitativeWeight] = useState(0);
+  // ----------------------------------------------------
+
+  // Calculate actual totals for display (including the current perspective if editing)
+  const actualTotals = useMemo(() => {
+    let quantitative = 0;
+    let qualitative = 0;
+    if (formData.department_id) {
+      const selectedDepartment = departments.find(dept => dept.id.toString() === formData.department_id.toString());
+      if (selectedDepartment && selectedDepartment.active_weights) {
+        selectedDepartment.active_weights.forEach(weight => {
+          const perspective = perspectives.find(p => p.id === weight.strategy_perspective_id);
+          if (perspective?.type === 'quantitative') {
+            quantitative += weight.weight || 0;
+          } else if (perspective?.type === 'qualitative') {
+            qualitative += weight.weight || 0;
+          }
+        });
+      }
+    }
+    return { quantitative, qualitative };
+  }, [formData.department_id, departments, perspectives]);
+
   // Initialize form with data for editing
   useEffect(() => {
     if (initialData) {
@@ -44,7 +69,23 @@ const StrategyPerspectiveForm = ({
       const selectedDepartment = departments.find(dept => dept.id.toString() === formData.department_id.toString());
       if (selectedDepartment && selectedDepartment.active_weights) {
         setDepartmentWeights(selectedDepartment.active_weights);
-        
+
+        // --- New logic for quantitative/qualitative totals ---
+        let quantitative = 0;
+        let qualitative = 0;
+        selectedDepartment.active_weights.forEach(weight => {
+          if (initialData && weight.id === initialData.id) return;
+          const perspective = perspectives.find(p => p.id === weight.strategy_perspective_id);
+          if (perspective?.type === 'quantitative') {
+            quantitative += weight.weight || 0;
+          } else if (perspective?.type === 'qualitative') {
+            qualitative += weight.weight || 0;
+          }
+        });
+        setTotalQuantitativeWeight(quantitative);
+        setTotalQualitativeWeight(qualitative);
+        // ----------------------------------------------------
+
         // Calculate total weight excluding current perspective if editing
         const total = selectedDepartment.active_weights.reduce((sum, weight) => {
           if (initialData && weight.id === initialData.id) {
@@ -52,17 +93,20 @@ const StrategyPerspectiveForm = ({
           }
           return sum + (weight.weight || 0);
         }, 0);
-        
         setTotalWeight(total);
       } else {
         setDepartmentWeights([]);
         setTotalWeight(0);
+        setTotalQuantitativeWeight(0);
+        setTotalQualitativeWeight(0);
       }
     } else {
       setDepartmentWeights([]);
       setTotalWeight(0);
+      setTotalQuantitativeWeight(0);
+      setTotalQualitativeWeight(0);
     }
-  }, [formData.department_id, departments, initialData]);
+  }, [formData.department_id, departments, initialData, perspectives]);
   
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -89,13 +133,28 @@ const StrategyPerspectiveForm = ({
     if (!formData.strategy_perspective_id) {
       newErrors.strategy_perspective_id = 'Strategy Perspective is required';
     }
-    
+
+    // --- New logic for type-based validation ---
+    const selectedPerspective = perspectives.find(
+      p => p.id?.toString() === formData.strategy_perspective_id?.toString()
+    );
+    const type = selectedPerspective?.type;
+    // ------------------------------------------
+
     if (!formData.weight) {
       newErrors.weight = 'Weight is required';
     } else if (isNaN(formData.weight) || Number(formData.weight) <= 0) {
       newErrors.weight = 'Weight must be a positive number';
-    } else if (Number(formData.weight) + totalWeight > 100) {
-      newErrors.weight = `Total weight cannot exceed 100%. Current total: ${totalWeight}%`;
+    } else if (
+      type === 'quantitative' &&
+      Number(formData.weight) + totalQuantitativeWeight > 100
+    ) {
+      newErrors.weight = `Total quantitative weight cannot exceed 100%. Current total: ${totalQuantitativeWeight}%`;
+    } else if (
+      type === 'qualitative' &&
+      Number(formData.weight) + totalQualitativeWeight > 10
+    ) {
+      newErrors.weight = `Total qualitative weight cannot exceed 10%. Current total: ${totalQualitativeWeight}%`;
     }
     
     // Check if perspective is already assigned to this department
@@ -202,7 +261,7 @@ const StrategyPerspectiveForm = ({
             value={formData.strategy_perspective_id}
             onChange={handleChange}
             className={`mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${errors.strategy_perspective_id ? 'border-red-500' : ''}`}
-            disabled={!!initialData} // Only disable when editing, not based on department selection
+            disabled={!!initialData}
           >
             <option value="">-- Select Perspective --</option>
             {perspectives.map((perspective) => (
@@ -239,19 +298,76 @@ const StrategyPerspectiveForm = ({
             value={formData.weight}
             onChange={handleChange}
             min="1"
-            max={100 - totalWeight}
+            max={
+              (() => {
+                const selectedPerspective = perspectives.find(
+                  p => p.id?.toString() === formData.strategy_perspective_id?.toString()
+                );
+                if (selectedPerspective?.type === 'qualitative') {
+                  return 10 - totalQualitativeWeight;
+                } else if (selectedPerspective?.type === 'quantitative') {
+                  return 100 - totalQuantitativeWeight;
+                }
+                return 100;
+              })()
+            }
             placeholder="Enter weight"
             className={`mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${errors.weight ? 'border-red-500' : ''}`}
           />
           {errors.weight && <p className="mt-1 text-sm text-red-600">{errors.weight}</p>}
-          
-          {formData.department_id && (
-            <div className="mt-2 text-sm text-gray-500">
-              Current total weight for this department: {totalWeight}%
-              <br />
-              Available weight: {100 - totalWeight}%
-            </div>
-          )}
+
+          {/* Use actualTotals for display */}
+          {formData.department_id && (() => {
+            const selectedPerspective = perspectives.find(
+              p => p.id?.toString() === formData.strategy_perspective_id?.toString()
+            );
+            if (selectedPerspective?.type === 'quantitative') {
+              const remaining = 100 - actualTotals.quantitative;
+              return (
+                <div className="mt-2 text-sm">
+                  <span className="text-gray-500">
+                    Quantitative total: {actualTotals.quantitative}% (max 100%)
+                  </span>
+                  <br />
+                  {remaining > 0 ? (
+                    <span className="text-green-600">
+                      Remaining quantitative weight: {remaining}%
+                    </span>
+                  ) : (
+                    <span className="text-red-600">
+                      Total quantitative weight already reached
+                    </span>
+                  )}
+                </div>
+              );
+            }
+            if (selectedPerspective?.type === 'qualitative') {
+              const remaining = 10 - actualTotals.qualitative;
+              return (
+                <div className="mt-2 text-sm">
+                  <span className="text-gray-500">
+                    Qualitative total: {actualTotals.qualitative}% (max 10%)
+                  </span>
+                  <br />
+                  {remaining > 0 ? (
+                    <span className="text-green-600">
+                      Remaining qualitative weight: {remaining}%
+                    </span>
+                  ) : (
+                    <span className="text-red-600">
+                      Total qualitative weight already reached
+                    </span>
+                  )}
+                </div>
+              );
+            }
+            return (
+              <div className="mt-2 text-sm text-gray-500">
+                Quantitative total: {actualTotals.quantitative}% (max 100%)<br />
+                Qualitative total: {actualTotals.qualitative}% (max 10%)
+              </div>
+            );
+          })()}
         </div>
         
         <div className={`flex ${isModal ? 'justify-end' : 'justify-start'} space-x-3 pt-6`}>
