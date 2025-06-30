@@ -248,28 +248,17 @@ const ObjectiveItem = ({
   // FIXED: Properly handle empty indicators arrays
   const allIndicators = React.useMemo(() => {
     if (displayMode === 'direct-indicators') {
-      if (isQualitative) {
-        // For qualitative objectives, return the subObjectives themselves as indicators
-        return subObjectives.map(subObj => ({
-          id: subObj.id,
-          name: subObj.name,
-          weight: subObj.weight,
-          isSubObjective: true, // Add a flag to identify these items
-          parentObjective: objective.title
+      // For both types, flatten all indicators from all subObjectives
+      return subObjectives.flatMap(subObj => {
+        const indicators = subObj.indicators || [];
+        return indicators.map(indicator => ({
+          ...indicator,
+          parentObjective: subObj.name,
         }));
-      } else {
-        // For quantitative, keep the original behavior of getting indicators from subObjectives
-        return subObjectives.flatMap(subObj => {
-          const indicators = subObj.indicators || [];
-          return indicators.map(indicator => ({
-            ...indicator,
-            parentObjective: subObj.name
-          }));
-        });
-      }
+      });
     }
     return [];
-  }, [subObjectives, displayMode, isQualitative, objective.title]);
+  }, [subObjectives, displayMode, objective.title]);
 
   return (
     <div className={`border border-gray-200 rounded-lg mb-3 shadow-xs overflow-hidden transition-all duration-150 ${isQualitative ? 'qualitative-objective' : ''}`}>

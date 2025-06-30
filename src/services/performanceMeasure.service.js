@@ -90,5 +90,26 @@ export const performanceMeasureService = {
     } catch (error) {
       throw error;
     }
+  },
+
+  // Add qualitative levels (bulk)
+  addQualitativeLevels: async (levelsArray) => {
+    try {
+      const response = await axios.post('/qualitative-performance-levels', { levels: levelsArray });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Update qualitative levels (bulk)
+  updateQualitativeLevels: async (levelsArray) => {
+    try {
+      const response = await axios.put('/qualitative-performance-levels', { levels: levelsArray });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }
+
 };

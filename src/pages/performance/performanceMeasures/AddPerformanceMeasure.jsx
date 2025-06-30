@@ -133,53 +133,63 @@ const AddPerformanceMeasure = () => {
   }, [department, perspectives]);
 
   useEffect(() => {
-    if (dashboardMeasures.length > 0 && objectives.quantitative.length > 0) {
+    if (
+      dashboardMeasures.length > 0 &&
+      objectives.quantitative.length > 0 &&
+      objectives.qualitative.length > 0
+    ) {
       const updatedQuantitativeObjectives = JSON.parse(JSON.stringify(objectives.quantitative));
       const updatedQualitativeObjectives = JSON.parse(JSON.stringify(objectives.qualitative));
-      
-      dashboardMeasures.forEach(measure => {
-        let targetObjectives = updatedQuantitativeObjectives;
-        let perspectiveFound = false;
-        
+  
+      dashboardMeasures.forEach((measure) => {
+        // Decide which objectives array to use
+        let targetObjectives = measure.type === "quantitative"
+          ? updatedQuantitativeObjectives
+          : updatedQualitativeObjectives;
+  
+        // Find the correct perspective (objective)
         for (const objective of targetObjectives) {
-          if (measure.department_objective && 
-              objective.department_perspective_id === measure.department_objective.strategy_perspective_id) {
-            
+          if (
+            measure.department_objective &&
+            objective.department_perspective_id === measure.department_objective.strategy_perspective_id
+          ) {
+            // Find the correct subObjective (strategic objective)
             const subObjIndex = objective.subObjectives.findIndex(
-              subObj => subObj.id === measure.strategic_objective_id
+              (subObj) => subObj.id === measure.strategic_objective_id
             );
-            
+  
             if (subObjIndex !== -1) {
               const existingIndicator = objective.subObjectives[subObjIndex].indicators.find(
-                ind => ind.id === measure.id
+                (ind) => ind.id === measure.id
               );
-              
+  
               if (!existingIndicator) {
                 objective.subObjectives[subObjIndex].indicators.push({
                   id: measure.id,
                   name: measure.name,
                   targetValue: measure.target_value,
                   measurementType: measure.measurement_type,
-                  weight: `${measure.net_weight}%`,
-                  description: measure.description || ""
+                  weight: measure.net_weight ? `${measure.net_weight}%` : "",
+                  description: measure.description || "",
+                  qualitative_levels: measure.qualitative_levels || [],
+                  type: measure.type,
                 });
               }
-              
-              perspectiveFound = true;
-              break;
             }
           }
         }
-        
-        if (!perspectiveFound && measure.department_objective) {}
       });
-      
+  
       setObjectives({
         quantitative: updatedQuantitativeObjectives,
-        qualitative: updatedQualitativeObjectives
+        qualitative: updatedQualitativeObjectives,
       });
     }
-  }, [dashboardMeasures, objectives.quantitative.length, objectives.qualitative.length]);
+  }, [
+    dashboardMeasures,
+    objectives.quantitative.length,
+    objectives.qualitative.length,
+  ]);
 
   const getFormHandlers = () => {
     return formRef.current ? {
@@ -227,7 +237,7 @@ const AddPerformanceMeasure = () => {
           indicator, 
           true
         );
-      } else {}
+      }
     }
   };
 

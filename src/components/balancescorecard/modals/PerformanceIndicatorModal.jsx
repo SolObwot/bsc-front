@@ -12,15 +12,27 @@ const metTypeTabs = [
   { label: "Date", value: "date" },
 ];
 
+const defaultRubric = [
+  { level: 1, label: "Below Average", description: "" },
+  { level: 2, label: "Fair", description: "" },
+  { level: 3, label: "Good", description: "" },
+  { level: 4, label: "Very Good", description: "" },
+  { level: 5, label: "Outstanding", description: "" },
+];
+
 const PerformanceIndicatorModal = ({ 
   isOpen, 
   closeModal, 
   strategicObjective, 
   isEditing = false,
   editData = null,
-  onSave = () => {} 
+  onSave = () => {},
+  isQualitative = false,
 }) => {
+  // Shared state
   const [name, setName] = React.useState(editData?.name || "");
+
+  // Quantitative state
   const [weight, setWeight] = React.useState(editData?.weight || "");
   const [targetValue, setTargetValue] = React.useState(
     editData?.measurementType !== 'date' ? editData?.targetValue || "" : ""
@@ -34,30 +46,38 @@ const PerformanceIndicatorModal = ({
       : undefined
   );
 
+  // Qualitative state
+  const [rubric, setRubric] = React.useState(defaultRubric);
+
   React.useEffect(() => {
     if (isOpen && editData) {
       setName(editData.name || "");
-      setWeight(editData.weight || "");
-      
-      if (editData.measurementType === 'date') {
-        setMetricTab('date');
-        if (editData.targetValue instanceof Date) {
-          setTargetDate(editData.targetValue);
-        } else if (typeof editData.targetValue === 'string') {
-          try {
-            const date = new Date(editData.targetValue);
-            if (!isNaN(date.getTime())) {
-              setTargetDate(date);
-            }
-          } catch (e) {
-            setTargetDate(undefined);
-          }
-        }
-        setTargetValue("");
+      if (isQualitative) {
+        setRubric(
+          [1,2,3,4,5].map(lvl => editData.qualitative_levels?.find(l => l.level === lvl) || { level: lvl, label: "", description: "" })
+        );
       } else {
-        setMetricTab(editData.measurementType || "number");
-        setTargetValue(editData.targetValue || "");
-        setTargetDate(undefined);
+        setWeight(editData.weight || "");
+        if (editData.measurementType === 'date') {
+          setMetricTab('date');
+          if (editData.targetValue instanceof Date) {
+            setTargetDate(editData.targetValue);
+          } else if (typeof editData.targetValue === 'string') {
+            try {
+              const date = new Date(editData.targetValue);
+              if (!isNaN(date.getTime())) {
+                setTargetDate(date);
+              }
+            } catch (e) {
+              setTargetDate(undefined);
+            }
+          }
+          setTargetValue("");
+        } else {
+          setMetricTab(editData.measurementType || "number");
+          setTargetValue(editData.targetValue || "");
+          setTargetDate(undefined);
+        }
       }
     } else if (isOpen && !editData) {
       setName("");
@@ -65,23 +85,44 @@ const PerformanceIndicatorModal = ({
       setTargetValue("");
       setMetricTab("number");
       setTargetDate(undefined);
+      setRubric(defaultRubric);
     }
-  }, [isOpen, editData]);
+  }, [isOpen, editData, isQualitative]);
+
+  const handleRubricChange = (idx, field, value) => {
+    setRubric(prev =>
+      prev.map((l, i) => (i === idx ? { ...l, [field]: value } : l))
+    );
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
+    if (isQualitative) {
+      const formData = {
+        name,
+        type: "qualitative",
+        qualitative_levels: rubric,
+      };
+      if (isEditing && editData?.id) {
+        formData.id = editData.id;
+      }
+      onSave(formData);
+      closeModal();
+      return;
+    }
+
+    // Quantitative
     const formData = {
       name,
       weight,
       measurementType: metricTab,
-      targetValue: metricTab === 'date' ? targetDate : targetValue
+      targetValue: metricTab === 'date' ? targetDate : targetValue,
+      type: "quantitative",
     };
-    
     if (isEditing && editData?.id) {
       formData.id = editData.id;
     }
-    
     onSave(formData);
     closeModal();
   };
@@ -129,7 +170,7 @@ const PerformanceIndicatorModal = ({
                     <div>
                       <div className="flex justify-between items-center">
                         <label className="font-medium text-[15px] text-gray-900">
-                        Performance Measure/Indicator<span className="text-red-500 ml-1">*</span>
+                          Performance Measure/Indicator<span className="text-red-500 ml-1">*</span>
                         </label>
                         <span className="text-xs text-gray-400">(Char {name.length} of 1000)</span>
                       </div>
@@ -144,71 +185,100 @@ const PerformanceIndicatorModal = ({
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                         Net Weight (%)
-                      </label>
-                      <input
-                        type="text"
-                        value={weight}
-                        onChange={e => setWeight(e.target.value)}
-                        className="rounded border border-teal-200 w-full px-4 py-2 mt-1 outline-none focus:border-teal-400 text-[16px] bg-teal-50"
-                        placeholder="Enter weight percentage"
-                        required
-                      />
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="text-[15px] font-medium text-gray-800 mb-1 block">
-                        Measurement Type <span className="text-red-500">*</span>
-                      </label>
-                      <div className="flex gap-1 mb-3 flex-wrap">
-                        {metTypeTabs.map((tab) => (
-                          <button
-                            key={tab.value}
-                            className={cn(
-                              "rounded-tl rounded-tr px-4 py-2 text-sm border border-teal-200 bg-teal-50 font-medium",
-                              metricTab === tab.value
-                                ? "bg-teal-600 text-white border-teal-600 z-10"
-                                : "hover:bg-teal-100 text-teal-700"
-                            )}
-                            onClick={e => {e.preventDefault(); setMetricTab(tab.value)}}
-                            type="button"
-                          >
-                            {tab.label}
-                          </button>
+                    {isQualitative ? (
+                      <div>
+                        <h4 className="font-semibold text-gray-700 mb-2">Qualitative Rubric</h4>
+                        {rubric.map((level, idx) => (
+                          <div key={level.level} className="flex flex-col gap-2 border-b pb-3 mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-teal-700">Level {level.level}</span>
+                              <input
+                                type="text"
+                                className="border rounded px-2 py-1 flex-1"
+                                placeholder="Label"
+                                value={level.label}
+                                onChange={e => handleRubricChange(idx, "label", e.target.value)}
+                              />
+                            </div>
+                            <textarea
+                              className="border rounded px-2 py-1 w-full"
+                              placeholder="Description"
+                              value={level.description}
+                              onChange={e => handleRubricChange(idx, "description", e.target.value)}
+                              rows={2}
+                            />
+                          </div>
                         ))}
                       </div>
-                    </div>
-
-                    {metricTab === 'date' ? (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Target
-                        </label>
-                        <div className="relative">
-                          <CalendarDaysIcon className="absolute top-2.5 left-3 h-5 w-5 text-gray-400" />
-                          <Calendar
-                            selected={targetDate}
-                            onSelect={setTargetDate}
-                            className="rounded border border-teal-200 w-full px-4 py-2 pl-10 mt-1 outline-none focus:border-teal-400 text-[16px] bg-teal-50"
+                    ) : (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Net Weight (%)
+                          </label>
+                          <input
+                            type="text"
+                            value={weight}
+                            onChange={e => setWeight(e.target.value)}
+                            className="rounded border border-teal-200 w-full px-4 py-2 mt-1 outline-none focus:border-teal-400 text-[16px] bg-teal-50"
+                            placeholder="Enter weight percentage"
+                            required
                           />
                         </div>
-                      </div>
-                    ) : (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Target
-                        </label>
-                        <input
-                          type="text"
-                          value={targetValue}
-                          onChange={e => setTargetValue(e.target.value)}
-                          className="rounded border border-teal-200 w-full px-4 py-2 mt-1 outline-none focus:border-teal-400 text-[16px] bg-teal-50"
-                          placeholder="Enter target value"
-                          required
-                        />
-                      </div>
+
+                        <div className="mb-4">
+                          <label className="text-[15px] font-medium text-gray-800 mb-1 block">
+                            Measurement Type <span className="text-red-500">*</span>
+                          </label>
+                          <div className="flex gap-1 mb-3 flex-wrap">
+                            {metTypeTabs.map((tab) => (
+                              <button
+                                key={tab.value}
+                                className={cn(
+                                  "rounded-tl rounded-tr px-4 py-2 text-sm border border-teal-200 bg-teal-50 font-medium",
+                                  metricTab === tab.value
+                                    ? "bg-teal-600 text-white border-teal-600 z-10"
+                                    : "hover:bg-teal-100 text-teal-700"
+                                )}
+                                onClick={e => {e.preventDefault(); setMetricTab(tab.value)}}
+                                type="button"
+                              >
+                                {tab.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {metricTab === 'date' ? (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">
+                              Target
+                            </label>
+                            <div className="relative">
+                              <CalendarDaysIcon className="absolute top-2.5 left-3 h-5 w-5 text-gray-400" />
+                              <Calendar
+                                selected={targetDate}
+                                onSelect={setTargetDate}
+                                className="rounded border border-teal-200 w-full px-4 py-2 pl-10 mt-1 outline-none focus:border-teal-400 text-[16px] bg-teal-50"
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">
+                              Target
+                            </label>
+                            <input
+                              type="text"
+                              value={targetValue}
+                              onChange={e => setTargetValue(e.target.value)}
+                              className="rounded border border-teal-200 w-full px-4 py-2 mt-1 outline-none focus:border-teal-400 text-[16px] bg-teal-50"
+                              placeholder="Enter target value"
+                              required
+                            />
+                          </div>
+                        )}
+                      </>
                     )}
 
                     {isEditing && strategicObjective && (
