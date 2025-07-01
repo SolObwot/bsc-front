@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { XMarkIcon, CalendarDaysIcon } from '@heroicons/react/24/outline';
@@ -28,17 +28,23 @@ const PerformanceIndicatorModal = ({
   editData = null,
   onSave = () => {},
   isQualitative = false,
+  perspectiveWeight = 100,
+  existingIndicators = [],
 }) => {
   // Shared state
-  const [name, setName] = React.useState(editData?.name || "");
+  const [name, setName] = useState(editData?.name || "");
 
   // Quantitative state
-  const [weight, setWeight] = React.useState(editData?.weight || "");
-  const [targetValue, setTargetValue] = React.useState(
+  const [weight, setWeight] = useState(
+    editData && editData.weight
+      ? String(editData.weight).replace('%', '')
+      : ""
+  );
+  const [targetValue, setTargetValue] = useState(
     editData?.measurementType !== 'date' ? editData?.targetValue || "" : ""
   );
-  const [metricTab, setMetricTab] = React.useState(editData?.measurementType || "number");
-  const [targetDate, setTargetDate] = React.useState(
+  const [metricTab, setMetricTab] = useState(editData?.measurementType || "number");
+  const [targetDate, setTargetDate] = useState(
     editData?.measurementType === 'date' && editData?.targetValue instanceof Date
       ? editData.targetValue
       : editData?.measurementType === 'date' && typeof editData?.targetValue === 'string'
@@ -47,9 +53,9 @@ const PerformanceIndicatorModal = ({
   );
 
   // Qualitative state
-  const [rubric, setRubric] = React.useState(defaultRubric);
+  const [rubric, setRubric] = useState(defaultRubric);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isOpen && editData) {
       setName(editData.name || "");
       if (isQualitative) {
@@ -57,7 +63,7 @@ const PerformanceIndicatorModal = ({
           [1,2,3,4,5].map(lvl => editData.qualitative_levels?.find(l => l.level === lvl) || { level: lvl, label: "", description: "" })
         );
       } else {
-        setWeight(editData.weight || "");
+        setWeight(editData.weight ? String(editData.weight).replace('%', '') : "");
         if (editData.measurementType === 'date') {
           setMetricTab('date');
           if (editData.targetValue instanceof Date) {
@@ -95,31 +101,42 @@ const PerformanceIndicatorModal = ({
     );
   };
 
+  // --- Weight Validation Logic ---
+  const parseWeight = (w) => {
+    if (typeof w === "string") return parseFloat(w.replace("%", "")) || 0;
+    if (typeof w === "number") return w;
+    return 0;
+  };
+
+  // Exclude current indicator if editing (since its value will be replaced)
+  const usedWeight = existingIndicators
+    .filter(ind => !isEditing || ind.id !== editData?.id)
+    .reduce((sum, ind) => sum + parseWeight(ind.weight), 0);
+
+  const currentInputWeight = parseWeight(weight);
+  const newTotalWeight = usedWeight + currentInputWeight;
+  const remainingWeight = Math.max(0, perspectiveWeight - usedWeight);
+
+  const weightExceeded = !isQualitative && currentInputWeight > 0 && newTotalWeight > perspectiveWeight;
+
   const handleSubmit = (e) => {
     e.preventDefault();
-
+    let formData;
     if (isQualitative) {
-      const formData = {
-        name,
-        type: "qualitative",
-        qualitative_levels: rubric,
+      formData = {
+      name,
+      type: "qualitative",
+      qualitative_levels: rubric,
       };
-      if (isEditing && editData?.id) {
-        formData.id = editData.id;
-      }
-      onSave(formData);
-      closeModal();
-      return;
-    }
-
-    // Quantitative
-    const formData = {
+    } else {
+      formData = {
       name,
       weight,
       measurementType: metricTab,
       targetValue: metricTab === 'date' ? targetDate : targetValue,
       type: "quantitative",
-    };
+      };
+    }
     if (isEditing && editData?.id) {
       formData.id = editData.id;
     }
@@ -217,13 +234,30 @@ const PerformanceIndicatorModal = ({
                             Net Weight (%)
                           </label>
                           <input
-                            type="text"
+                            type="number"
                             value={weight}
                             onChange={e => setWeight(e.target.value)}
                             className="rounded border border-teal-200 w-full px-4 py-2 mt-1 outline-none focus:border-teal-400 text-[16px] bg-teal-50"
                             placeholder="Enter weight percentage"
+                            min={1}
+                            max={perspectiveWeight}
                             required
                           />
+                          {/* --- Real-time validation and warnings --- */}
+                          <div className="mt-2 text-sm">
+                            <span className="text-gray-500">
+                              Perspective weight total: {usedWeight}% (max {perspectiveWeight}%)
+                            </span>
+                            <br />
+                            <span className={remainingWeight > 0 ? "text-green-600" : "text-red-600"}>
+                              Remaining quantitative weight: {remainingWeight}%
+                            </span>
+                            {weightExceeded && (
+                              <div className="text-red-600 font-semibold mt-1">
+                                Total net weight should not exceed the perspective weight.
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         <div className="mb-4">
@@ -302,7 +336,11 @@ const PerformanceIndicatorModal = ({
                       </button>
                       <button
                         type="submit"
-                        className="inline-flex justify-center rounded-md border border-transparent bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+                        className={cn(
+                          "inline-flex justify-center rounded-md border border-transparent bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2",
+                          weightExceeded && "cursor-not-allowed"
+                        )}
+                        disabled={weightExceeded}
                       >
                         {isEditing ? 'Update' : 'Save'} Indicator
                       </button>

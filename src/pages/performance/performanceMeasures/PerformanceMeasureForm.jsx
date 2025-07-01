@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   createPerformanceMeasure,
   updatePerformanceMeasure,
+  fetchAllDashboardPerformanceMeasures,
 } from "../../../redux/performanceMeasureSlice";
 import PerformanceIndicatorModal from "../../../components/balancescorecard/modals/PerformanceIndicatorModal";
 import DeletePerformanceMeasure from "./DeletePerformanceMeasure";
@@ -88,16 +89,12 @@ const PerformanceMeasureForm = forwardRef(
       // Compose API data
       const apiData = {
         name: formData.name,
-        type: isQualitative ? "qualitative" : "quantitative",
-        net_weight: !isQualitative ? parseFloat(formData.weight || "0") : undefined,
-        measurement_type: !isQualitative ? formData.measurementType : undefined,
-        target_value: !isQualitative ? formData.targetValue : undefined,
+        type: formData.type, 
+        net_weight: formData.type === "quantitative" ? parseFloat(formData.weight || "0") : undefined,
+        measurement_type: formData.type === "quantitative" ? formData.measurementType : undefined,
+        target_value: formData.type === "quantitative" ? formData.targetValue : undefined,
         strategic_objective_id: selectedStrategicObjective.id,
-        department_perspective_objective_id:
-          selectedStrategicObjective.department_objective_id ||
-          (selectedObjective && selectedObjective.department_perspective_id
-            ? selectedObjective.department_perspective_id
-            : selectedObjective.id),
+        department_perspective_objective_id: selectedStrategicObjective.strategy_perspective_id,
         agreement_id: agreementId || null,
       };
 
@@ -146,6 +143,9 @@ const PerformanceMeasureForm = forwardRef(
         }
         onDataChange(updatedObjectives);
 
+        await dispatch(fetchAllDashboardPerformanceMeasures({ agreement_id: agreementId }));
+
+
         toast({
           title: "Success",
           description: isEditing ? "Performance measure updated successfully" : "Performance measure created successfully",
@@ -179,6 +179,12 @@ const PerformanceMeasureForm = forwardRef(
           onSave={handleSaveIndicator}
           isQualitative={isQualitative}
           isLoading={isCreating}
+          perspectiveWeight={parseFloat(selectedObjective?.totalWeight) || 100}
+          existingIndicators={
+            selectedObjective?.subObjectives
+              ?.flatMap(subObj => subObj.indicators)
+              ?.filter(ind => ind.type === "quantitative") || []
+          }
         />
 
         <QualitativeRubricModal
