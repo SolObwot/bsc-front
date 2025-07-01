@@ -219,6 +219,7 @@ const PerformanceIndicatorModal = ({
                 <label className="text-sm font-medium text-teal-700">
                   Description
                   <span className="text-red-500 ml-1">*</span>
+                  </label>
                   <textarea
                     className="border rounded px-2 py-1 w-full"
                     placeholder="Description"
@@ -233,7 +234,6 @@ const PerformanceIndicatorModal = ({
                     rows={2}
                     required
                   />
-                </label>
               </div>
             ))}
           </div>
