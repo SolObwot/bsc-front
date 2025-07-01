@@ -177,7 +177,7 @@ const HODApproval = () => {
   };
   
   const handlePreview = (agreement) => {
-    alert('Preview agreement: ' + JSON.stringify(agreement, null, 2));
+    navigate(`/performance/measures/preview/${agreement.id}`);
   };
   
   const handleApprove = async (approvalData) => {

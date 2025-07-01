@@ -118,8 +118,7 @@ const AgreementList = () => {
 
   
   const handlePreview = (agreement) => {
-    // Implement preview functionality
-    alert("Preview agreement: " + agreement.name);
+    navigate(`/performance/measures/preview/${agreement.id}`);
   };
 
   // Update the handleEdit function

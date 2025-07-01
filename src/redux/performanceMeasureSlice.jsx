@@ -143,13 +143,16 @@ export const fetchAllDashboardPerformanceMeasures = createAsyncThunk(
     }
 );
 
-// Fetch ALL performance measures by creator across all pages concurrently
-export const fetchAllPerformanceMeasuresByCreator = createAsyncThunk(
-    'performanceMeasure/fetchAllPerformanceMeasuresByCreator',
-    async ({ createdBy, ...params }, { rejectWithValue }) => {
+// Fetch ALL performance measures by agreement_id across all pages concurrently
+export const fetchAllPerformanceMeasuresByAgreement = createAsyncThunk(
+    'performanceMeasure/fetchAllPerformanceMeasuresByAgreement',
+    async ({ agreement_id, ...params }, { rejectWithValue }) => {
+        if (!agreement_id) {
+            return rejectWithValue({ message: "The agreement_id parameter is required." });
+        }
         try {
-            const firstPageResponse = await performanceMeasureService.getPerformanceMeasuresByCreator(
-                createdBy,
+            const firstPageResponse = await performanceMeasureService.getPerformanceMeasuresByAgreement(
+                agreement_id,
                 { ...params, page: 1 }
             );
             const totalPages = firstPageResponse.last_page;
@@ -159,8 +162,8 @@ export const fetchAllPerformanceMeasuresByCreator = createAsyncThunk(
                 const pagePromises = [];
                 for (let page = 2; page <= totalPages; page++) {
                     pagePromises.push(
-                        performanceMeasureService.getPerformanceMeasuresByCreator(
-                            createdBy, 
+                        performanceMeasureService.getPerformanceMeasuresByAgreement(
+                            agreement_id, 
                             { ...params, page }
                         )
                     );
@@ -183,6 +186,7 @@ export const fetchAllPerformanceMeasuresByCreator = createAsyncThunk(
 const initialState = {
     department: null,
     perspectives: [],
+    agreement: null,
     dashboardPerformanceMeasures: [], 
     creatorPerformanceMeasures: [],  
     measures: {
@@ -349,7 +353,7 @@ const performanceMeasureSlice = createSlice({
             state.error.delete = action.payload || { message: 'Failed to delete performance measure' };
         });
 
-                // Dashboard performance measures (all pages)
+        // Dashboard performance measures (all pages)
         builder.addCase(fetchAllDashboardPerformanceMeasures.pending, (state) => {
             state.loading.allDashboardMeasures = true;
             state.error.allDashboardMeasures = null;
@@ -363,18 +367,13 @@ const performanceMeasureSlice = createSlice({
             state.error.allDashboardMeasures = action.payload || { message: "Failed to fetch all dashboard performance measures" };
         });
 
-        // Performance measures by creator (all pages)
-        builder.addCase(fetchAllPerformanceMeasuresByCreator.pending, (state) => {
-            state.loading.allCreatorMeasures = true;
-            state.error.allCreatorMeasures = null;
-        });
-        builder.addCase(fetchAllPerformanceMeasuresByCreator.fulfilled, (state, action) => {
-            state.loading.allCreatorMeasures = false;
-            state.creatorPerformanceMeasures = action.payload;
-        });
-        builder.addCase(fetchAllPerformanceMeasuresByCreator.rejected, (state, action) => {
-            state.loading.allCreatorMeasures = false;
-            state.error.allCreatorMeasures = action.payload || { message: "Failed to fetch all performance measures by creator" };
+        builder.addCase(fetchAllPerformanceMeasuresByAgreement.fulfilled, (state, action) => {
+            state.loading.allDashboardMeasures = false;
+            state.dashboardPerformanceMeasures = action.payload;
+            // Set agreement from first measure if available
+            if (action.payload && action.payload.length > 0 && action.payload[0].agreement) {
+                state.agreement = action.payload[0].agreement;
+            }
         });
     }
 });

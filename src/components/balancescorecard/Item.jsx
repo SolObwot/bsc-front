@@ -72,6 +72,9 @@ const ObjectiveItem = ({
   // Add this new prop for the appraisal button
   showAppraisalButton = false,
   appraisalButtonLabel = "Rate",
+
+  // Add this missing prop with default value
+  renderCustomIndicator = null,
 }) => {
   const [selectedAction, setSelectedAction] = useState(null);
   const [isExpanded, setIsExpanded] = useState(true);
@@ -286,15 +289,15 @@ const ObjectiveItem = ({
             <div className="flex items-center">
               <Avatar 
               className="h-7 w-7"
-              name={objective.assignee.name}
-              surname={objective.assignee.surname}
-              lastName={objective.assignee.lastName}
+              name={objective.assignee?.name || ""}
+              surname={objective.assignee?.surname || ""}
+              lastName={objective.assignee?.lastName || ""}
               >
                 <span className="text-xs font-medium text-teal-800">
-                  {objective.assignee.name}
+                  {objective.assignee?.name || "N/A"}
                 </span>
               </Avatar>
-              <span className="text-xs ml-1 hidden sm:inline">{objective.assignee.name}</span>
+              <span className="text-xs ml-1 hidden sm:inline">{objective.assignee?.name || "N/A"}</span>
             </div>
             
             <div className="p-1 rounded-full hover:bg-teal-700/50 hover:text-white transition-colors bg-white text-teal-700">
@@ -400,6 +403,8 @@ const ObjectiveItem = ({
           {allIndicators.length > 0 ? (
             <ul className="space-y-1">
               {allIndicators.map((indicator, index) => (
+                renderCustomIndicator ? 
+                renderCustomIndicator(indicator, index, allIndicators, isQualitative) :
                 <li key={indicator.id || `temp-${index}`} className="flex items-center bg-white p-1.5 rounded border border-gray-200">
                   <div className="min-w-0 flex-1 mr-2">
                     <a 
@@ -574,6 +579,8 @@ const ObjectiveItem = ({
                         {(subObj.indicators || []).length > 0 ? (
                           <ul className="space-y-1">
                             {(subObj.indicators || []).map((indicator, index) => (
+                               renderCustomIndicator ? 
+                               renderCustomIndicator(indicator, index, subObj.indicators || [], isQualitative) :
                               <li key={indicator.id || `temp-${index}`} className="flex items-center bg-white p-1.5 rounded border border-gray-200">
                                 <div className="min-w-0 flex-1 mr-2">
                                   <a 

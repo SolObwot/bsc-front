@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { fetchAllAgreements, initializeWithUserDepartment, supervisorApproveAgreement } from '../../../redux/agreementSlice';
 import ObjectiveHeader from '../../../components/balancescorecard/Header';
 import OverallProgress from '../../../components/balancescorecard/OverallProgress';
@@ -49,6 +50,7 @@ const AgreementReview = ({
   const { user } = useAuth();
   const dispatch = useDispatch();
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   // Get agreements and detected department from Redux store
   const { departmentAgreements: agreements, pagination, loading, error, userDepartmentId } = useSelector((state) => state.agreements);
@@ -176,8 +178,7 @@ const AgreementReview = ({
   };
   
   const handlePreview = (agreement) => {
-    // Implement preview functionality
-    alert("Preview agreement: " + agreement.name);
+    navigate(`/performance/measures/preview/${agreement.id}`);
   };
   
   const handleDownload = (agreement) => {

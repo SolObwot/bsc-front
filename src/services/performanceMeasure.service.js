@@ -31,16 +31,18 @@ export const performanceMeasureService = {
     }
   },  
 
-  // Get performance measures by creator
-  getPerformanceMeasuresByCreator: async (createdBy, params = {}) => {
+  // Get performance measures by agreement_id
+  getPerformanceMeasuresByAgreement: async (agreementId, params = {}) => {
     try {
-      const requestParams = { ...params, created_by: createdBy };
+      const requestParams = { ...params, agreement_id: agreementId };
       const response = await axios.get('/performance-measures', { params: requestParams });
       return response.data;
     } catch (error) {
       throw error;
     }
   },
+
+  
 
   // Get a specific performance measure
   getPerformanceMeasure: async (id) => {
