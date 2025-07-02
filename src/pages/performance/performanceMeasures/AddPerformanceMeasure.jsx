@@ -48,6 +48,8 @@ const AddPerformanceMeasure = () => {
   });
 
   const [dashboardMeasures, setDashboardMeasures] = useState([]);
+  // Add localAgreement state
+  const [localAgreement, setLocalAgreement] = useState(null);
 
   const formRef = useRef();
 
@@ -75,6 +77,10 @@ const AddPerformanceMeasure = () => {
       .unwrap()
       .then((measures) => {
         setDashboardMeasures(measures);
+        // Set localAgreement if available
+        if (measures && measures.length > 0 && measures[0].agreement) {
+          setLocalAgreement(measures[0].agreement);
+        }
       })
       .catch((error) => {
         toast({
@@ -375,10 +381,9 @@ const AddPerformanceMeasure = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 shadow-md rounded-lg">
-      <ObjectiveHeader />
+      <ObjectiveHeader perspective={localAgreement?.name || "Annual"} />
       <div className="flex justify-between">
         <ObjectiveTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-        <OverallProgress progress={25} riskStatus={true} />
       </div>
       <InfoBanner />
       <ObjectiveListHeader activeTab={activeTab} />
