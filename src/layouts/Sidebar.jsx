@@ -47,7 +47,7 @@ const navigationItems = [
         href: '/',
         children: [
           { label: 'Courses', href: '/admin/qualification/course' },
-          { label: 'Awards', href: '/admin/qualification/awards' },
+          // { label: 'Awards', href: '/admin/qualification/awards' },
           { label: 'University', href: '/admin/qualification/university' },
         ]
       },
