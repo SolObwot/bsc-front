@@ -1,15 +1,14 @@
 import React, { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
-import AgreementForm from './AgreementForm';
+import CourseForm from './CourseForm';
 
-const CreateAgreementModal = ({ 
+const CourseModal = ({ 
   isOpen, 
   closeModal, 
   onSubmit, 
   initialData = null 
 }) => {
-
   const isEditing = !!initialData;
 
   return (
@@ -42,7 +41,7 @@ const CreateAgreementModal = ({
                 <div className="bg-teal-50 px-6 py-5 border-b border-teal-100">
                   <div className="flex items-center justify-between">
                     <Dialog.Title className="text-lg font-semibold text-gray-800 capitalize">
-                      {initialData ? "Edit Agreement" : "Create New Agreement"}
+                      {initialData ? "Edit Course" : "Create New Course"}
                     </Dialog.Title>
                     <button onClick={closeModal} className="hover:bg-teal-100 rounded-full p-2">
                       <XMarkIcon className="h-5 w-5" />
@@ -51,17 +50,16 @@ const CreateAgreementModal = ({
                 </div>
 
                 <div className="px-6 py-6">
-                  {!initialData && (
+                  {!isEditing && (
                     <div className="mb-4 p-3 bg-blue-50 rounded-md border border-blue-100 flex items-start">
                       <InformationCircleIcon className="h-5 w-5 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
                       <p className="text-sm text-blue-700">
-                        Your supervisor and HOD/line manager will be automatically added to the agreement. 
-                        You can edit this later if it's not correct.
+                        Create a new course by entering a short code and name. The short code should be unique.
                       </p>
                     </div>
                   )}
                   
-                  <AgreementForm
+                  <CourseForm
                     initialData={initialData}
                     onSubmit={onSubmit}
                     onCancel={closeModal}
@@ -78,4 +76,4 @@ const CreateAgreementModal = ({
   );
 };
 
-export default CreateAgreementModal;
+export default CourseModal;

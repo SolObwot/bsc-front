@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchCourses } from '../../../redux/courseSlice';
+import { fetchCourses, createCourse, updateCourse } from '../../../redux/courseSlice';
 import { useCourseFilters } from '../../../hooks/courses/useCourseFilters';
 import { useCoursePagination } from '../../../hooks/courses/useCoursePagination';
 import { useToast, ToastContainer } from "../../../hooks/useToast";
 import FilterBox from '../../../components/ui/FilterBox';
 import CourseToolbar from './CourseToolbar';
-import { Table, TableHead, TableHeader, TableBody, TableRow, TableCell } from '../../../components/ui/Tables';
+import { Table, TableHead, TableBody, TableRow, TableCell, TableHeader, TableSkeleton } from '../../../components/ui/Tables';
 import CourseActions from './CourseActions';
 import DeleteCourse from './DeleteCourse';
 import Pagination from '../../../components/ui/Pagination';
+import CourseModal from './CourseModal';
 
 const CourseList = () => {
   const navigate = useNavigate();
@@ -18,7 +19,12 @@ const CourseList = () => {
   const { allCourses, loading, error } = useSelector((state) => state.courses);
   const { toast } = useToast();
 
+  // Modal state management
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
   const [courseToDelete, setCourseToDelete] = useState(null);
+  
   const { filteredCourses, filterProps } = useCourseFilters(allCourses);
   const { paginatedCourses, paginationProps } = useCoursePagination(filteredCourses);
 
@@ -26,21 +32,58 @@ const CourseList = () => {
     dispatch(fetchCourses());
   }, [dispatch]);
 
-  const handleEdit = (id) => {
-    navigate(`/admin/qualification/course/edit/${id}`);
+  // Update edit handler to use modal
+  const handleEdit = (course) => {
+    setSelectedCourse(course);
+    setIsEditModalOpen(true);
   };
 
+  // Update add handler to use modal
   const handleAddCourse = () => {
-    navigate('/admin/qualification/course/add');
+    setSelectedCourse(null);
+    setIsAddModalOpen(true);
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
-      </div>
-    );
-  }
+  // Add handlers for modal submissions
+  const handleAddSubmit = async (newCourse) => {
+    try {
+      await dispatch(createCourse(newCourse)).unwrap();
+      setIsAddModalOpen(false);
+      toast({
+        title: "Success",
+        description: "Course created successfully!",
+      });
+      dispatch(fetchCourses());
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create course. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditSubmit = async (updatedCourse) => {
+    try {
+      await dispatch(updateCourse({ 
+        id: selectedCourse.id, 
+        formData: updatedCourse 
+      })).unwrap();
+      setIsEditModalOpen(false);
+      toast({
+        title: "Success",
+        description: "Course updated successfully!",
+      });
+      dispatch(fetchCourses());
+      setSelectedCourse(null);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update course. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (error) {
     toast({
@@ -107,31 +150,47 @@ const CourseList = () => {
           totalRecords={filteredCourses.length}
         />
 
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeader>Short Code</TableHeader>
-              <TableHeader>Course Name</TableHeader>
-              <TableHeader>Actions</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {paginatedCourses.map((course) => (
-              <TableRow key={course.id}>
-                <TableCell>{course.short_code}</TableCell>
-                <TableCell>{course.name}</TableCell>
-                <TableCell>
-                  <CourseActions
-                    course={course}
-                    onEdit={handleEdit}
-                    onDelete={setCourseToDelete}
-                    onArchive={setCourseToDelete}
-                  />
-                </TableCell>
+        {loading ? (
+          <TableSkeleton 
+            rows={5} 
+            columns={3} 
+            columnWidths={['20%', '60%', '20%']} 
+          />
+        ) : (
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeader>Short Code</TableHeader>
+                <TableHeader>Course Name</TableHeader>
+                <TableHeader>Actions</TableHeader>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHead>
+            <TableBody>
+              {paginatedCourses.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center py-8 text-gray-500">
+                    No courses found. Click "Add New Course" to get started.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                paginatedCourses.map((course) => (
+                  <TableRow key={course.id}>
+                    <TableCell>{course.short_code}</TableCell>
+                    <TableCell>{course.name}</TableCell>
+                    <TableCell>
+                      <CourseActions
+                        course={course}
+                        onEdit={() => handleEdit(course)}
+                        onDelete={setCourseToDelete}
+                        onArchive={setCourseToDelete}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        )}
 
         <Pagination
           currentPage={paginationProps.currentPage}
@@ -139,6 +198,27 @@ const CourseList = () => {
           onPageChange={paginationProps.handlePageChange}
         />
       </div>
+
+      {/* Add Course Modal */}
+      <CourseModal
+        isOpen={isAddModalOpen}
+        closeModal={() => setIsAddModalOpen(false)}
+        onSubmit={handleAddSubmit}
+        initialData={null}
+      />
+      
+      {/* Edit Course Modal */}
+      {selectedCourse && (
+        <CourseModal
+          isOpen={isEditModalOpen}
+          closeModal={() => {
+            setIsEditModalOpen(false);
+            setSelectedCourse(null);
+          }}
+          onSubmit={handleEditSubmit}
+          initialData={selectedCourse}
+        />
+      )}
     </div>
   );
 };

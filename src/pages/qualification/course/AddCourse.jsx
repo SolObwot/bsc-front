@@ -1,40 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { createAsyncThunk } from '@reduxjs/toolkit';
-import CourseForm from './CourseForm';
+import { createCourse } from '../../../redux/courseSlice';
 import { useToast, ToastContainer } from '../../../hooks/useToast';
-import { courseService } from '../../../services/course.service';
-
-// Add createCourse thunk to courseSlice
-export const createCourse = createAsyncThunk(
-  'courses/create',
-  async (formData, { rejectWithValue }) => {
-    try {
-      const response = await courseService.createCourse(formData);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
-  }
-);
+import CourseModal from './CourseModal';
 
 const AddCourse = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { toast } = useToast();
   const { loading } = useSelector((state) => state.courses);
+  
+  // State to control modal visibility
+  const [isModalOpen, setIsModalOpen] = useState(true);
 
   const handleSubmit = async (formData) => {
-    const resultAction = await dispatch(createCourse(formData));
-    if (createCourse.fulfilled.match(resultAction)) {
+    try {
+      await dispatch(createCourse(formData)).unwrap();
       toast({
         title: 'Success',
         description: 'Course added successfully.',
         variant: 'success',
       });
+      setIsModalOpen(false);
       navigate('/admin/qualification/course');
-    } else {
+    } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to add course. Please try again later.',
@@ -43,14 +33,19 @@ const AddCourse = () => {
     }
   };
 
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    navigate('/admin/qualification/course');
+  };
+
   return (
-    <div className="w-full p-4 mt-8">
+    <div>
       <ToastContainer />
-      <CourseForm
-        section="Add Course"
+      <CourseModal
+        isOpen={isModalOpen}
+        closeModal={handleCloseModal}
         onSubmit={handleSubmit}
-        onCancel={() => navigate('/admin/qualification/course')}
-        isLoading={loading}
+        initialData={null}
       />
     </div>
   );
