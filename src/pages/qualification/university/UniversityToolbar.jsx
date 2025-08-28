@@ -1,6 +1,6 @@
 import React from 'react';
 import Button from '../../../components/ui/Button';
-import { UserPlusIcon } from '@heroicons/react/20/solid';
+import { PlusCircleIcon } from '@heroicons/react/20/solid';
 
 const UniversityToolbar = ({ 
   onAddUniversity, 
@@ -16,7 +16,7 @@ const UniversityToolbar = ({
         className="flex items-center gap-2 mb-4 sm:mb-0"
         onClick={onAddUniversity}
       >
-        <UserPlusIcon className="h-5 w-5" aria-hidden="true" />
+        <PlusCircleIcon className="h-5 w-5" aria-hidden="true" />
         Add New University
       </Button>
       <div className="flex items-center gap-2 mb-4 sm:mb-0">

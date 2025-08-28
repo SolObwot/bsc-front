@@ -1,32 +1,48 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUniversity, updateUniversity } from '../../../redux/universitySlice';
-import { useToastNavigation } from '../../../hooks/useToastNavigation';
-import UniversityForm from "./UniversityForm";
+import { useToast, ToastContainer } from '../../../hooks/useToast';
+import UniversityModal from "./UniversityModal";
 
 const EditUniversity = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const { toastAndNavigate } = useToastNavigation();
-  const { currentUniversity, loading, error } = useSelector(state => state.universities);
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const { currentUniversity, loading, error } = useSelector(state => state.universities);
+
+  const [isModalOpen, setIsModalOpen] = useState(true);
 
   useEffect(() => {
     dispatch(fetchUniversity(id));
   }, [id, dispatch]);
 
   const handleSubmit = async (formData) => {
-    const resultAction = await dispatch(updateUniversity({ id, formData }));
-    if (updateUniversity.fulfilled.match(resultAction)) {
-      toastAndNavigate(
-        { title: 'Success', description: 'University updated!', variant: 'success' },
-        '/admin/qualification/university'
-      );
+    try {
+      await dispatch(updateUniversity({ id, formData })).unwrap();
+      toast({
+        title: 'Success',
+        description: 'University updated successfully!',
+        variant: 'success',
+      });
+      setIsModalOpen(false);
+      navigate('/admin/qualification/university');
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update university. Please try again.',
+        variant: 'destructive',
+      });
     }
   };
 
-  if (loading) {
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    navigate('/admin/qualification/university');
+  };
+
+  if (loading && !currentUniversity) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
@@ -34,25 +50,17 @@ const EditUniversity = () => {
     );
   }
 
-  if (!currentUniversity) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <p className="text-gray-500">University data not found.</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="w-full p-4 mt-8">
-      <UniversityForm
-        section="Edit University"
-        initialData={currentUniversity}
-        onSubmit={handleSubmit}
-        onCancel={() => toastAndNavigate(
-          { title: 'Info', description: 'Changes discarded', variant: 'default' },
-          '/admin/qualification/university'
-        )}
-      />
+    <div>
+      <ToastContainer />
+      {currentUniversity && (
+        <UniversityModal
+          isOpen={isModalOpen}
+          closeModal={handleCloseModal}
+          onSubmit={handleSubmit}
+          initialData={currentUniversity}
+        />
+      )}
     </div>
   );
 };

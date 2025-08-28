@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { useToast, ToastContainer } from '../../../hooks/useToast';
-import UniversityForm from './UniversityForm';
 import { createUniversity } from '../../../redux/universitySlice';
+import { useToast, ToastContainer } from '../../../hooks/useToast';
+import UniversityModal from './UniversityModal';
 
 const AddUniversity = () => {
   const navigate = useNavigate();
@@ -11,16 +11,19 @@ const AddUniversity = () => {
   const { toast } = useToast();
   const { loading } = useSelector((state) => state.universities);
 
+  const [isModalOpen, setIsModalOpen] = useState(true);
+
   const handleSubmit = async (formData) => {
-    const resultAction = await dispatch(createUniversity(formData));
-    if (createUniversity.fulfilled.match(resultAction)) {
+    try {
+      await dispatch(createUniversity(formData)).unwrap();
       toast({
         title: 'Success',
         description: 'University added successfully.',
         variant: 'success',
       });
+      setIsModalOpen(false);
       navigate('/admin/qualification/university');
-    } else {
+    } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to add university. Please try again later.',
@@ -29,14 +32,19 @@ const AddUniversity = () => {
     }
   };
 
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    navigate('/admin/qualification/university');
+  };
+
   return (
-    <div className="w-full p-4 mt-8">
+    <div>
       <ToastContainer />
-      <UniversityForm
-        section="Add University"
+      <UniversityModal
+        isOpen={isModalOpen}
+        closeModal={handleCloseModal}
         onSubmit={handleSubmit}
-        onCancel={() => navigate('/admin/qualification/university')}
-        isLoading={loading}
+        initialData={null}
       />
     </div>
   );
