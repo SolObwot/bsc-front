@@ -1,18 +1,33 @@
 import { useState, useEffect, useCallback } from "react";
 
-export const useJobTitleFilters = (jobTitles = []) => {
+export const useJobTitleFilters = (jobTitles) => {
+  const safeJobTitles = Array.isArray(jobTitles) ? jobTitles : [];
   const [filterText, setFilterText] = useState("");
   const [filterShortCode, setFilterShortCode] = useState("");
-  const [filteredJobTitles, setFilteredJobTitles] = useState(jobTitles);
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filteredJobTitles, setFilteredJobTitles] = useState(safeJobTitles);
 
   const applyFilters = useCallback(() => {
-    const filtered = jobTitles.filter(
-      (jobTitle) =>
-        (jobTitle.name?.toLowerCase().includes(filterText.toLowerCase())) &&
-        (filterShortCode ? jobTitle.short_code?.toLowerCase().includes(filterShortCode.toLowerCase()) : true)
-    );
+    let filtered = safeJobTitles;
+    if (filterText) {
+      filtered = filtered.filter(
+        (jobTitle) =>
+          (jobTitle.name?.toLowerCase().includes(filterText.toLowerCase()))
+      );
+    }
+    if (filterShortCode) {
+      filtered = filtered.filter(
+        (jobTitle) =>
+          (jobTitle.short_code?.toLowerCase().includes(filterShortCode.toLowerCase()))
+      );
+    }
+    if (filterStatus) {
+      filtered = filtered.filter(
+        (jobTitle) => (jobTitle.status || "") === filterStatus
+      );
+    }
     setFilteredJobTitles(filtered);
-  }, [jobTitles, filterText, filterShortCode]);
+  }, [safeJobTitles, filterText, filterShortCode, filterStatus]);
 
   useEffect(() => {
     applyFilters();
@@ -21,6 +36,7 @@ export const useJobTitleFilters = (jobTitles = []) => {
   const handleReset = () => {
     setFilterText("");
     setFilterShortCode("");
+    setFilterStatus("");
   };
 
   return {
@@ -30,6 +46,8 @@ export const useJobTitleFilters = (jobTitles = []) => {
       setFilterText,
       filterShortCode,
       setFilterShortCode,
+      filterStatus,
+      setFilterStatus,
       handleReset,
     },
   };

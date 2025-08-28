@@ -1,31 +1,48 @@
-import React, { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchJobTitle, updateJobTitle } from "../../../redux/jobTitleSlice";
-import { useToastNavigation } from "../../../hooks/useToastNavigation";
-import JobTitleForm from "./JobTitleForm";
+import { useToast, ToastContainer } from "../../../hooks/useToast";
+import JobTitleModal from "./JobTitleModal";
 
 const EditJobTitle = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const { toastAndNavigate } = useToastNavigation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const { currentJobTitle, loading } = useSelector((state) => state.jobTitles);
+
+  const [isModalOpen, setIsModalOpen] = useState(true);
 
   useEffect(() => {
     dispatch(fetchJobTitle(id));
   }, [id, dispatch]);
 
   const handleSubmit = async (formData) => {
-    const resultAction = await dispatch(updateJobTitle({ id, formData }));
-    if (updateJobTitle.fulfilled.match(resultAction)) {
-      toastAndNavigate(
-        { title: "Success", description: "Job Title updated!", variant: "success" },
-        "/admin/job/jobtitle"
-      );
+    try {
+      await dispatch(updateJobTitle({ id, formData })).unwrap();
+      toast({
+        title: "Success",
+        description: "Job Title updated successfully!",
+        variant: "success",
+      });
+      setIsModalOpen(false);
+      navigate("/admin/job/jobtitle");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update Job Title. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
-  if (loading) {
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    navigate("/admin/job/jobtitle");
+  };
+
+  if (loading && !currentJobTitle) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
@@ -33,27 +50,17 @@ const EditJobTitle = () => {
     );
   }
 
-  if (!currentJobTitle) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <p className="text-gray-500">Job Title data not found.</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="w-full p-4 mt-8">
-      <JobTitleForm
-        section="Edit Job Title"
-        initialData={currentJobTitle}
-        onSubmit={handleSubmit}
-        onCancel={() =>
-          toastAndNavigate(
-            { title: "Info", description: "Changes discarded", variant: "default" },
-            "/admin/job/jobtitle"
-          )
-        }
-      />
+    <div>
+      <ToastContainer />
+      {currentJobTitle && (
+        <JobTitleModal
+          isOpen={isModalOpen}
+          closeModal={handleCloseModal}
+          onSubmit={handleSubmit}
+          initialData={currentJobTitle}
+        />
+      )}
     </div>
   );
 };

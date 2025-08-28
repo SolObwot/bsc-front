@@ -1,24 +1,28 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchJobTitles } from "../../../redux/jobTitleSlice";
+import { fetchJobTitles, createJobTitle, updateJobTitle } from "../../../redux/jobTitleSlice";
 import { useJobTitleFilters } from "../../../hooks/jobtitle/useJobTitleFilters";
 import { useJobTitlePagination } from "../../../hooks/jobtitle/useJobTitlePagination";
 import { useToast, ToastContainer } from "../../../hooks/useToast";
 import FilterBox from "../../../components/ui/FilterBox";
 import JobTitleToolbar from "./JobTitleToolbar";
-import { Table, TableHead, TableHeader, TableBody, TableRow, TableCell } from "../../../components/ui/Tables";
+import { Table, TableHead, TableHeader, TableBody, TableRow, TableCell, TableSkeleton } from "../../../components/ui/Tables";
 import JobTitleActions from "./JobTitleActions";
 import DeleteJobTitle from "./DeleteJobTitle";
 import Pagination from "../../../components/ui/Pagination";
+import JobTitleModal from "./JobTitleModal";
 
 const JobTitleList = () => {
-  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { allJobTitles = [], loading, error } = useSelector((state) => state.jobTitles || {});
   const { toast } = useToast();
 
+  // Modal state management
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedJobTitle, setSelectedJobTitle] = useState(null);
   const [jobTitleToDelete, setJobTitleToDelete] = useState(null);
+
   const { filteredJobTitles, filterProps } = useJobTitleFilters(allJobTitles);
   const { paginatedJobTitles, paginationProps } = useJobTitlePagination(filteredJobTitles);
 
@@ -26,21 +30,55 @@ const JobTitleList = () => {
     dispatch(fetchJobTitles());
   }, [dispatch]);
 
-  const handleEdit = (id) => {
-    navigate(`/admin/job/jobtitle/edit/${id}`);
+  const handleEdit = (jobTitle) => {
+    setSelectedJobTitle(jobTitle);
+    setIsEditModalOpen(true);
   };
 
   const handleAddJobTitle = () => {
-    navigate("/admin/job/jobtitle/add");
+    setSelectedJobTitle(null);
+    setIsAddModalOpen(true);
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
-      </div>
-    );
-  }
+  const handleAddSubmit = async (newJobTitle) => {
+    try {
+      await dispatch(createJobTitle(newJobTitle)).unwrap();
+      setIsAddModalOpen(false);
+      toast({
+        title: "Success",
+        description: "Job Title created successfully!",
+      });
+      dispatch(fetchJobTitles());
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create job title. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditSubmit = async (updatedJobTitle) => {
+    try {
+      await dispatch(updateJobTitle({ 
+        id: selectedJobTitle.id, 
+        formData: updatedJobTitle 
+      })).unwrap();
+      setIsEditModalOpen(false);
+      toast({
+        title: "Success",
+        description: "Job Title updated successfully!",
+      });
+      dispatch(fetchJobTitles());
+      setSelectedJobTitle(null);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update job title. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (error) {
     toast({
@@ -107,33 +145,47 @@ const JobTitleList = () => {
           totalRecords={filteredJobTitles.length}
         />
 
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeader>Short Code</TableHeader>
-              <TableHeader>Job Title Name</TableHeader>
-              {/* <TableHeader>Description</TableHeader> */}
-              <TableHeader>Actions</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {paginatedJobTitles.map((jobTitle) => (
-              <TableRow key={jobTitle.id}>
-                <TableCell>{jobTitle.short_code}</TableCell>
-                <TableCell>{jobTitle.name}</TableCell>
-                {/* <TableCell>{jobTitle.description}</TableCell> */}
-                <TableCell>
-                  <JobTitleActions
-                    jobTitle={jobTitle}
-                    onEdit={handleEdit}
-                    onDelete={setJobTitleToDelete}
-                    onArchive={setJobTitleToDelete}
-                  />
-                </TableCell>
+        {loading ? (
+          <TableSkeleton 
+            rows={5} 
+            columns={3} 
+            columnWidths={['20%', '60%', '20%']} 
+          />
+        ) : (
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeader>Short Code</TableHeader>
+                <TableHeader>Job Title Name</TableHeader>
+                <TableHeader>Actions</TableHeader>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHead>
+            <TableBody>
+              {paginatedJobTitles.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center py-8 text-gray-500">
+                    No job titles found. Click "Add New Job Title" to get started.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                paginatedJobTitles.map((jobTitle) => (
+                  <TableRow key={jobTitle.id}>
+                    <TableCell>{jobTitle.short_code}</TableCell>
+                    <TableCell>{jobTitle.name}</TableCell>
+                    <TableCell>
+                      <JobTitleActions
+                        jobTitle={jobTitle}
+                        onEdit={() => handleEdit(jobTitle)}
+                        onDelete={setJobTitleToDelete}
+                        onArchive={setJobTitleToDelete}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        )}
 
         <Pagination
           currentPage={paginationProps.currentPage}
@@ -141,6 +193,27 @@ const JobTitleList = () => {
           onPageChange={paginationProps.handlePageChange}
         />
       </div>
+
+      {/* Add Job Title Modal */}
+      <JobTitleModal
+        isOpen={isAddModalOpen}
+        closeModal={() => setIsAddModalOpen(false)}
+        onSubmit={handleAddSubmit}
+        initialData={null}
+      />
+      
+      {/* Edit Job Title Modal */}
+      {selectedJobTitle && (
+        <JobTitleModal
+          isOpen={isEditModalOpen}
+          closeModal={() => {
+            setIsEditModalOpen(false);
+            setSelectedJobTitle(null);
+          }}
+          onSubmit={handleEditSubmit}
+          initialData={selectedJobTitle}
+        />
+      )}
     </div>
   );
 };

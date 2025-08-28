@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { createJobTitle } from "../../../redux/jobTitleSlice";
-import JobTitleForm from "./JobTitleForm";
 import { useToast, ToastContainer } from "../../../hooks/useToast";
+import JobTitleModal from "./JobTitleModal";
 
 const AddJobTitle = () => {
   const navigate = useNavigate();
@@ -11,16 +11,19 @@ const AddJobTitle = () => {
   const { toast } = useToast();
   const { loading } = useSelector((state) => state.jobTitles);
 
+  const [isModalOpen, setIsModalOpen] = useState(true);
+
   const handleSubmit = async (formData) => {
-    const resultAction = await dispatch(createJobTitle(formData));
-    if (createJobTitle.fulfilled.match(resultAction)) {
+    try {
+      await dispatch(createJobTitle(formData)).unwrap();
       toast({
         title: "Success",
         description: "Job Title added successfully.",
         variant: "success",
       });
+      setIsModalOpen(false);
       navigate("/admin/job/jobtitle");
-    } else {
+    } catch (error) {
       toast({
         title: "Error",
         description: "Failed to add Job Title. Please try again later.",
@@ -29,14 +32,19 @@ const AddJobTitle = () => {
     }
   };
 
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    navigate("/admin/job/jobtitle");
+  };
+
   return (
-    <div className="w-full p-4 mt-8">
+    <div>
       <ToastContainer />
-      <JobTitleForm
-        section="Add Job Title"
+      <JobTitleModal
+        isOpen={isModalOpen}
+        closeModal={handleCloseModal}
         onSubmit={handleSubmit}
-        onCancel={() => navigate("/admin/job/jobtitle")}
-        isLoading={loading}
+        initialData={null}
       />
     </div>
   );
