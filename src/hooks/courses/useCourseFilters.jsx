@@ -1,23 +1,32 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 
-export const useCourseFilters = (courses = []) => {
+export function useCourseFilters(courses) {
   const [filterText, setFilterText] = useState('');
   const [filterShortCode, setFilterShortCode] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
-  const [filteredCourses, setFilteredCourses] = useState(courses);
 
-  const applyFilters = useCallback(() => {
-    const filtered = courses.filter(course => 
-      (course.name?.toLowerCase().includes(filterText.toLowerCase())) &&
-      (filterShortCode ? course.short_code?.toLowerCase().includes(filterShortCode.toLowerCase()) : true) &&
-      (filterStatus ? course.status === filterStatus : true)
-    );
-    setFilteredCourses(filtered);
-  }, [courses, filterText, filterShortCode, filterStatus]);
+  // Ensure courses is always an array
+  const safeCourses = Array.isArray(courses) ? courses : [];
 
-  useEffect(() => {
-    applyFilters();
-  }, [applyFilters]);
+  const filteredCourses = useMemo(() => {
+    let filtered = safeCourses;
+    if (filterText) {
+      filtered = filtered.filter(course =>
+        (course.name || '').toLowerCase().includes(filterText.toLowerCase())
+      );
+    }
+    if (filterShortCode) {
+      filtered = filtered.filter(course =>
+        (course.short_code || '').toLowerCase().includes(filterShortCode.toLowerCase())
+      );
+    }
+    if (filterStatus) {
+      filtered = filtered.filter(course =>
+        (course.status || '') === filterStatus
+      );
+    }
+    return filtered;
+  }, [safeCourses, filterText, filterShortCode, filterStatus]);
 
   const handleReset = () => {
     setFilterText('');
@@ -35,6 +44,6 @@ export const useCourseFilters = (courses = []) => {
       filterStatus,
       setFilterStatus,
       handleReset,
-    }
+    },
   };
-};
+}
