@@ -7,6 +7,7 @@ import strategicObjectiveReducer from './strategicObjectiveSlice';
 import strategyPerspectiveReducer from './strategyPerspectiveSlice';
 import agreementReducer from './agreementSlice';
 import performanceMeasureReducer from './performanceMeasureSlice';
+import gradeOrScaleReducer from './gradeOrScaleSlice';
 
 const store = configureStore({
   reducer: {
@@ -18,6 +19,7 @@ const store = configureStore({
     strategyPerspective: strategyPerspectiveReducer,
     agreements: agreementReducer,
     performanceMeasure: performanceMeasureReducer,
+    gradeOrScale: gradeOrScaleReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

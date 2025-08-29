@@ -34,6 +34,7 @@ import EditJobTitle from './pages/job/jobtitle/EditJobTitle';
 import EmploymentStatusList from './pages/job/empstatus/EmploymentStatusList';
 import DeparmentList from './pages/job/department/DeparmentList';
 import UnitOrBranchList from './pages/job/unitorbranch/UnitOrBranchList';
+import JobOrScaleList from './pages/job/gradeorscale/JobOrScaleList';
 import DistrictList from './pages/location/districts/DistrictList';
 import CountyList from './pages/location/counties/CountyList';
 import SubCountiesList from './pages/location/subcounties/SubCountiesList';
@@ -128,7 +129,7 @@ function App() {
               <Route path="/admin/job/employment-status" element={<EmploymentStatusList />} />
               <Route path="/admin/job/departments" element={<DeparmentList />} />
               <Route path="/admin/job/unit-branch" element={<UnitOrBranchList />} />
-              <Route path="/admin/job/grade-scale" element={<div>Grade or Scale Content</div>} />
+              <Route path="/admin/job/grade-scale" element={<JobOrScaleList />} />
               <Route path="/admin/location/districts" element={<DistrictList />} />
               <Route path="/admin/location/counties" element={<CountyList />} />
               <Route path="/admin/location/subcounties" element={<SubCountiesList />} />
