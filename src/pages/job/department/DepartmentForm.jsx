@@ -1,66 +1,100 @@
 import React, { useState, useEffect } from 'react';
 import Button from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
+import useUserSearch from '../../../hooks/agreements/useUserSearch';
+import SearchableCombobox from '../../../components/ui/SearchableCombobox';
 
 const DepartmentForm = ({ initialData, onSubmit, onCancel, isModal, isEditing }) => {
+  const { searchResults, loading, hasMore, searchUsers, loadMoreUsers } = useUserSearch();
+
   const [formData, setFormData] = useState({
     short_code: '',
     name: '',
-    hod_id: '',
+    hod: null,
   });
+
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (initialData) {
       setFormData({
         short_code: initialData.short_code || '',
         name: initialData.name || '',
-        hod_id: initialData.hod_id || '',
+        hod: initialData.hod || null,
       });
     } else {
       setFormData({
         short_code: '',
         name: '',
-        hod_id: '',
+        hod: null,
       });
     }
   }, [initialData]);
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: null }));
+    }
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.short_code.trim()) newErrors.short_code = 'Short Code is required.';
+    if (!formData.name.trim()) newErrors.name = 'Department Name is required.';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    if (validate()) {
+      const submissionData = {
+        short_code: formData.short_code,
+        name: formData.name,
+        hod_id: formData.hod?.id || null,
+        hod: formData.hod,
+      };
+      onSubmit(submissionData);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700">Short Code</label>
+        <label className="block text-sm font-medium text-gray-700">Short Code <span className="text-red-500">*</span></label>
         <Input
           type="text"
+          name="short_code"
           value={formData.short_code}
-          onChange={(e) => setFormData({ ...formData, short_code: e.target.value })}
-          required
-          className="mt-1"
+          onChange={handleChange}
+          className={`mt-1 ${errors.short_code ? 'border-red-500' : ''}`}
         />
+        {errors.short_code && <p className="mt-1 text-sm text-red-600">{errors.short_code}</p>}
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700">Department Name</label>
+        <label className="block text-sm font-medium text-gray-700">Department Name <span className="text-red-500">*</span></label>
         <Input
           type="text"
+          name="name"
           value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          required
-          className="mt-1"
+          onChange={handleChange}
+          className={`mt-1 ${errors.name ? 'border-red-500' : ''}`}
         />
+        {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
       </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700">HOD ID</label>
-        <Input
-          type="text"
-          value={formData.hod_id}
-          onChange={(e) => setFormData({ ...formData, hod_id: e.target.value })}
-          className="mt-1"
-        />
-      </div>
+      <SearchableCombobox
+        label="HOD"
+        options={searchResults}
+        selected={formData.hod}
+        onChange={(selectedUser) => setFormData({ ...formData, hod: selectedUser })}
+        onSearch={searchUsers}
+        onLoadMore={loadMoreUsers}
+        hasMore={hasMore}
+        loading={loading}
+        placeholder="Type to search for a HOD..."
+      />
       <div className="flex justify-end gap-2 pt-4">
         <Button variant="secondary" onClick={onCancel}>
           Cancel

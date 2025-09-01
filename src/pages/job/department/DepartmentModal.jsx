@@ -54,7 +54,7 @@ const DepartmentModal = ({
                     <div className="mb-4 p-3 bg-blue-50 rounded-md border border-blue-100 flex items-start">
                       <InformationCircleIcon className="h-5 w-5 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
                       <p className="text-sm text-blue-700">
-                        Create a new department by entering a short code, name, and HOD ID.
+                        Create a new department by entering a short code, name, and HOD name.
                       </p>
                     </div>
                   )}
