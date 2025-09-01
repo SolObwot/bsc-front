@@ -1,5 +1,7 @@
 import React from "react";
 import Button from "../../../components/ui/Button";
+import { PlusCircleIcon } from "@heroicons/react/20/solid";
+
 
 const EmploymentStatusToolbar = ({
   onAddEmploymentStatus,
@@ -14,6 +16,7 @@ const EmploymentStatusToolbar = ({
       className="flex items-center gap-2 mb-4 sm:mb-0"
       onClick={onAddEmploymentStatus}
     >
+      <PlusCircleIcon className="h-5 w-5" aria-hidden="true" />
       Add New Employment Status
     </Button>
     <div className="flex items-center gap-2 mb-4 sm:mb-0">

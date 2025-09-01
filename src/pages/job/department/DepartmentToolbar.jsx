@@ -1,6 +1,6 @@
 import React from 'react';
 import Button from '../../../components/ui/Button';
-import { UserPlusIcon } from '@heroicons/react/24/outline';
+import { PlusCircleIcon } from "@heroicons/react/20/solid";
 
 const DepartmentToolbar = ({ onAddDepartment, recordsPerPage, onRecordsPerPageChange, totalRecords }) => {
   return (
@@ -11,7 +11,7 @@ const DepartmentToolbar = ({ onAddDepartment, recordsPerPage, onRecordsPerPageCh
         className="flex items-center gap-2 mb-4 sm:mb-0"
         onClick={onAddDepartment}
       >
-        <UserPlusIcon className="h-5 w-5" aria-hidden="true" />
+        <PlusCircleIcon className="h-5 w-5" aria-hidden="true" />
         Add New Department
       </Button>
       <div className="flex items-center gap-2 mb-4 sm:mb-0">
