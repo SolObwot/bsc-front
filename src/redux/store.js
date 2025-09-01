@@ -9,6 +9,7 @@ import agreementReducer from './agreementSlice';
 import performanceMeasureReducer from './performanceMeasureSlice';
 import gradeOrScaleReducer from './gradeOrScaleSlice';
 import employmentStatusReducer from './employmentStatusSlice';
+import departmentReducer from './departmentSlice';
 
 
 const store = configureStore({
@@ -23,6 +24,7 @@ const store = configureStore({
     performanceMeasure: performanceMeasureReducer,
     gradeOrScale: gradeOrScaleReducer,
     employmentStatuses: employmentStatusReducer,
+    departments: departmentReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
