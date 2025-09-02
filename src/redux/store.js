@@ -10,13 +10,14 @@ import performanceMeasureReducer from './performanceMeasureSlice';
 import gradeOrScaleReducer from './gradeOrScaleSlice';
 import employmentStatusReducer from './employmentStatusSlice';
 import departmentReducer from './departmentSlice';
-
+import relationReducer from './relationSlice';
 
 const store = configureStore({
   reducer: {
     courses: courseReducer,
     universities: universityReducer, 
     jobTitles: jobTitleReducer,
+    departments: departmentReducer,
     templates: templateReducer,
     strategicObjectives: strategicObjectiveReducer,
     strategyPerspective: strategyPerspectiveReducer,
@@ -25,6 +26,7 @@ const store = configureStore({
     gradeOrScale: gradeOrScaleReducer,
     employmentStatuses: employmentStatusReducer,
     departments: departmentReducer,
+    relations: relationReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
