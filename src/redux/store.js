@@ -13,6 +13,7 @@ import departmentReducer from './departmentSlice';
 import relationReducer from './relationSlice';
 import unitOrBranchReducer from './unitOrBranchSlice';
 import districtReducer from './districtSlice';
+import countyReducer from './countySlice';
 
 const store = configureStore({
   reducer: {
@@ -31,6 +32,7 @@ const store = configureStore({
     departments: departmentReducer,
     relations: relationReducer,
     districts: districtReducer,
+    counties: countyReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
