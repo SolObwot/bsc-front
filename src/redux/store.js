@@ -12,6 +12,7 @@ import employmentStatusReducer from './employmentStatusSlice';
 import departmentReducer from './departmentSlice';
 import relationReducer from './relationSlice';
 import unitOrBranchReducer from './unitOrBranchSlice';
+import districtReducer from './districtSlice';
 
 const store = configureStore({
   reducer: {
@@ -29,6 +30,7 @@ const store = configureStore({
     employmentStatuses: employmentStatusReducer,
     departments: departmentReducer,
     relations: relationReducer,
+    districts: districtReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
