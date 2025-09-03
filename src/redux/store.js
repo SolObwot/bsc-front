@@ -11,6 +11,7 @@ import gradeOrScaleReducer from './gradeOrScaleSlice';
 import employmentStatusReducer from './employmentStatusSlice';
 import departmentReducer from './departmentSlice';
 import relationReducer from './relationSlice';
+import unitOrBranchReducer from './unitOrBranchSlice';
 
 const store = configureStore({
   reducer: {
@@ -18,6 +19,7 @@ const store = configureStore({
     universities: universityReducer, 
     jobTitles: jobTitleReducer,
     departments: departmentReducer,
+    unitOrBranches: unitOrBranchReducer,
     templates: templateReducer,
     strategicObjectives: strategicObjectiveReducer,
     strategyPerspective: strategyPerspectiveReducer,
