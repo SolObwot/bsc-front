@@ -15,6 +15,8 @@ import unitOrBranchReducer from './unitOrBranchSlice';
 import districtReducer from './districtSlice';
 import countyReducer from './countySlice';
 import subCountiesReducer from './subCountiesSlice';
+import parishReducer from './parishSlice'; 
+import villageReducer from './villageSlice'; 
 
 const store = configureStore({
   reducer: {
@@ -35,6 +37,8 @@ const store = configureStore({
     districts: districtReducer,
     counties: countyReducer,
     subCounties: subCountiesReducer,
+    parishes: parishReducer, 
+    villages: villageReducer, 
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
