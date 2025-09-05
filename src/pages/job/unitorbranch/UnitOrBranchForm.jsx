@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Button from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { Select } from '../../../components/ui/Select';
+import useUserSearch from '../../../hooks/agreements/useUserSearch';
 import SearchableCombobox from '../../../components/ui/SearchableCombobox';
 
 const UnitOrBranchForm = ({
@@ -13,6 +14,8 @@ const UnitOrBranchForm = ({
     regions = [],
     users = []
 }) => {
+    const { searchResults, loading, hasMore, searchUsers, loadMoreUsers } = useUserSearch();
+
     const [formData, setFormData] = useState({
         short_code: '',
         name: '',
@@ -132,78 +135,104 @@ const UnitOrBranchForm = ({
                     <option value="unit">Unit</option>
                     <option value="branch">Branch</option>
                 </Select>
-                <Select
-                    label="Department"
-                    name="department_id"
-                    value={formData.department_id}
-                    onChange={handleChange}
-                    className="mt-1"
-                >
-                    <option value="">-- Select Department --</option>
-                    {departments.map(dept => (
-                        <option key={dept.id} value={dept.id}>{dept.name}</option>
-                    ))}
-                </Select>
-                <Select
-                    label="Region"
-                    name="region_id"
-                    value={formData.region_id}
-                    onChange={handleChange}
-                    className="mt-1"
-                >
-                    <option value="">-- Select Region --</option>
-                    {regions.map(region => (
-                        <option key={region.id} value={region.id}>{region.name}</option>
-                    ))}
-                </Select>
-            </div>
-
-            <div className="mt-4">
-                <h3 className="font-medium text-gray-700 mb-2">Management Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <SearchableCombobox
-                        label="Manager"
-                        options={users}
-                        selected={formData.manager}
-                        onChange={selectedUser => setFormData({ ...formData, manager: selectedUser })}
-                        placeholder="Type to search for a Manager..."
-                    />
-                    <SearchableCombobox
-                        label="Regional Manager"
-                        options={users}
-                        selected={formData.regional_manager}
-                        onChange={selectedUser => setFormData({ ...formData, regional_manager: selectedUser })}
-                        placeholder="Type to search for a Regional Manager..."
-                    />
-                    <SearchableCombobox
-                        label="Branch Manager"
-                        options={users}
-                        selected={formData.branch_manager}
-                        onChange={selectedUser => setFormData({ ...formData, branch_manager: selectedUser })}
-                        placeholder="Type to search for a Branch Manager..."
-                    />
-                    <SearchableCombobox
-                        label="Relationship Manager"
-                        options={users}
-                        selected={formData.relationship_manager}
-                        onChange={selectedUser => setFormData({ ...formData, relationship_manager: selectedUser })}
-                        placeholder="Type to search for a Relationship Manager..."
-                    />
-                    <SearchableCombobox
-                        label="Branch Operations Manager"
-                        options={users}
-                        selected={formData.branch_operations_manager}
-                        onChange={selectedUser => setFormData({ ...formData, branch_operations_manager: selectedUser })}
-                        placeholder="Type to search for a Branch Operations Manager..."
-                    />
-                    <SearchableCombobox
-                        label="Manager Distribution"
-                        options={users}
-                        selected={formData.manager_distribution}
-                        onChange={selectedUser => setFormData({ ...formData, manager_distribution: selectedUser })}
-                        placeholder="Type to search for a Manager Distribution..."
-                    />
-                </div>
+                {formData.type === 'unit' && (
+                    <>
+                        <Select
+                            label="Department"
+                            name="department_id"
+                            value={formData.department_id}
+                            onChange={handleChange}
+                            className="mt-1"
+                        >
+                            <option value="">-- Select Department --</option>
+                            {departments.map(dept => (
+                                <option key={dept.id} value={dept.id}>{dept.name}</option>
+                            ))}
+                        </Select>
+                        <SearchableCombobox
+                            label="Manager"
+                            options={searchResults}
+                            selected={formData.manager}
+                            onChange={(selectedUser) => setFormData({ ...formData, manager: selectedUser })}
+                            onSearch={searchUsers}
+                            onLoadMore={loadMoreUsers}
+                            hasMore={hasMore}
+                            loading={loading}
+                            placeholder="Type to search for a Manager..."
+                        />
+                    </>
+                )}
+                {formData.type === 'branch' && (
+                    <>
+                        <Select
+                            label="Region"
+                            name="region_id"
+                            value={formData.region_id}
+                            onChange={handleChange}
+                            className="mt-1"
+                        >
+                            <option value="">-- Select Region --</option>
+                            {regions.map(region => (
+                                <option key={region.id} value={region.id}>{region.name}</option>
+                            ))}
+                        </Select>
+                        <SearchableCombobox
+                            label="Regional Manager"
+                            options={searchResults}
+                            selected={formData.regional_manager}
+                            onChange={(selectedUser) => setFormData({ ...formData, regional_manager: selectedUser })}
+                            onSearch={searchUsers}
+                            onLoadMore={loadMoreUsers}
+                            hasMore={hasMore}
+                            loading={loading}
+                            placeholder="Type to search for a Regional Manager..."
+                        />
+                        <SearchableCombobox
+                            label="Branch Manager"
+                            options={searchResults}
+                            selected={formData.branch_manager}
+                            onChange={(selectedUser) => setFormData({ ...formData, branch_manager: selectedUser })}
+                            onSearch={searchUsers}
+                            onLoadMore={loadMoreUsers}
+                            hasMore={hasMore}
+                            loading={loading}
+                            placeholder="Type to search for a Branch Manager..."
+                        />
+                        <SearchableCombobox
+                            label="Relationship Manager"
+                            options={searchResults}
+                            selected={formData.relationship_manager}
+                            onChange={(selectedUser) => setFormData({ ...formData, relationship_manager: selectedUser })}
+                            onSearch={searchUsers}
+                            onLoadMore={loadMoreUsers}
+                            hasMore={hasMore}
+                            loading={loading}
+                            placeholder="Type to search for a Relationship Manager..."
+                        />
+                        <SearchableCombobox
+                            label="Branch Operations Manager"
+                            options={searchResults}
+                            selected={formData.branch_operations_manager}
+                            onChange={(selectedUser) => setFormData({ ...formData, branch_operations_manager: selectedUser })}
+                            onSearch={searchUsers}
+                            onLoadMore={loadMoreUsers}
+                            hasMore={hasMore}
+                            loading={loading}
+                            placeholder="Type to search for a Branch Operations Manager..."
+                        />
+                        <SearchableCombobox
+                            label="Manager Distribution"
+                            options={searchResults}
+                            selected={formData.manager_distribution}
+                            onChange={(selectedUser) => setFormData({ ...formData, manager_distribution: selectedUser })}
+                            onSearch={searchUsers}
+                            onLoadMore={loadMoreUsers}
+                            hasMore={hasMore}
+                            loading={loading}
+                            placeholder="Type to search for a Manager Distribution..."
+                        />
+                    </>
+                )}
             </div>
 
             <div className="flex justify-end gap-2 pt-4">

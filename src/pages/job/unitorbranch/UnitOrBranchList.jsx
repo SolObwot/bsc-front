@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchUnitOrBranches, createUnitOrBranch, updateUnitOrBranch, deleteUnitOrBranch } from "../../../redux/unitOrBranchSlice";
 import { fetchDepartments } from "../../../redux/departmentSlice";
-import { fetchUniversities } from "../../../redux/universitySlice"; // Example for users, replace with your user fetch
+import { fetchUniversities } from "../../../redux/universitySlice";
+import { fetchRegions } from "../../../redux/regionSlice"; // Added for regions
 import { useUnitOrBranchFilters } from "../../../hooks/unitOrBranch/useUnitOrBranchFilters";
 import { useUnitOrBranchPagination } from "../../../hooks/unitOrBranch/useUnitOrBranchPagination";
 import { useToast, ToastContainer } from "../../../hooks/useToast";
@@ -17,9 +18,8 @@ const UnitOrBranchList = () => {
     const dispatch = useDispatch();
     const { allUnitOrBranches = [], loading, error } = useSelector((state) => state.unitOrBranches || {});
     const { allDepartments = [] } = useSelector((state) => state.departments || {});
-    const { data: users = [] } = useSelector((state) => state.universities || {}); // Replace with your users slice
-    // For regions, fetch from API or use static list
-    const regions = []; // Replace with actual region data
+    const { data: users = [] } = useSelector((state) => state.universities || {}); 
+    const { allRegions = [] } = useSelector((state) => state.regions || {}); // Added regions selector
 
     const { toast } = useToast();
 
@@ -35,7 +35,7 @@ const UnitOrBranchList = () => {
         dispatch(fetchUnitOrBranches());
         dispatch(fetchDepartments());
         dispatch(fetchUniversities()); // Replace with user fetch
-        // Fetch regions if needed
+        dispatch(fetchRegions()); // Added to fetch regions
     }, [dispatch]);
 
     const handleEdit = async (id) => {
@@ -150,6 +150,17 @@ const UnitOrBranchList = () => {
                             { value: 'branch', label: 'Branch' },
                         ],
                     },
+                    {
+                        id: 'filterRegion',
+                        label: 'Region',
+                        type: 'select',
+                        value: filterProps.filterRegion,
+                        onChange: (e) => filterProps.setFilterRegion(e.target.value),
+                        options: [
+                            { value: '', label: '-- Select --' },
+                            ...allRegions.map(region => ({ value: region.id, label: region.name })),
+                        ],
+                    },
                 ]}
                 buttons={[
                     {
@@ -181,11 +192,14 @@ const UnitOrBranchList = () => {
                                 <TableHeader>Short Code</TableHeader>
                                 <TableHeader>Name</TableHeader>
                                 <TableHeader>Type</TableHeader>
-                                <TableHeader>Department</TableHeader>
-                                <TableHeader>Region</TableHeader>
-                                <TableHeader>Manager</TableHeader>
-                                <TableHeader>Branch Manager</TableHeader>
-                                <TableHeader>Relationship Manager</TableHeader>
+                                {paginatedUnitOrBranches.some(u => u.type === 'unit') && <TableHeader>Department</TableHeader>}
+                                {paginatedUnitOrBranches.some(u => u.type === 'unit') && <TableHeader>Manager</TableHeader>}
+                                {paginatedUnitOrBranches.some(u => u.type === 'branch') && <TableHeader>Region</TableHeader>}
+                                {paginatedUnitOrBranches.some(u => u.type === 'branch') && <TableHeader>Regional Manager</TableHeader>}
+                                {paginatedUnitOrBranches.some(u => u.type === 'branch') && <TableHeader>Branch Manager</TableHeader>}
+                                {paginatedUnitOrBranches.some(u => u.type === 'branch') && <TableHeader>Relationship Manager</TableHeader>}
+                                {paginatedUnitOrBranches.some(u => u.type === 'branch') && <TableHeader>Branch Operations Manager</TableHeader>}
+                                {paginatedUnitOrBranches.some(u => u.type === 'branch') && <TableHeader>Manager Distribution</TableHeader>}
                                 <TableHeader>Created</TableHeader>
                                 <TableHeader>Actions</TableHeader>
                             </TableRow>
@@ -203,24 +217,23 @@ const UnitOrBranchList = () => {
                                         <TableCell>{unitOrBranch.short_code}</TableCell>
                                         <TableCell>{unitOrBranch.name}</TableCell>
                                         <TableCell>{unitOrBranch.type}</TableCell>
-                                        <TableCell>
-                                            {unitOrBranch.department ? unitOrBranch.department.name : ''}
-                                        </TableCell>
-                                        <TableCell>
-                                            {unitOrBranch.region ? unitOrBranch.region.name : ''}
-                                        </TableCell>
-                                        <TableCell>
-                                            {unitOrBranch.manager ? `${unitOrBranch.manager.surname} ${unitOrBranch.manager.last_name}` : ''}
-                                        </TableCell>
-                                        <TableCell>
-                                            {unitOrBranch.branch_manager ? `${unitOrBranch.branch_manager.surname} ${unitOrBranch.branch_manager.last_name}` : ''}
-                                        </TableCell>
-                                        <TableCell>
-                                            {unitOrBranch.relationship_manager ? `${unitOrBranch.relationship_manager.surname} ${unitOrBranch.relationship_manager.last_name}` : ''}
-                                        </TableCell>
-                                        <TableCell>
-                                            {unitOrBranch.created_at ? new Date(unitOrBranch.created_at).toLocaleDateString() : ''}
-                                        </TableCell>
+                                        {unitOrBranch.type === 'unit' && (
+                                            <>
+                                                <TableCell>{unitOrBranch.department ? unitOrBranch.department.name : ''}</TableCell>
+                                                <TableCell>{unitOrBranch.manager ? `${unitOrBranch.manager.surname} ${unitOrBranch.manager.last_name}` : ''}</TableCell>
+                                            </>
+                                        )}
+                                        {unitOrBranch.type === 'branch' && (
+                                            <>
+                                                <TableCell>{unitOrBranch.region ? unitOrBranch.region.name : ''}</TableCell>
+                                                <TableCell>{unitOrBranch.regional_manager ? `${unitOrBranch.regional_manager.surname} ${unitOrBranch.regional_manager.last_name}` : ''}</TableCell>
+                                                <TableCell>{unitOrBranch.branch_manager ? `${unitOrBranch.branch_manager.surname} ${unitOrBranch.branch_manager.last_name}` : ''}</TableCell>
+                                                <TableCell>{unitOrBranch.relationship_manager ? `${unitOrBranch.relationship_manager.surname} ${unitOrBranch.relationship_manager.last_name}` : ''}</TableCell>
+                                                <TableCell>{unitOrBranch.branch_operations_manager ? `${unitOrBranch.branch_operations_manager.surname} ${unitOrBranch.branch_operations_manager.last_name}` : ''}</TableCell>
+                                                <TableCell>{unitOrBranch.manager_distribution ? `${unitOrBranch.manager_distribution.surname} ${unitOrBranch.manager_distribution.last_name}` : ''}</TableCell>
+                                            </>
+                                        )}
+                                        <TableCell>{unitOrBranch.created_at ? new Date(unitOrBranch.created_at).toLocaleDateString() : ''}</TableCell>
                                         <TableCell>
                                             <UnitOrBranchActions
                                                 unitOrBranch={unitOrBranch}
@@ -249,7 +262,7 @@ const UnitOrBranchList = () => {
                 onSubmit={handleAddSubmit}
                 initialData={null}
                 departments={allDepartments}
-                regions={regions}
+                regions={allRegions} // Pass fetched regions
                 users={users}
             />
             
@@ -264,7 +277,7 @@ const UnitOrBranchList = () => {
                     onSubmit={handleEditSubmit}
                     initialData={selectedUnitOrBranch}
                     departments={allDepartments}
-                    regions={regions}
+                    regions={allRegions} // Pass fetched regions
                     users={users}
                 />
             )}
