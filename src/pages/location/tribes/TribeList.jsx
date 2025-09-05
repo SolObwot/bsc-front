@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchTribes, createTribe, updateTribe } from "../../../redux/tribeSlice";
-import { useTribeFilters } from "../../../hooks/Tribe/useTribeFilters";
-import { useTribePagination } from "../../../hooks/Tribe/useTribePagination";
+import { useTribeFilters } from "../../../hooks/tribes/useTribeFilters";
+import { useTribePagination } from "../../../hooks/tribes/useTribePagination";
 import { useToast, ToastContainer } from "../../../hooks/useToast";
 import FilterBox from "../../../components/ui/FilterBox";
 import TribeToolbar from "./TribeToolbar";

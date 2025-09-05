@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchRegions, createRegion, updateRegion, deleteRegion } from "../../../redux/regionSlice";
-import { useRegionFilters } from "../../../hooks/Region/useRegionFilters";
+import { useRegionFilters } from "../../../hooks/Region/useRegionFilters.jsx";
 import { useRegionPagination } from "../../../hooks/Region/useRegionPagination";
 import { useToast, ToastContainer } from "../../../hooks/useToast";
 import FilterBox from "../../../components/ui/FilterBox";
@@ -29,18 +29,6 @@ const RegionList = () => {
     dispatch(fetchRegions());
   }, [dispatch]);
 
-  const managerOptions = useMemo(() => {
-    // derive unique manager list from regions
-    const opts = [];
-    (allRegions || []).forEach(r => {
-      if (r.regional_manager) opts.push({ value: r.regional_manager.id, label: `${r.regional_manager.username} ${r.regional_manager.surname}` });
-    });
-    // unique by value
-    const map = new Map();
-    opts.forEach(o => map.set(o.value, o));
-    return Array.from(map.values());
-  }, [allRegions]);
-
   const handleEdit = (r) => { setSelectedRegion(r); setIsEditModalOpen(true); };
   const handleAdd = () => { setSelectedRegion(null); setIsAddModalOpen(true); };
 
@@ -67,6 +55,14 @@ const RegionList = () => {
     }
   };
 
+  // Helper function to format manager name
+  const formatManagerName = (manager) => {
+    if (!manager) return "-";
+    return [manager.surname, manager.last_name, manager.other_name]
+      .filter(Boolean)
+      .join(' ');
+  };
+
   if (error) {
     toast({ title: "Error", description: "Failed to fetch regions.", variant: "destructive" });
   }
@@ -81,15 +77,6 @@ const RegionList = () => {
         filters={[
           { id: "filterText", label: "Region Name", type: "search", placeholder: "Type for region name...", value: filterProps.filterText, onChange: (e) => filterProps.setFilterText(e.target.value) },
           { id: "filterShortCode", label: "Short Code", type: "search", placeholder: "Type for short code...", value: filterProps.filterShortCode, onChange: (e) => filterProps.setFilterShortCode(e.target.value) },
-          {
-            id: "filterManager",
-            label: "Regional Manager",
-            type: "select",
-            placeholder: "Select Manager...",
-            value: filterProps.filterManagerId,
-            onChange: (e) => filterProps.setFilterManagerId(e.target.value),
-            options: [{ value: "", label: "Select Manager..." }, ...managerOptions],
-          },
         ]}
         buttons={[ { label: "Reset", variant: "secondary", onClick: filterProps.handleReset } ]}
       />
@@ -119,7 +106,7 @@ const RegionList = () => {
                   <TableRow key={r.id}>
                     <TableCell>{r.short_code}</TableCell>
                     <TableCell>{r.name}</TableCell>
-                    <TableCell>{r.regional_manager ? `${r.regional_manager.username} ${r.regional_manager.surname}` : "-"}</TableCell>
+                    <TableCell>{formatManagerName(r.regional_manager)}</TableCell>
                     <TableCell>
                       <RegionActions region={r} onEdit={() => handleEdit(r)} onDelete={setRegionToDelete} />
                     </TableCell>

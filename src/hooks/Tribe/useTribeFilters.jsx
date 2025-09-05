@@ -1,27 +1,27 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 
-export const useRegionFilters = (regions) => {
-  const safeRegions = useMemo(() => Array.isArray(regions) ? regions : [], [regions]);
+export const useTribeFilters = (tribes) => {
+  const safeTribes = useMemo(() => Array.isArray(tribes) ? tribes : [], [tribes]);
   const [filterText, setFilterText] = useState("");
   const [filterShortCode, setFilterShortCode] = useState("");
-  const [filteredRegions, setFilteredRegions] = useState(safeRegions);
+  const [filteredTribes, setFilteredTribes] = useState(safeTribes);
 
   const applyFilters = useCallback(() => {
-    let filtered = safeRegions;
+    let filtered = safeTribes;
     if (filterText) {
       filtered = filtered.filter(
-        (region) =>
-          (region.name?.toLowerCase().includes(filterText.toLowerCase()))
+        (tribe) =>
+          (tribe.name?.toLowerCase().includes(filterText.toLowerCase()))
       );
     }
     if (filterShortCode) {
       filtered = filtered.filter(
-        (region) =>
-          (region.short_code?.toLowerCase().includes(filterShortCode.toLowerCase()))
+        (tribe) =>
+          (tribe.short_code?.toLowerCase().includes(filterShortCode.toLowerCase()))
       );
     }
-    setFilteredRegions(filtered);
-  }, [safeRegions, filterText, filterShortCode]);
+    setFilteredTribes(filtered);
+  }, [safeTribes, filterText, filterShortCode]);
 
   useEffect(() => {
     applyFilters();
@@ -33,7 +33,7 @@ export const useRegionFilters = (regions) => {
   };
 
   return {
-    filteredRegions,
+    filteredTribes,
     filterProps: {
       filterText,
       setFilterText,
