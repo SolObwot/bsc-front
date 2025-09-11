@@ -129,10 +129,10 @@ const AddPerformanceMeasure = () => {
           dueDate: "31 Dec, 2024",
           assignee: {
             name:
-              `${user?.surname || ""} ${user?.last_name || ""}`.trim() ||
+              `${user?.surname || ""} ${user?.first_name || ""}`.trim() ||
               "Current User",
             surname: user?.surname || "",
-            lastName: user?.last_name || "",
+            lastName: user?.first_name || "",
             avatar: user?.profile_photo_url || "/placeholder.svg",
           },
           lastUpdated: new Date().toLocaleDateString("en-US", {

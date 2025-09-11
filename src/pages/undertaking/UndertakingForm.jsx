@@ -211,7 +211,7 @@ const UndertakingForm = () => {
         signedDate: new Date().toISOString().split('T')[0],
         signatureImage: selectedSignature?.image || user?.signatureImage,
         signedBy: {
-          name: `${user?.surname} ${user?.last_name}`,
+          name: `${user?.surname} ${user?.first_name}`,
           designation: user?.job_title?.name || 'Staff',
           employeeId: user?.employee_number || '',
           date: new Date().toISOString().split('T')[0]
@@ -314,7 +314,7 @@ const UndertakingForm = () => {
           <h3 className="text-lg font-medium text-gray-900 mb-2">Document Signed</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <p className="text-sm text-gray-500">Signed by: {undertaking.signedBy?.name || `${user?.surname} ${user?.last_name}`}</p>
+              <p className="text-sm text-gray-500">Signed by: {undertaking.signedBy?.name || `${user?.surname} ${user?.first_name}`}</p>
               <p className="text-sm text-gray-500">Designation: {undertaking.signedBy?.designation || user?.job_title?.name || 'Staff'}</p>
             </div>
             <div>
@@ -353,7 +353,7 @@ const UndertakingForm = () => {
           <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="border border-gray-200 bg-gray-50 rounded p-3">
               <label className="block text-sm text-gray-500 mb-1">Name:</label>
-              <p className="font-medium">{user?.surname} {user?.last_name}</p>
+              <p className="font-medium">{user?.surname} {user?.first_name}</p>
             </div>
             <div className="border border-gray-200 bg-gray-50 rounded p-3">
               <label className="block text-sm text-gray-500 mb-1">Designation:</label>

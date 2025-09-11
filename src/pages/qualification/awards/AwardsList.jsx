@@ -37,7 +37,7 @@ const AwardsList = () => {
   useEffect(() => {
     const filtered = users.filter(user => 
       (user.surname?.toLowerCase().includes(filterText.toLowerCase()) ||
-      user.last_name?.toLowerCase().includes(filterText.toLowerCase()) ||
+      user.first_name?.toLowerCase().includes(filterText.toLowerCase()) ||
       user.email?.toLowerCase().includes(filterText.toLowerCase()) ||
       user.title?.toLowerCase().includes(filterText.toLowerCase())) &&
       (filterStaffNumber ? user.staff_number?.toLowerCase().includes(filterStaffNumber.toLowerCase()) : true) &&
@@ -265,7 +265,7 @@ const AwardsList = () => {
             {paginatedUsers.map((user, userIdx) => (
               <TableRow key={user.email}>
                 <TableCell>{user.staff_number}</TableCell>
-                <TableCell>{`${user.surname} ${user.last_name}`}</TableCell>
+                <TableCell>{`${user.surname} ${user.first_name}`}</TableCell>
                 <TableCell title={user.fullDepartment}>{user.department || 'Set Department'}</TableCell>
                 <TableCell title={user.fullUnit}>{user.unit || 'Set Unit'}</TableCell>
                 <TableCell>
@@ -292,7 +292,7 @@ const AwardsList = () => {
                   >
                     <PencilSquareIcon className="h-5 w-5" aria-hidden="true" />
                     <span>Edit</span>
-                    <span className="sr-only">, {`${user.surname} ${user.last_name}`}</span>
+                    <span className="sr-only">, {`${user.surname} ${user.first_name}`}</span>
                   </button>
                   <button 
                     onClick={() => setUserToDelete(user)} 

@@ -80,7 +80,7 @@ const SearchableCombobox = ({
 
   const getDisplayValue = (option) => {
     if (!option) return '';
-    return `${option.surname} ${option.last_name}`;
+    return `${option.surname} ${option.first_name}`;
   };
 
   return (

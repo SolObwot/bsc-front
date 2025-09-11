@@ -107,7 +107,7 @@ const HODApproval = () => {
       .filter(agreement => agreement.status === 'pending_hod')
       .filter(agreement => {
         const matchesText = filterText === '' || 
-          (agreement.creator && `${agreement.creator.surname} ${agreement.creator.last_name}`.toLowerCase().includes(filterText.toLowerCase())) ||
+          (agreement.creator && `${agreement.creator.surname} ${agreement.creator.first_name}`.toLowerCase().includes(filterText.toLowerCase())) ||
           (agreement.creator?.job_title?.name || '').toLowerCase().includes(filterText.toLowerCase());
         
         const matchesBranch = filterBranch === '' || 
@@ -434,7 +434,7 @@ const HODApproval = () => {
                       <TableCell>
                         <div className="text-sm font-medium text-gray-900">
                           {agreement.creator ? 
-                            `${agreement.creator.surname} ${agreement.creator.last_name}${agreement.creator.other_name ? ' ' + agreement.creator.other_name : ''}` : 
+                            `${agreement.creator.surname} ${agreement.creator.first_name}${agreement.creator.other_name ? ' ' + agreement.creator.other_name : ''}` : 
                             'Unknown'}
                         </div>
                         <div className="text-xs text-gray-500">

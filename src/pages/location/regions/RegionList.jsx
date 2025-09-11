@@ -58,7 +58,7 @@ const RegionList = () => {
   // Helper function to format manager name
   const formatManagerName = (manager) => {
     if (!manager) return "-";
-    return [manager.surname, manager.last_name, manager.other_name]
+    return [manager.surname, manager.first_name, manager.other_name]
       .filter(Boolean)
       .join(' ');
   };

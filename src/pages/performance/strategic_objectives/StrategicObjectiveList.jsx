@@ -281,7 +281,7 @@ const StrategicObjectiveList = () => {
                       </TableCell>
                       <TableCell>
                         {objective.creator ? 
-                          `${objective.creator.surname || ''} ${objective.creator.last_name || ''}` : 
+                          `${objective.creator.surname || ''} ${objective.creator.first_name || ''}` : 
                           'N/A'}
                       </TableCell>
                       <TableCell>

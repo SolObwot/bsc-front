@@ -128,9 +128,9 @@ export const PerformanceMeasureViewer = () => {
           dueDate: "31 Dec, 2024",
           assignee: creator
             ? {
-                name: `${creator.surname || ""} ${creator.last_name || ""}`.trim(),
+                name: `${creator.surname || ""} ${creator.first_name || ""}`.trim(),
                 surname: creator.surname || "",
-                lastName: creator.last_name || "",
+                lastName: creator.first_name || "",
                 avatar: creator.profile_photo_url || "/placeholder.svg",
               }
             : null,

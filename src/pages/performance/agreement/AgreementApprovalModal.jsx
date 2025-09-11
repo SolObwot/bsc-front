@@ -72,7 +72,7 @@ const AgreementApprovalModal = ({ isOpen, closeModal, agreement, onApprove, onRe
 
 // Extract employee name from creator object
   const employeeName = agreement.creator ? 
-    `${agreement.creator.surname} ${agreement.creator.last_name}${agreement.creator.other_name ? ' ' + agreement.creator.other_name : ''}` : 
+    `${agreement.creator.surname} ${agreement.creator.first_name}${agreement.creator.other_name ? ' ' + agreement.creator.other_name : ''}` : 
     'Unknown';
   
   // Extract job title
@@ -84,8 +84,8 @@ const AgreementApprovalModal = ({ isOpen, closeModal, agreement, onApprove, onRe
                         agreement.period;
   
   // Get supervisor and HOD names (these might need to be adjusted based on your data structure)
-  const supervisorName = agreement.supervisor ? `${agreement.supervisor.surname} ${agreement.supervisor.last_name}${agreement.supervisor.other_name ? ' ' + agreement.supervisor.other_name : ''}` : 'Not Assigned';
-  const hodName = agreement.hod ? `${agreement.hod.surname} ${agreement.hod.last_name}${agreement.hod.other_name ? ' ' + agreement.hod.other_name : ''}` : 'Not Assigned';
+  const supervisorName = agreement.supervisor ? `${agreement.supervisor.surname} ${agreement.supervisor.first_name}${agreement.supervisor.other_name ? ' ' + agreement.supervisor.other_name : ''}` : 'Not Assigned';
+  const hodName = agreement.hod ? `${agreement.hod.surname} ${agreement.hod.first_name}${agreement.hod.other_name ? ' ' + agreement.hod.other_name : ''}` : 'Not Assigned';
 
   const isSupervisorActionable = agreement.status === 'pending_supervisor';
   const isHodActionable = agreement.status === 'pending_hod';

@@ -173,7 +173,7 @@ const DepartmentList = () => {
                   <TableRow key={department.id}>
                     <TableCell>{department.short_code}</TableCell>
                     <TableCell>{department.name}</TableCell>
-                    <TableCell>{department.hod ? `${department.hod.surname} ${department.hod.last_name}` : 'N/A'}</TableCell>
+                    <TableCell>{department.hod ? `${department.hod.surname} ${department.hod.first_name}` : 'N/A'}</TableCell>
                     <TableCell>
                       <DepartmentActions
                         department={department}

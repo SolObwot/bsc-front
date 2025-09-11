@@ -30,7 +30,7 @@ const UsersList = () => {
   useEffect(() => {
     const filtered = users.filter(user => 
       (user.surname?.toLowerCase().includes(filterText.toLowerCase()) ||
-      user.last_name?.toLowerCase().includes(filterText.toLowerCase()) ||
+      user.first_name?.toLowerCase().includes(filterText.toLowerCase()) ||
       user.email?.toLowerCase().includes(filterText.toLowerCase()) ||
       user.title?.toLowerCase().includes(filterText.toLowerCase())) &&
       (filterRole ? user.role === filterRole : true) &&
@@ -201,7 +201,7 @@ const UsersList = () => {
             {paginatedUsers.map((user, userIdx) => (
               <TableRow key={user.email}>
                 <TableCell>{user.id}</TableCell>
-                <TableCell>{`${user.surname} ${user.last_name}`}</TableCell>
+                <TableCell>{`${user.surname} ${user.first_name}`}</TableCell>
                 <TableCell>{user.title || 'Employee Job Title'}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell >
@@ -214,7 +214,7 @@ const UsersList = () => {
                   >
                     <PencilSquareIcon className="h-5 w-5" aria-hidden="true" />
                     <span>Edit</span>
-                    <span className="sr-only">, {`${user.surname} ${user.last_name}`}</span>
+                    <span className="sr-only">, {`${user.surname} ${user.first_name}`}</span>
                   </button>
                 </TableCell>
                 <TableCell className="text-right">
@@ -224,7 +224,7 @@ const UsersList = () => {
                   >
                     <TrashIcon className="h-5 w-5" aria-hidden="true" />
                     <span>Delete</span>
-                    <span className="sr-only">, {`${user.surname} ${user.last_name}`}</span>
+                    <span className="sr-only">, {`${user.surname} ${user.first_name}`}</span>
                   </button>
                 </TableCell>
               </TableRow>

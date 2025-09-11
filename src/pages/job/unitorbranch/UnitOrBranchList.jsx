@@ -220,17 +220,17 @@ const UnitOrBranchList = () => {
                                         {unitOrBranch.type === 'unit' && (
                                             <>
                                                 <TableCell>{unitOrBranch.department ? unitOrBranch.department.name : ''}</TableCell>
-                                                <TableCell>{unitOrBranch.manager ? `${unitOrBranch.manager.surname} ${unitOrBranch.manager.last_name}` : ''}</TableCell>
+                                                <TableCell>{unitOrBranch.manager ? `${unitOrBranch.manager.surname} ${unitOrBranch.manager.first_name}` : ''}</TableCell>
                                             </>
                                         )}
                                         {unitOrBranch.type === 'branch' && (
                                             <>
                                                 <TableCell>{unitOrBranch.region ? unitOrBranch.region.name : ''}</TableCell>
-                                                <TableCell>{unitOrBranch.regional_manager ? `${unitOrBranch.regional_manager.surname} ${unitOrBranch.regional_manager.last_name}` : ''}</TableCell>
-                                                <TableCell>{unitOrBranch.branch_manager ? `${unitOrBranch.branch_manager.surname} ${unitOrBranch.branch_manager.last_name}` : ''}</TableCell>
-                                                <TableCell>{unitOrBranch.relationship_manager ? `${unitOrBranch.relationship_manager.surname} ${unitOrBranch.relationship_manager.last_name}` : ''}</TableCell>
-                                                <TableCell>{unitOrBranch.branch_operations_manager ? `${unitOrBranch.branch_operations_manager.surname} ${unitOrBranch.branch_operations_manager.last_name}` : ''}</TableCell>
-                                                <TableCell>{unitOrBranch.manager_distribution ? `${unitOrBranch.manager_distribution.surname} ${unitOrBranch.manager_distribution.last_name}` : ''}</TableCell>
+                                                <TableCell>{unitOrBranch.regional_manager ? `${unitOrBranch.regional_manager.surname} ${unitOrBranch.regional_manager.first_name}` : ''}</TableCell>
+                                                <TableCell>{unitOrBranch.branch_manager ? `${unitOrBranch.branch_manager.surname} ${unitOrBranch.branch_manager.first_name}` : ''}</TableCell>
+                                                <TableCell>{unitOrBranch.relationship_manager ? `${unitOrBranch.relationship_manager.surname} ${unitOrBranch.relationship_manager.first_name}` : ''}</TableCell>
+                                                <TableCell>{unitOrBranch.branch_operations_manager ? `${unitOrBranch.branch_operations_manager.surname} ${unitOrBranch.branch_operations_manager.first_name}` : ''}</TableCell>
+                                                <TableCell>{unitOrBranch.manager_distribution ? `${unitOrBranch.manager_distribution.surname} ${unitOrBranch.manager_distribution.first_name}` : ''}</TableCell>
                                             </>
                                         )}
                                         <TableCell>{unitOrBranch.created_at ? new Date(unitOrBranch.created_at).toLocaleDateString() : ''}</TableCell>

@@ -9,11 +9,11 @@ const DeleteAgreementModal = ({ isOpen, closeModal, onConfirm, agreement }) => {
   const agreementName = agreement.name || agreement.title || 'Unknown';
   
   const supervisorName = agreement.supervisor ? 
-    `${agreement.supervisor.surname} ${agreement.supervisor.last_name}` : 
+    `${agreement.supervisor.surname} ${agreement.supervisor.first_name}` : 
     agreement.supervisorName || 'Not assigned';
   
   const hodName = agreement.hod ? 
-    `${agreement.hod.surname} ${agreement.hod.last_name}` : 
+    `${agreement.hod.surname} ${agreement.hod.first_name}` : 
     agreement.hodName || 'Not assigned';
   
   const periodDisplay = agreement.period === 'annual' ? 'Annual Review' : 

@@ -20,10 +20,10 @@ const useAgreementFilters = (agreements = []) => {
         const searchText = filterText.toLowerCase();
         const nameMatch = (agreement.name || '').toLowerCase().includes(searchText);
         const creatorMatch = agreement.creator ? 
-          (agreement.creator.surname + ' ' + agreement.creator.last_name).toLowerCase().includes(searchText) : 
+          (agreement.creator.surname + ' ' + agreement.creator.first_name).toLowerCase().includes(searchText) : 
           false;
         const supervisorMatch = agreement.supervisor ? 
-          (agreement.supervisor.surname + ' ' + agreement.supervisor.last_name).toLowerCase().includes(searchText) : 
+          (agreement.supervisor.surname + ' ' + agreement.supervisor.first_name).toLowerCase().includes(searchText) : 
           false;
         
         matchesFilters = nameMatch || creatorMatch || supervisorMatch;

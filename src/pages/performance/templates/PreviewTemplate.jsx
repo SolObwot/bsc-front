@@ -13,7 +13,7 @@ return (
                             <p><strong>Name:</strong> {templateToPreview.name}</p>
                             <p><strong>Strategic Objective:</strong> {templateToPreview.strategic_objective}</p>
                             <p><strong>Review Period:</strong> {templateToPreview.review_period || 'N/A'}</p>
-                            <p><strong>Created By:</strong> {templateToPreview.user?.surname} {templateToPreview.user?.last_name}</p>
+                            <p><strong>Created By:</strong> {templateToPreview.user?.surname} {templateToPreview.user?.first_name}</p>
                         </div>
                     ) : (
                         <p>No template selected for preview.</p>

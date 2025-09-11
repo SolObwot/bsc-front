@@ -299,7 +299,7 @@ const StrategyPerspectiveList = () => {
                         </TableCell>
                         <TableCell>
                           {weight.creator ? 
-                            `${weight.creator.surname || ''} ${weight.creator.last_name || ''}` : 
+                            `${weight.creator.surname || ''} ${weight.creator.first_name || ''}` : 
                             'N/A'}
                         </TableCell>
                         <TableCell>

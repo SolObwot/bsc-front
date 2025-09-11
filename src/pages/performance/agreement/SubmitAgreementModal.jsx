@@ -35,7 +35,7 @@ const SubmitAgreementModal = ({ isOpen, closeModal, agreement, onSubmit }) => {
 
   // Format employee name from API data structure
   const employeeName = agreement.creator ? 
-    `${agreement.creator.surname} ${agreement.creator.last_name}` : 
+    `${agreement.creator.surname} ${agreement.creator.first_name}` : 
     agreement.employeeName || 'Employee';
     
   // Get employee title if available
@@ -50,11 +50,11 @@ const SubmitAgreementModal = ({ isOpen, closeModal, agreement, onSubmit }) => {
   
   // Format supervisor and HOD names
   const supervisorName = agreement.supervisor ? 
-    `${agreement.supervisor.surname} ${agreement.supervisor.last_name}` : 
+    `${agreement.supervisor.surname} ${agreement.supervisor.first_name}` : 
     agreement.supervisorName || 'Supervisor';
     
   const hodName = agreement.hod ? 
-    `${agreement.hod.surname} ${agreement.hod.last_name}` : 
+    `${agreement.hod.surname} ${agreement.hod.first_name}` : 
     agreement.hodName || 'HOD';
 
   return (

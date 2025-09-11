@@ -141,7 +141,7 @@ return (
                         <TableRow key={template.id}>
                             <TableCell>{template.name}</TableCell>
                             <TableCell>
-                                {template.user?.surname} {template.user?.last_name}
+                                {template.user?.surname} {template.user?.first_name}
                             </TableCell>
                             <TableCell>{template.user?.job_title?.name || 'N/A'}</TableCell>
                             <TableCell>{new Date(template.created_at).toLocaleDateString()}</TableCell>

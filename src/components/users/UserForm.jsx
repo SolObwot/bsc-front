@@ -3,7 +3,7 @@ import FilterBox from '../ui/FilterBox';
 
 const UserForm = ({ onSubmit, initialData = {}, onCancel }) => {
   const [formData, setFormData] = useState(() => ({
-    last_name: '',
+    first_name: '',
     surname: '',
     other_name: '',
     username: '',
@@ -46,9 +46,9 @@ const UserForm = ({ onSubmit, initialData = {}, onCancel }) => {
       [name]: value,
     };
 
-    // Auto-generate username when last_name or surname changes
-    if (name === 'last_name' || name === 'surname') {
-      const lastName = name === 'last_name' ? value : formData.last_name;
+    // Auto-generate username when first_name or surname changes
+    if (name === 'first_name' || name === 'surname') {
+      const lastName = name === 'first_name' ? value : formData.first_name;
       const surname = name === 'surname' ? value : formData.surname;
       
       if (lastName && surname) {
@@ -73,7 +73,7 @@ const UserForm = ({ onSubmit, initialData = {}, onCancel }) => {
   };
 
   const filters = [
-    { id: 'last_name', label: 'Last Name', type: 'text', value: formData.last_name, onChange: handleChange },
+    { id: 'first_name', label: 'Last Name', type: 'text', value: formData.first_name, onChange: handleChange },
     { id: 'surname', label: 'Surname', type: 'text', value: formData.surname, onChange: handleChange },
     { id: 'other_name', label: 'Other Name', type: 'text', value: formData.other_name, onChange: handleChange },
     { id: 'email', label: 'Email', type: 'email', value: formData.email, onChange: handleChange },

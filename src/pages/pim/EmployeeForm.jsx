@@ -7,7 +7,7 @@ const EmployeeForm = ({ section, onSubmit, initialData = {}, onCancel }) => {
     const initialFormData = {
       // Personal Details
       surname: initialData?.surname || 'N/A',
-      last_name: initialData?.last_name || 'N/A',
+      first_name: initialData?.first_name || 'N/A',
       other_name: initialData?.other_name || 'N/A', 
       email: initialData?.email || 'N/A',
       username: initialData?.username || 'N/A',
@@ -161,7 +161,7 @@ const EmployeeForm = ({ section, onSubmit, initialData = {}, onCancel }) => {
   const formSections = {
     personalDetails: [
       { id: 'surname', label: 'Surname', type: 'text', required: true },
-      { id: 'last_name', label: 'Last Name', type: 'text', required: true },
+      { id: 'first_name', label: 'Last Name', type: 'text', required: true },
       { id: 'email', label: 'Email', type: 'email', required: true },
       { id: 'username', label: 'Username', type: 'text', required: true },
       { id: 'staff_number', label: 'Employee ID', type: 'text'},

@@ -186,7 +186,7 @@ const UpdateProfile = () => {
     const profileHeader = (
         <div className="space-y-4 text-center p-4 bg-gray-50">
             <h2 className="text-xl font-medium text-gray-700">
-                Edit Profile: {mergedEmployeeData?.surname} {mergedEmployeeData?.last_name}
+                Edit Profile: {mergedEmployeeData?.surname} {mergedEmployeeData?.first_name}
             </h2>
             <Avatar 
                 className="w-26 h-26 mx-auto"

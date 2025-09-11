@@ -110,7 +110,7 @@ const Dashboard = () => {
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 capitalize-first-letter">
-          Welcome Back, {user?.surname && user?.last_name ? `${user?.surname} ${user?.last_name}` : 'User'}
+          Welcome Back, {user?.surname && user?.first_name ? `${user?.surname} ${user?.first_name}` : 'User'}
             </h1>
             <p className="text-gray-600 mt-1">
           Here's an overview of your HR dashboard and upcoming activities.
