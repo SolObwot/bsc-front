@@ -30,10 +30,6 @@ const JobOrScaleList = () => {
     dispatch(fetchGradeOrScales());
   }, []); // Only run once on mount
 
-  useEffect(() => {
-    console.log("JobOrScaleList: allGradeOrScales after fetch", allGradeOrScales);
-  }, [allGradeOrScales]);
-
   // Show error toast only when error changes
   useEffect(() => {
     if (error) {
@@ -58,21 +54,18 @@ const JobOrScaleList = () => {
   const handleAddSubmit = async (newGradeOrScale) => {
     try {
       const result = await dispatch(createGradeOrScale(newGradeOrScale)).unwrap();
-      console.log("handleAddSubmit result:", result);
       setIsAddModalOpen(false);
       toast({
         title: "Success",
         description: "Grade/Scale created successfully!",
       });
-      const fetchResult = await dispatch(fetchGradeOrScales());
-      console.log("handleAddSubmit fetchGradeOrScales result:", fetchResult);
+      await dispatch(fetchGradeOrScales());
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to create grade/scale. Please try again.",
         variant: "destructive",
       });
-      console.error("handleAddSubmit error:", error);
     }
   };
 
@@ -82,37 +75,21 @@ const JobOrScaleList = () => {
         id: selectedGradeOrScale.id,
         formData: updatedGradeOrScale
       })).unwrap();
-      console.log("handleEditSubmit result:", result);
       setIsEditModalOpen(false);
       toast({
         title: "Success",
         description: "Grade/Scale updated successfully!",
       });
       setSelectedGradeOrScale(null);
-      const fetchResult = await dispatch(fetchGradeOrScales());
-      console.log("handleEditSubmit fetchGradeOrScales result:", fetchResult);
+      await dispatch(fetchGradeOrScales());
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to update grade/scale. Please try again.",
         variant: "destructive",
       });
-      console.error("handleEditSubmit error:", error);
     }
   };
-
-  // Add useEffect to log state changes
-  useEffect(() => {
-    console.log("JobOrScaleList - allGradeOrScales changed:", allGradeOrScales);
-  }, [allGradeOrScales]);
-
-  useEffect(() => {
-    console.log("JobOrScaleList - filteredGradeOrScales changed:", filteredGradeOrScales);
-  }, [filteredGradeOrScales]);
-
-  useEffect(() => {
-    console.log("JobOrScaleList - paginatedGradeOrScales changed:", paginatedGradeOrScales);
-  }, [paginatedGradeOrScales]);
 
   return (
     <div className="w-full p-4 mt-8">
