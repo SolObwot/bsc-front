@@ -1,15 +1,17 @@
 import axios from '../lib/axios';
 
 export const userService = {
-  getUsers: (params) => axios.get('/users', { params }),
+  getUsers: async (params) => {
+    const response = await axios.get('/users', { params });
+    return response;
+  },
   getUser: async (id) => {
-    return await axios.get(`/users/${id}`);
+    const response = await axios.get(`/users/${id}`);
+    return response;
   },
   createUser: async (userData) => {
     try {
-      console.log('Sending request to create user:', userData);
       const response = await axios.post('/users', userData);
-      console.log('Response from create user:', response);
       return response;
     } catch (error) {
       if (error.response && error.response.status === 422) {
@@ -20,10 +22,25 @@ export const userService = {
       throw error;
     }
   },
-  updateUser: (id, userData) => axios.put(`/users/${id}`, userData),
-  deleteUser: (id) => axios.delete(`/users/${id}`),
+  updateUser: async (id, userData) => {
+    const response = await axios.put(`/users/${id}`, userData);
+    return response.data;
+  },
+  deleteUser: async (id) => {
+    const response = await axios.delete(`/users/${id}`);
+    return response;
+  },
   forgotPassword: (email) => axios.post('/forgot-password', { email }),
   resetPassword: (token, email, password) => axios.post('/reset-password', { token, email, password }),
   changePassword: (data) => axios.put('/user/password', data),
 
+  lockUser: async (id) => {
+    const response = await axios.put(`/users/${id}/lock`);
+    return response.data;
+  },
+  
+  unlockUser: async (id) => {
+    const response = await axios.put(`/users/${id}/unlock`);
+    return response.data;
+  },
 };

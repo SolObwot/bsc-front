@@ -1,328 +1,258 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlusIcon } from '@heroicons/react/24/outline';
-import { PencilSquareIcon, TrashIcon, LockClosedIcon, LockOpenIcon } from '@heroicons/react/20/solid';
-import { userService } from '../../services/user.service';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchUsers } from '../../redux/userSlice';
+import { fetchDepartments } from '../../redux/departmentSlice';
+import { fetchJobTitles } from '../../redux/jobTitleSlice';
+import { fetchUnitOrBranches } from '../../redux/unitOrBranchSlice';
 import FilterBox from '../../components/ui/FilterBox';
-import Button from '../../components/ui/Button';
 import { useToast } from "../../hooks/useToast";
 import { Table, TableHead, TableBody, TableRow, TableCell, TableHeader, TableSkeleton } from '../../components/ui/Tables';
 import DeleteUser from '../../components/users/DeleteUser';
-import EmailTruncator from '../../components/ui/EmailTruncator'; 
-import Pagination from '../../components/ui/Pagination'; 
+import EmailTruncator from '../../components/ui/EmailTruncator';
+import Pagination from '../../components/ui/Pagination';
+import EmployeeToolbar from './EmployeeToolbar';
+import EmployeeActions from './EmployeeActions';
+import useEmployeeFilters from '../../hooks/emplyeeList/useEmployeeFilters';
+import useEmployeePagination from '../../hooks/emplyeeList/useEmployeetPagination';
 
 const UsersList = () => {
   const navigate = useNavigate();
-  const [users, setUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [userToDelete, setUserToDelete] = useState(null);
-  const [userToEdit, setUserToEdit] = useState(null);
-  const [employeeToLock, setEmployeeToLock] = useState(null);
-  const [employeeToUnlock, setEmployeeToUnlock] = useState(null);
-  const [filterText, setFilterText] = useState('');
-  const [filterStaffNumber, setFilterStaffNumber] = useState('');
-  const [filterRole, setFilterRole] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
-  const [filterDepartment, setFilterDepartment] = useState('');
-  const [filterUnit, setFilterUnit] = useState('');
-  const [filterJobTitle, setFilterJobTitle] = useState('');
-  const [recordsPerPage, setRecordsPerPage] = useState(50);
-  const [currentPage, setCurrentPage] = useState(1);
+  const dispatch = useDispatch();
+  const { allUsers = [], loading, error } = useSelector((state) => state.users || {});
+  const { allDepartments = [] } = useSelector((state) => state.departments || {});
+  const { allJobTitles = [] } = useSelector((state) => state.jobTitles || {});
+  const { allUnitOrBranches = [] } = useSelector((state) => state.unitOrBranches || {});
   const { toast } = useToast();
+  const [userToDelete, setUserToDelete] = React.useState(null);
+
+  const { filteredUsers, filterProps } = useEmployeeFilters(allUsers);
+  const { paginatedUsers, paginationProps } = useEmployeePagination(filteredUsers);
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    dispatch(fetchUsers());
+    dispatch(fetchDepartments());
+    dispatch(fetchJobTitles());
+    dispatch(fetchUnitOrBranches());
+  }, [dispatch]);
 
   useEffect(() => {
-    const filtered = users.filter(user => 
-      (user.surname?.toLowerCase().includes(filterText.toLowerCase()) ||
-      user.first_name?.toLowerCase().includes(filterText.toLowerCase()) ||
-      user.email?.toLowerCase().includes(filterText.toLowerCase()) ||
-      user.title?.toLowerCase().includes(filterText.toLowerCase())) &&
-      (filterStaffNumber ? user.staff_number?.toLowerCase().includes(filterStaffNumber.toLowerCase()) : true) &&
-      (filterRole ? user.role === filterRole : true) &&
-      (filterStatus ? user.status === filterStatus : true)
-    );
-    setFilteredUsers(filtered);
-  }, [filterText, filterStaffNumber, filterRole, filterStatus, users]);
-
-  const truncateText = (text, showChars = 10, suffix = '...') => {
-    if (!text) return 'N/A';
-    return text.length > showChars ? `${text.slice(0, showChars)}${suffix}` : text;
-  };
-
-  const fetchUsers = async () => {
-    try {
-      const response = await userService.getUsers();
-      // Filter out users who have the 'employee' role or have an empty roles array
-      const EmployeeUsers = response.data.filter(user => 
-        user.roles.some(role => role.name === 'employee') || user.roles.length === 0
-      ).map(user => {
-        const department = truncateText(user.unit_or_branch?.department?.name);
-        const unit = truncateText(user.unit_or_branch?.name);
-        return {
-          ...user,
-          department,
-          unit,
-          fullDepartment: user.unit_or_branch?.department?.name || 'N/A',
-          fullUnit: user.unit_or_branch?.name || 'N/A'
-        };
-      });
-      setUsers(EmployeeUsers);
-      setFilteredUsers(EmployeeUsers);
-    } catch (error) {
-      console.error("Error fetching users:", error);
+    if (error) {
       toast({
         title: "Error",
         description: "Failed to fetch users. Please try again later.",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
-  };
-
-  const handleDeleteSuccess = (userId) => {
-    setUsers(users.filter(user => user.id !== userId));
-    setFilteredUsers(filteredUsers.filter(user => user.id !== userId));
-  };
-
-  const handleSearch = () => {
-    // Implement search logic if needed
-  };
-
-  const handleReset = () => {
-    setFilterText('');
-    setFilterStaffNumber('');
-    setFilterRole('');
-    setFilterStatus('');
-  };
+  }, [error, toast]);
 
   const handleEdit = (id) => {
     navigate(`/pim/employees/profile/${id}`);
   };
 
-  const handleRecordsPerPageChange = (e) => {
-    setRecordsPerPage(Number(e.target.value));
-    setCurrentPage(1);
+  const handleDeleteSuccess = (userId) => {
+    // Since no delete action in Redux yet, refetch
+    dispatch(fetchUsers());
   };
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
+  const showType = filterProps.filterType || 'branch'; // Default to branch
 
-  const paginatedUsers = filteredUsers.slice((currentPage - 1) * recordsPerPage, currentPage * recordsPerPage);
+  const unitOptions = filterProps.filterType === 'branch' 
+    ? allUnitOrBranches.filter(u => u.type === 'branch') 
+    : filterProps.filterType === 'unit' 
+    ? allUnitOrBranches.filter(u => u.type === 'unit') 
+    : allUnitOrBranches;
 
-
-  if (userToEdit) {
-    return <UpdateUser user={userToEdit} onCancel={() => setUserToEdit(null)} />;
-  }
+  const showDepartmentFilter = filterProps.filterType === 'unit';
+  const filters = [
+    {
+      id: 'filterText',
+      label: 'Employee Name',
+      type: 'search',
+      placeholder: 'Type for employees name...',
+      value: filterProps.filterText,
+      onChange: (e) => filterProps.setFilterText(e.target.value),
+    },
+    {
+      id: 'filterStaffNumber',
+      label: 'Staff Number',
+      type: 'search',
+      placeholder: 'Type for staff number...',
+      value: filterProps.filterStaffNumber,
+      onChange: (e) => filterProps.setFilterStaffNumber(e.target.value),
+    },
+    {
+      id: 'filterType',
+      label: 'Type',
+      type: 'select',
+      value: filterProps.filterType || 'branch',
+      onChange: (e) => filterProps.setFilterType(e.target.value),
+      options: [
+        { value: 'branch', label: 'Branch' },
+        { value: 'unit', label: 'Unit' },
+      ],
+    },
+    ...(showDepartmentFilter ? [{
+      id: 'filterDepartment',
+      label: 'Department',
+      type: 'select',
+      value: filterProps.filterDepartment,
+      onChange: (e) => filterProps.setFilterDepartment(e.target.value),
+      options: [
+        { value: '', label: '-- Select --' },
+        ...allDepartments.map(dept => ({ value: dept.id, label: dept.name })),
+      ],
+    }] : []),
+    {      id: 'filterUnit',
+      label: showType === 'branch' ? 'Branch' : 'Unit',
+      type: 'select',
+      value: filterProps.filterUnit,
+      onChange: (e) => filterProps.setFilterUnit(e.target.value),
+      options: [
+        { value: '', label: '-- Select --' },
+        ...unitOptions.map(unit => ({ value: unit.id, label: unit.name })),
+      ],
+    },
+    {
+      id: 'filterJobTitle',
+      label: 'Job Title',
+      type: 'select',
+      value: filterProps.filterJobTitle,
+      onChange: (e) => filterProps.setFilterJobTitle(e.target.value),
+      options: [
+        { value: '', label: '-- Select --' },
+        ...allJobTitles.map(job => ({ value: job.id, label: job.name })),
+      ],
+    },
+  ];
 
   return (
     <div className="w-full p-4 mt-8">
       <FilterBox
         title="Employee List"
-        filters={[
-          {
-            id: 'filterText',
-            label: 'Employee Name',
-            type: 'search',
-            placeholder: 'Type for employees name...',
-            value: filterText,
-            onChange: (e) => setFilterText(e.target.value),
-          },
-          {
-            id: 'filterStaffNumber',
-            label: 'Staff Number',
-            type: 'search',
-            placeholder: 'Type for staff number...',
-            value: filterStaffNumber,
-            onChange: (e) => setFilterStaffNumber(e.target.value),
-          },
-          {
-            id: 'filterStatus',
-            label: 'Employment Status',
-            type: 'select',
-            value: filterStatus,
-            onChange: (e) => setFilterStatus(e.target.value),
-            options: [
-              { value: '', label: '-- Select --' },
-              { value: 'enabled', label: 'Probation' },
-              { value: 'disabled', label: 'Contract' },
-              { value: 'disabled', label: 'Permanent' },
-              { value: 'disabled', label: 'Terminated' },
-            ],
-          },
-         
-          {
-            id: 'filterDepartment',
-            label: 'Department',
-            type: 'select',
-            // value: filterDepartment,
-            onChange: (e) => setFilterDepartment(e.target.value),
-            options: [
-              { value: '', label: '-- Select --' },
-              { value: 'People and Culture', label: 'People and Culture' },
-              { value: 'BT', label: 'BT' },
-              { value: 'Risk', label: 'Risk' },
-            ],
-          },
-
-
-          {
-            id: 'filterUnit',
-            label: 'Unit',
-            type: 'select',
-            // value: filterRole,
-            // onChange: (e) => setFilterRole(e.target.value),
-            options: [
-              { value: '', label: '-- Select --' },
-              { value: 'Innovation', label: 'Innovation' },
-              { value: 'e Banking', label: 'e Banking' },
-              { value: 'Infrastruture', label: 'Infrastruture' },
-
-              // Add more roles as needed
-            ],
-          },
-
-          {
-            id: 'filterJobTitle',
-            label: 'Job Title',
-            type: 'select',
-            options: [
-              { value: '', label: '-- Select --' },
-              { value: 'HBT', label: 'HBT' },
-              { value: 'Software Developer', label: 'Software Developer' },
-              { value: 'Cashier', label: 'Cashier' },
-            ],
-          },
-
-        ]}
+        filters={filters}
         buttons={[
-          {
-            label: 'Search',
-            variant: 'pride',
-            onClick: handleSearch,
-          },
           {
             label: 'Reset',
             variant: 'secondary',
-            onClick: handleReset,
+            onClick: filterProps.handleReset,
           },
         ]}
       />
 
       <div className="bg-gray-100 p-4 rounded-lg mb-4 shadow-sm">
-        <div className="flex flex-col sm:flex-row justify-between items-end mb-4">
-          <Button
-            type="button"
-            variant="pride"
-            className="flex items-center gap-2 mb-4 sm:mb-0"
-            onClick={() => navigate('/pim/employees/add')}
-          >
-            <UserPlusIcon className="h-5 w-5" aria-hidden="true" />
-            Add New Employee
-          </Button>
-          <div className="flex items-center gap-2 mb-4 sm:mb-0">
-            <label htmlFor="recordsPerPage" className="text-sm text-gray-700">Records per page:</label>
-            <select
-              id="recordsPerPage"
-              value={recordsPerPage}
-              onChange={handleRecordsPerPageChange}
-              className="border border-gray-300 rounded-md p-1"
-            >
-              {[5, 10, 15, 20, 50].map((num) => (
-                <option key={num} value={num}>{num}</option>
-              ))}
-            </select>
-          </div>
-          <span className="text-sm text-gray-700">
-            {filteredUsers.length > 0 ? `(${filteredUsers.length}) Records Found` : 'No Records Found'}
-          </span>
-        </div>
+        <EmployeeToolbar
+          onAddEmployee={() => navigate('/pim/employees/add')}
+          recordsPerPage={paginationProps.recordsPerPage}
+          onRecordsPerPageChange={paginationProps.handleRecordsPerPageChange}
+          totalRecords={filteredUsers.length}
+        />
 
         {loading ? (
-          <TableSkeleton 
-            rows={8} 
-            columns={7} 
-            columnWidths={['10%', '20%', '15%', '15%', '15%', '15%', '10%']} 
+          <TableSkeleton
+            rows={8}
+            columns={showType === 'unit' ? 7 : 6}
+            columnWidths={showType === 'unit' ? ['10%', '20%', '15%', '15%', '15%', '15%', '10%'] : ['10%', '20%', '15%', '15%', '15%', '15%']}
           />
         ) : (
           <>
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableHeader>Staff Number</TableHeader>
-                  <TableHeader>Display Name</TableHeader>
-                  <TableHeader>Department</TableHeader>
+                  <TableHeader>Staff No</TableHeader>
+                  <TableHeader>Name</TableHeader>
+                  {showType === 'unit' && <TableHeader>Department</TableHeader>}
                   <TableHeader>Unit/Branch</TableHeader>
+                  <TableHeader>Job Title</TableHeader>
                   <TableHeader>Email</TableHeader>
-                  <TableHeader>Lock/Unlock</TableHeader>
                   <TableHeader>Actions</TableHeader>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {paginatedUsers.map((user) => (
-                  <TableRow key={user.email}>
-                    <TableCell>{user.staff_number}</TableCell>
-                    <TableCell>{`${user.surname} ${user.first_name}`}</TableCell>
-                    <TableCell title={user.fullDepartment}>{user.department || 'Set Department'}</TableCell>
-                    <TableCell title={user.fullUnit}>{user.unit || 'Set Unit'}</TableCell>
-                    <TableCell>
-                      <EmailTruncator email={user.email} showChars={8} />
-                    </TableCell>
-                    <TableCell>
-                      <button 
-                        onClick={() => setEmployeeToLock(user)}
-                        className="text-red-600 hover:text-red-900 inline-flex items-center gap-x-1.5 mr-2 cursor-pointer">
-                        <LockClosedIcon className="h-5 w-5" aria-hidden="true" />
-                        <span>Lock</span>
-                      </button>
-                      <button 
-                        onClick={() => setEmployeeToUnlock(user)}
-                        className="text-green-600 hover:text-green-900 inline-flex items-center gap-x-1.5 cursor-pointer">
-                        <LockOpenIcon className="h-5 w-5" aria-hidden="true" />
-                        <span>Unlock</span>
-                      </button>
-                    </TableCell>
-                    <TableCell>
-                      <button 
-                        onClick={() => handleEdit(user.id)} 
-                        className="text-indigo-600 hover:text-indigo-900 inline-flex items-center gap-x-1.5 mr-2 cursor-pointer"
-                      >
-                        <PencilSquareIcon className="h-5 w-5" aria-hidden="true" />
-                        <span>Edit</span>
-                        <span className="sr-only">, {`${user.surname} ${user.first_name}`}</span>
-                      </button>
-                      <button 
-                        onClick={() => setUserToDelete(user)} 
-                        className="text-red-600 hover:text-red-900 inline-flex items-center gap-x-1.5 cursor-pointer"
-                      >
-                        <TrashIcon className="h-5 w-5" aria-hidden="true" />
-                        <span>Delete</span>
-                      </button>
+                {paginatedUsers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={showType === 'unit' ? 7 : 6} className="text-center py-8 text-gray-500">
+                      No Employees found. Click "Add New Employee" to get started.
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  paginatedUsers.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <div className="flex flex-col gap-1 whitespace-normal">
+                          <span>{user.staff_number}</span>
+                          {user.staffType && (
+                            <span className="ml-0 px-1.5 py-0.5 text-xs font-medium rounded-full max-w-fit
+                              bg-blue-100 text-blue-800">
+                              {user.staffType}
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1 whitespace-normal">
+                          <span>
+                            {`${user.surname} ${user.first_name}${user.other_name ? ` ${user.other_name}` : ''}`}
+                          </span>
+                          {user.employmentCategory && (
+                            <span className="ml-0 px-1.5 py-0.5 text-xs font-medium rounded-full max-w-fit bg-blue-100 text-blue-800 capitalize">
+                              {user.employmentCategory}
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      {showType === 'unit' && (
+                        <TableCell title={user.fullDepartment}>
+                          <div className="flex flex-col gap-1 whitespace-normal">
+                            <span>{user.department || 'Set Department'}</span>
+                          </div>
+                        </TableCell>
+                      )}
+                      <TableCell title={user.fullUnit}>
+                        <div className="flex flex-col gap-1 whitespace-normal">
+                          <span>{user.unit || 'Set Unit'}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1 whitespace-normal">
+                          <span>{user.jobTitle}</span>
+                          <span className={`ml-0 px-1.5 py-0.5 text-xs font-medium rounded-full max-w-fit ${user.isProbation ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                            {user.isProbation ? 'Probation' : 'Confirmed'}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1 whitespace-normal">
+                          <span>{user.email}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <EmployeeActions
+                          employee={user}
+                          onEdit={handleEdit}
+                          onDelete={setUserToDelete}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
 
             <Pagination
-              currentPage={currentPage}
-              totalPages={Math.ceil(filteredUsers.length / recordsPerPage)}
-              onPageChange={handlePageChange}
+              currentPage={paginationProps.currentPage}
+              totalPages={paginationProps.totalPages}
+              onPageChange={paginationProps.handlePageChange}
               className="mt-4"
             />
           </>
         )}
       </div>
 
-      <DeleteUser 
-        userToDelete={userToDelete} 
-        setUserToDelete={setUserToDelete} 
-        onDeleteSuccess={handleDeleteSuccess} 
+      <DeleteUser
+        userToDelete={userToDelete}
+        setUserToDelete={setUserToDelete}
+        onDeleteSuccess={handleDeleteSuccess}
       />
     </div>
   );

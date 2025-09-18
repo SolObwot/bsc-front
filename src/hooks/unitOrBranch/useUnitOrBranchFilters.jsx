@@ -3,8 +3,8 @@ import { useState, useMemo } from 'react';
 export const useUnitOrBranchFilters = (unitOrBranches) => {
     const [filterShortCode, setFilterShortCode] = useState('');
     const [filterName, setFilterName] = useState('');
-    const [filterType, setFilterType] = useState('branch'); // Default to 'branch'
-    const [filterRegion, setFilterRegion] = useState(''); // New filter for Region
+    const [filterType, setFilterType] = useState('branch'); 
+    const [filterRegion, setFilterRegion] = useState(''); 
 
     const filteredUnitOrBranches = useMemo(() => {
         return unitOrBranches.filter((unitOrBranch) => {
@@ -19,8 +19,8 @@ export const useUnitOrBranchFilters = (unitOrBranches) => {
     const handleReset = () => {
         setFilterShortCode('');
         setFilterName('');
-        setFilterType('branch'); // Reset to 'branch'
-        setFilterRegion(''); // Reset Region filter
+        setFilterType('branch'); 
+        setFilterRegion(''); 
     };
 
     return {
@@ -33,8 +33,7 @@ export const useUnitOrBranchFilters = (unitOrBranches) => {
             filterType,
             setFilterType,
             filterRegion,
-            setFilterRegion, // Add to props
-            handleReset,
+            setFilterRegion, 
         },
     };
 };
