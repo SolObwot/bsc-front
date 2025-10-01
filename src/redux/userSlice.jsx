@@ -147,7 +147,27 @@ const userSlice = createSlice({
                 state.error = null;
             })
             .addCase(fetchUser.fulfilled, (state, action) => {
-                state.currentUser = action.payload.data;
+                // Support both shapes: { data: user } and raw user object
+                const payload = action.payload || null;
+                const user = payload && (payload.data ? payload.data : payload);
+                if (!user) {
+                    state.currentUser = null;
+                    state.loading = false;
+                    return;
+                }
+                const employmentDetails = Array.isArray(user.employment_details)
+                    ? user.employment_details[0] || {}
+                    : user.employment_details || {};
+                state.currentUser = {
+                    ...user,
+                    department: user.unit_or_branch?.department?.name || null,
+                    unit: user.unit_or_branch?.name || null,
+                    fullDepartment: user.unit_or_branch?.department?.name || 'N/A',
+                    fullUnit: user.unit_or_branch?.name || 'N/A',
+                    jobTitle: user.job_title?.name || null,
+                    employmentCategory: employmentDetails.employment_category,
+                    isProbation: employmentDetails.is_probation === 1,
+                };
                 state.loading = false;
             })
             .addCase(fetchUser.rejected, (state, action) => {

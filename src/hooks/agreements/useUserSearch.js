@@ -28,7 +28,24 @@ const useUserSearch = () => {
       const responseData = res.data.data || res.data || [];
       const meta = res.data.meta;
       
-      setSearchResults(responseData);
+      const transformedData = responseData.map(user => {
+        const employmentDetails = Array.isArray(user.employment_details)
+          ? user.employment_details[0] || {}
+          : user.employment_details || {};
+        const t = {
+          ...user,
+          department: user.unit_or_branch?.department?.name || null,
+          unit: user.unit_or_branch?.name || null,
+          fullDepartment: user.unit_or_branch?.department?.name || 'N/A',
+          fullUnit: user.unit_or_branch?.name || 'N/A',
+          jobTitle: user.job_title?.name || null,
+          employmentCategory: employmentDetails.employment_category,
+          isProbation: employmentDetails.is_probation === 1,
+        };
+        return t;
+      });
+      
+      setSearchResults(transformedData);
       if (meta) {
         setHasMore(meta.current_page < meta.last_page);
         setPage(meta.current_page);
@@ -53,7 +70,23 @@ const useUserSearch = () => {
       const responseData = res.data.data || res.data || [];
       const meta = res.data.meta;
 
-      setSearchResults(prev => [...prev, ...responseData]);
+      const transformedData = responseData.map(user => {
+        const employmentDetails = Array.isArray(user.employment_details)
+          ? user.employment_details[0] || {}
+          : user.employment_details || {};
+        return {
+          ...user,
+          department: user.unit_or_branch?.department?.name || null,
+          unit: user.unit_or_branch?.name || null,
+          fullDepartment: user.unit_or_branch?.department?.name || 'N/A',
+          fullUnit: user.unit_or_branch?.name || 'N/A',
+          jobTitle: user.job_title?.name || null,
+          employmentCategory: employmentDetails.employment_category,
+          isProbation: employmentDetails.is_probation === 1,
+        };
+      });
+
+      setSearchResults(prev => [...prev, ...transformedData]);
       if (meta) {
         setHasMore(meta.current_page < meta.last_page);
         setPage(meta.current_page);

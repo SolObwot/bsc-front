@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchUsers } from '../../redux/userSlice';
+import { fetchUsers, fetchUser } from '../../redux/userSlice';
 import { fetchDepartments } from '../../redux/departmentSlice';
 import { fetchJobTitles } from '../../redux/jobTitleSlice';
 import { fetchUnitOrBranches } from '../../redux/unitOrBranchSlice';
@@ -15,18 +15,22 @@ import EmployeeToolbar from './EmployeeToolbar';
 import EmployeeActions from './EmployeeActions';
 import useEmployeeFilters from '../../hooks/emplyeeList/useEmployeeFilters';
 import useEmployeePagination from '../../hooks/emplyeeList/useEmployeetPagination';
+import AdvancedSearchModal from './AdvancedSearchModal';
 
 const UsersList = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { allUsers = [], loading, error } = useSelector((state) => state.users || {});
+  const { allUsers = [], loading, error, currentUser } = useSelector((state) => state.users || {});
   const { allDepartments = [] } = useSelector((state) => state.departments || {});
   const { allJobTitles = [] } = useSelector((state) => state.jobTitles || {});
   const { allUnitOrBranches = [] } = useSelector((state) => state.unitOrBranches || {});
   const { toast } = useToast();
   const [userToDelete, setUserToDelete] = React.useState(null);
+  const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = React.useState(false);
+  const [selectedEmployee, setSelectedEmployee] = React.useState(null);
+  const [selectedId, setSelectedId] = React.useState(null);
 
-  const { filteredUsers, filterProps } = useEmployeeFilters(allUsers);
+  const { filteredUsers, filterProps } = useEmployeeFilters(allUsers, selectedEmployee);
   const { paginatedUsers, paginationProps } = useEmployeePagination(filteredUsers);
 
   useEffect(() => {
@@ -46,16 +50,63 @@ const UsersList = () => {
     }
   }, [error, toast]);
 
+  // Helper to normalize user shape to match Redux/table format
+  const transformUser = (user = {}) => {
+    if (!user) return null;
+    const employmentDetails = Array.isArray(user.employment_details)
+      ? user.employment_details[0] || {}
+      : user.employment_details || {};
+    const derivedType = user.unit_or_branch?.type
+      || (user.fullDepartment && user.fullDepartment !== 'N/A') ? 'unit' : 'branch';
+    const normalized = {
+      ...user,
+      department: user.unit_or_branch?.department?.name || user.department || null,
+      unit: user.unit_or_branch?.name || user.unit || null,
+      fullDepartment: user.unit_or_branch?.department?.name || user.fullDepartment || 'N/A',
+      fullUnit: user.unit_or_branch?.name || user.fullUnit || 'N/A',
+      jobTitle: user.job_title?.name || user.jobTitle || null,
+      employmentCategory: employmentDetails.employment_category || user.employmentCategory,
+      isProbation: (employmentDetails.is_probation === 1) || user.isProbation || false,
+      unit_or_branch_type: user.unit_or_branch?.type || (derivedType || 'branch'),
+    };
+    return normalized;
+  };
+
+  useEffect(() => {
+    if (currentUser && currentUser.id === selectedId) {
+      // currentUser is already transformed in the slice, but ensure normalization
+      setSelectedEmployee(transformUser(currentUser));
+      paginationProps.handlePageChange(1);
+      setSelectedId(null);
+    }
+  }, [currentUser, selectedId, paginationProps]);
+
   const handleEdit = (id) => {
     navigate(`/pim/employees/profile/${id}`);
   };
 
   const handleDeleteSuccess = (userId) => {
-    // Since no delete action in Redux yet, refetch
+    // Since no delete action in Redux yet, refedrhch
     dispatch(fetchUsers());
   };
 
-  const showType = filterProps.filterType || 'branch'; // Default to branch
+  const handleAdvancedSearch = () => {
+    setIsAdvancedSearchOpen(true);
+  };
+
+  const handleEmployeeSelect = (employee) => {
+    // Normalize immediately so table columns render consistently
+    const normalized = transformUser(employee);
+    setSelectedEmployee(normalized);
+    setSelectedId(employee.id);
+    dispatch(fetchUser(employee.id)); // fetch full data and replace when available
+    setIsAdvancedSearchOpen(false); // Close modal immediately
+  };
+
+  // compute showType from normalized field first
+  const showType = selectedEmployee
+    ? (selectedEmployee.unit_or_branch_type || selectedEmployee.unit_or_branch?.type || 'branch')
+    : (filterProps.filterType || 'branch');
 
   const unitOptions = filterProps.filterType === 'branch' 
     ? allUnitOrBranches.filter(u => u.type === 'branch') 
@@ -133,9 +184,19 @@ const UsersList = () => {
         filters={filters}
         buttons={[
           {
+            label: 'Advanced Search',
+            variant: 'primary',
+            onClick: handleAdvancedSearch,
+          },
+          {
             label: 'Reset',
             variant: 'secondary',
-            onClick: filterProps.handleReset,
+            onClick: () => {
+              filterProps.handleReset();
+              setSelectedEmployee(null);
+              dispatch(fetchUsers()); // restore Redux-loaded list
+              paginationProps.handlePageChange(1);
+            },
           },
         ]}
       />
@@ -151,8 +212,8 @@ const UsersList = () => {
         {loading ? (
           <TableSkeleton
             rows={8}
-            columns={showType === 'unit' ? 7 : 6}
-            columnWidths={showType === 'unit' ? ['10%', '20%', '15%', '15%', '15%', '15%', '10%'] : ['10%', '20%', '15%', '15%', '15%', '15%']}
+            columns={showType === 'unit' ? 8 : 7}
+            columnWidths={showType === 'unit' ? ['10%', '20%', '15%', '15%', '15%', '15%', '10%', '10%'] : ['10%', '20%', '15%', '15%', '15%', '15%', '10%']}
           />
         ) : (
           <>
@@ -171,7 +232,7 @@ const UsersList = () => {
               <TableBody>
                 {paginatedUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={showType === 'unit' ? 7 : 6} className="text-center py-8 text-gray-500">
+                    <TableCell colSpan={showType === 'unit' ? 8 : 7} className="text-center py-8 text-gray-500">
                       No Employees found. Click "Add New Employee" to get started.
                     </TableCell>
                   </TableRow>
@@ -224,6 +285,9 @@ const UsersList = () => {
                       <TableCell>
                         <div className="flex flex-col gap-1 whitespace-normal">
                           <span>{user.email}</span>
+                          <span className={`ml-0 px-1.5 py-0.5 text-xs font-medium rounded-full max-w-fit ${user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                            {user.is_active ? 'Active' : 'Inactive'}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -248,6 +312,12 @@ const UsersList = () => {
           </>
         )}
       </div>
+
+      <AdvancedSearchModal 
+        isOpen={isAdvancedSearchOpen}
+        onClose={() => setIsAdvancedSearchOpen(false)}
+        onEmployeeSelect={handleEmployeeSelect}
+      />
 
       <DeleteUser
         userToDelete={userToDelete}

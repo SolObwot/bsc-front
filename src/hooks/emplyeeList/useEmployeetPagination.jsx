@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 const useEmployeePagination = (filteredUsers) => {
-  const [recordsPerPage, setRecordsPerPage] = useState(50);
+  const [recordsPerPage, setRecordsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
   const totalPages = Math.ceil(filteredUsers.length / recordsPerPage);
