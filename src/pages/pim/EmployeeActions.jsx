@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { PencilSquareIcon, TrashIcon, LockClosedIcon, LockOpenIcon } from '@heroicons/react/20/solid';
+import { PencilSquareIcon, TrashIcon, LockClosedIcon, LockOpenIcon, EyeIcon } from '@heroicons/react/20/solid';
 import { useDispatch } from 'react-redux';
 import { toggleUserLock } from '../../redux/userSlice';
 import { useToast } from '../../hooks/useToast';
 
-const EmployeeActions = ({ employee, onEdit, onDelete }) => {
+const EmployeeActions = ({ employee, onEdit, onDelete, onView }) => {
   const dispatch = useDispatch();
   const { toast } = useToast();
   const [isLocking, setIsLocking] = useState(false);
@@ -35,6 +35,13 @@ const EmployeeActions = ({ employee, onEdit, onDelete }) => {
 
   return (
     <div className="flex space-x-2">
+      <button
+        onClick={() => onView?.(employee.id)}
+        className="text-gray-600 hover:text-gray-900 inline-flex items-center gap-x-1.5 cursor-pointer"
+      >
+        <EyeIcon className="h-5 w-5" aria-hidden="true" />
+        <span>View</span>
+      </button>
       <button
         onClick={() => onEdit(employee.id)}
         className="text-indigo-600 hover:text-indigo-900 inline-flex items-center gap-x-1.5 cursor-pointer"

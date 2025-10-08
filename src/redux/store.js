@@ -20,6 +20,7 @@ import villageReducer from './villageSlice';
 import regionReducer from './regionSlice';
 import tribeReducer from './tribeSlice';
 import userReducer from './userSlice';
+import employeeReducer from './employeeSlice';
 
 const store = configureStore({
   reducer: {
@@ -45,6 +46,7 @@ const store = configureStore({
     regions: regionReducer,
     tribes: tribeReducer,
     users: userReducer,
+    employee: employeeReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

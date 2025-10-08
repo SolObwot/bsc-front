@@ -82,8 +82,12 @@ const UsersList = () => {
   }, [currentUser, selectedId, paginationProps]);
 
   const handleEdit = (id) => {
-    navigate(`/pim/employees/profile/${id}`);
+    navigate(`/pim/employees/profile/edit/${id}`);
   };
+
+  const handleView = (id) => {
+    navigate(`/pim/employees/profile/${id}`);
+  }
 
   const handleDeleteSuccess = (userId) => {
     // Since no delete action in Redux yet, refedrhch
@@ -294,6 +298,7 @@ const UsersList = () => {
                         <EmployeeActions
                           employee={user}
                           onEdit={handleEdit}
+                          onView={handleView}
                           onDelete={setUserToDelete}
                         />
                       </TableCell>
