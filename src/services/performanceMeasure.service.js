@@ -42,7 +42,15 @@ export const performanceMeasureService = {
     }
   },
 
-  
+  // Get a specific agreement by ID
+  getAgreementById: async (id) => {
+    try {
+      const response = await axios.get(`/agreements/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 
   // Get a specific performance measure
   getPerformanceMeasure: async (id) => {

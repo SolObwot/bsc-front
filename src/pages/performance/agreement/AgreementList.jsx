@@ -1,19 +1,33 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { Table, TableHead, TableBody, TableRow, TableCell, TableHeader, TableSkeleton } from '../../../components/ui/Tables';
-import { createAgreement,updateAgreement,deleteAgreement, fetchMyAgreements, resetMyAgreements } from '../../../redux/agreementSlice';
-import { useToast } from '../../../hooks/useToast';
-import ObjectiveHeader from '../../../components/balancescorecard/Header';
-import FilterBox from '../../../components/ui/FilterBox';
-import Button from '../../../components/ui/Button';
-import {DocumentPlusIcon} from '@heroicons/react/24/outline';
-import AgreementActions from './AgreementActions'; 
-import SubmitAgreementModal from './SubmitAgreementModal';
-import AddAgreement from './AddAgreement';
-import EditAgreement from './EditAgreement';
-import DeleteAgreementModal from './DeleteAgreementModal';
-import StatusBadge from './AgreementStatusBadge';
+import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  TableHeader,
+  TableSkeleton,
+} from "../../../components/ui/Tables";
+import {
+  createAgreement,
+  updateAgreement,
+  deleteAgreement,
+  fetchMyAgreements,
+  resetMyAgreements,
+} from "../../../redux/agreementSlice";
+import { useToast } from "../../../hooks/useToast";
+import ObjectiveHeader from "../../../components/balancescorecard/Header";
+import FilterBox from "../../../components/ui/FilterBox";
+import Button from "../../../components/ui/Button";
+import { DocumentPlusIcon } from "@heroicons/react/24/outline";
+import AgreementActions from "./AgreementActions";
+import SubmitAgreementModal from "./SubmitAgreementModal";
+import AddAgreement from "./AddAgreement";
+import EditAgreement from "./EditAgreement";
+import DeleteAgreementModal from "./DeleteAgreementModal";
+import StatusBadge from "./AgreementStatusBadge";
 
 const AgreementList = () => {
   // Navigation hook
@@ -22,11 +36,13 @@ const AgreementList = () => {
   const { toast } = useToast();
 
   // State for filters
-  const [filterText, setFilterText] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
-  const [filterPeriod, setFilterPeriod] = useState('');
-  const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString());
-  
+  const [filterText, setFilterText] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterPeriod, setFilterPeriod] = useState("");
+  const [filterYear, setFilterYear] = useState(
+    new Date().getFullYear().toString()
+  );
+
   // Modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -35,7 +51,12 @@ const AgreementList = () => {
   const [selectedAgreement, setSelectedAgreement] = useState(null);
 
   // Get agreements from Redux
-  const { myAgreements: agreements, pagination, loading, error } = useSelector((state) => state.agreements);
+  const {
+    myAgreements: agreements,
+    pagination,
+    loading,
+    error,
+  } = useSelector((state) => state.agreements);
   const [filteredAgreements, setFilteredAgreements] = useState([]);
   const currentYear = useMemo(() => new Date().getFullYear(), []);
 
@@ -44,14 +65,14 @@ const AgreementList = () => {
     // Using fetchMyAgreements with unwrap to catch any errors
     dispatch(fetchMyAgreements())
       .unwrap()
-      .catch(error => {
+      .catch((error) => {
         toast({
           title: "Error",
           description: "Failed to load agreements. Please try again.",
           variant: "destructive",
         });
       });
-    
+
     return () => {
       dispatch(resetMyAgreements());
     };
@@ -60,34 +81,50 @@ const AgreementList = () => {
   // Apply filters when filter state or agreements change
   useEffect(() => {
     let filtered = agreements;
-    
+
     if (filterText) {
-      filtered = filtered.filter(agreement => 
-        (agreement.name || '').toLowerCase().includes(filterText.toLowerCase()) ||
-        (agreement.title || '').toLowerCase().includes(filterText.toLowerCase())
+      filtered = filtered.filter(
+        (agreement) =>
+          (agreement.name || "")
+            .toLowerCase()
+            .includes(filterText.toLowerCase()) ||
+          (agreement.title || "")
+            .toLowerCase()
+            .includes(filterText.toLowerCase())
       );
     }
-    
+
     if (filterStatus) {
-      filtered = filtered.filter(agreement => agreement.status === filterStatus);
+      filtered = filtered.filter(
+        (agreement) => agreement.status === filterStatus
+      );
     }
-    
+
     if (filterPeriod) {
-      filtered = filtered.filter(agreement => {
+      filtered = filtered.filter((agreement) => {
         // Match based on the period display value
-        if (agreement.period === 'annual' && filterPeriod === 'Annual Review') return true;
-        if (agreement.period === 'probation' && filterPeriod === 'Probation 6 months') return true;
+        if (agreement.period === "annual" && filterPeriod === "Annual Review")
+          return true;
+        if (
+          agreement.period === "probation" &&
+          filterPeriod === "Probation 6 months"
+        )
+          return true;
         return agreement.period === filterPeriod;
       });
     }
     if (filterYear) {
-      filtered = filtered.filter(agreement => {
+      filtered = filtered.filter((agreement) => {
         if (!agreement.created_at && !agreement.createdDate) return false;
-        const agreementYear = new Date(agreement.created_at || agreement.createdDate).getFullYear().toString();
+        const agreementYear = new Date(
+          agreement.created_at || agreement.createdDate
+        )
+          .getFullYear()
+          .toString();
         return agreementYear === filterYear;
       });
     }
-    
+
     setFilteredAgreements(filtered);
   }, [filterText, filterStatus, filterPeriod, filterYear, agreements]);
 
@@ -116,7 +153,6 @@ const AgreementList = () => {
     }
   };
 
-  
   const handlePreview = (agreement) => {
     navigate(`/performance/measures/preview/${agreement.id}`);
   };
@@ -130,10 +166,12 @@ const AgreementList = () => {
   // Handle the submission of an edited agreement
   const handleEditSubmit = async (updatedAgreement) => {
     try {
-      await dispatch(updateAgreement({ 
-        id: selectedAgreement.id, 
-        formData: updatedAgreement 
-      })).unwrap();
+      await dispatch(
+        updateAgreement({
+          id: selectedAgreement.id,
+          formData: updatedAgreement,
+        })
+      ).unwrap();
       setIsEditModalOpen(false);
       toast({
         title: "Success",
@@ -161,7 +199,7 @@ const AgreementList = () => {
   };
 
   const handleConfirmSubmit = async () => {
-     setSelectedAgreement(null);
+    setSelectedAgreement(null);
     try {
       await dispatch(fetchMyAgreements()).unwrap();
     } catch (error) {
@@ -175,8 +213,8 @@ const AgreementList = () => {
 
   // New handler for deleting an agreement
   const handleDeleteConfirmation = (agreementToDelete) => {
-      setSelectedAgreement(agreementToDelete);
-      setIsDeleteModalOpen(true);
+    setSelectedAgreement(agreementToDelete);
+    setIsDeleteModalOpen(true);
   };
 
   // Add a function to handle the actual deletion
@@ -201,48 +239,52 @@ const AgreementList = () => {
   };
 
   const handleReset = () => {
-    setFilterText('');
-    setFilterStatus('');
-    setFilterPeriod('');
+    setFilterText("");
+    setFilterStatus("");
+    setFilterPeriod("");
     setFilterYear(currentYear.toString());
   };
 
   // Get unique periods for the filter dropdown
   const periods = useMemo(() => {
-    return [...new Set(agreements.map(a => {
-      if (a.period === 'annual') return 'Annual Review';
-      if (a.period === 'probation') return 'Probation 6 months';
-      return a.period;
-    }))];
+    return [
+      ...new Set(
+        agreements.map((a) => {
+          if (a.period === "annual") return "Annual Review";
+          if (a.period === "probation") return "Probation 6 months";
+          return a.period;
+        })
+      ),
+    ];
   }, [agreements]);
 
   // Format date for display
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString();
   };
 
   // Calculate time ago
   const getTimeAgo = (dateString) => {
-    if (!dateString) return '';
-    
+    if (!dateString) return "";
+
     const date = new Date(dateString);
     const now = new Date();
     const diffTime = Math.abs(now - date);
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays < 1) {
-      return 'Today';
+      return "Today";
     } else if (diffDays === 1) {
-      return 'Yesterday';
+      return "Yesterday";
     } else if (diffDays < 30) {
       return `${diffDays} days ago`;
     } else if (diffDays < 365) {
       const months = Math.floor(diffDays / 30);
-      return `${months} ${months === 1 ? 'month' : 'months'} ago`;
+      return `${months} ${months === 1 ? "month" : "months"} ago`;
     } else {
       const years = Math.floor(diffDays / 365);
-      return `${years} ${years === 1 ? 'year' : 'years'} ago`;
+      return `${years} ${years === 1 ? "year" : "years"} ago`;
     }
   };
 
@@ -274,70 +316,72 @@ const AgreementList = () => {
           </p>
         </div>
       </div>
-      
+
       <div className="px-4 py-2 bg-white">
         <FilterBox
           title="My Performance Agreements Filters"
           filters={[
             {
-              id: 'filterText',
-              label: 'Search',
-              type: 'text',
-              placeholder: 'Search by agreement title...',
+              id: "filterText",
+              label: "Search",
+              type: "text",
+              placeholder: "Search by agreement title...",
               value: filterText,
               onChange: (e) => setFilterText(e.target.value),
             },
             {
-              id: 'filterStatus',
-              label: 'Status',
-              type: 'select',
+              id: "filterStatus",
+              label: "Status",
+              type: "select",
               value: filterStatus,
               onChange: (e) => setFilterStatus(e.target.value),
-               options: [
-                  { value: '', label: '-- All Statuses --' },
-                  { value: 'draft', label: 'Draft' },
-                  { value: 'pending_supervisor', label: 'Pending Supervisor' },
-                  { value: 'pending_hod', label: 'Pending HOD' },
-                  { value: 'approved_supervisor', label: 'Supervisor Approved' },
-                  { value: 'approved', label: 'Approved' },
-                  { value: 'rejected', label: 'Rejected' },
-                ],
+              options: [
+                { value: "", label: "-- All Statuses --" },
+                { value: "draft", label: "Draft" },
+                { value: "pending_supervisor", label: "Pending Supervisor" },
+                { value: "pending_hod", label: "Pending HOD" },
+                { value: "approved_supervisor", label: "Supervisor Approved" },
+                { value: "approved", label: "Approved" },
+                { value: "rejected", label: "Rejected" },
+              ],
             },
             {
-              id: 'filterPeriod',
-              label: 'Period',
-              type: 'select',
+              id: "filterPeriod",
+              label: "Period",
+              type: "select",
               value: filterPeriod,
               onChange: (e) => setFilterPeriod(e.target.value),
               options: [
-                { value: '', label: '-- All Periods --' },
-                ...periods.map(period => ({ value: period, label: period }))
+                { value: "", label: "-- All Periods --" },
+                ...periods.map((period) => ({ value: period, label: period })),
               ],
             },
             {
-              id: 'filterYear',
-              label: 'Year',
-              type: 'select',
+              id: "filterYear",
+              label: "Year",
+              type: "select",
               value: filterYear,
               onChange: (e) => setFilterYear(e.target.value),
               options: [
-                { value: '', label: '-- All Years --' },
-                ...Array.from({ length: 5 }, (_, i) => currentYear - i).map(year => ({
-                  value: year.toString(),
-                  label: year.toString()
-                }))
+                { value: "", label: "-- All Years --" },
+                ...Array.from({ length: 5 }, (_, i) => currentYear - i).map(
+                  (year) => ({
+                    value: year.toString(),
+                    label: year.toString(),
+                  })
+                ),
               ],
-            }
+            },
           ]}
           buttons={[
             {
-              label: 'Reset Filters',
-              variant: 'secondary',
+              label: "Reset Filters",
+              variant: "secondary",
               onClick: handleReset,
             },
           ]}
         />
-        
+
         {/* Toolbar */}
         <div className="bg-gray-100 p-4 rounded-lg mb-4 shadow-sm">
           <div className="flex flex-col sm:flex-row justify-between items-end mb-4">
@@ -350,23 +394,32 @@ const AgreementList = () => {
               <DocumentPlusIcon className="h-5 w-5" aria-hidden="true" />
               Create New Agreement
             </Button>
-            
+
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-700">
-                {filteredAgreements.length > 0 
-                  ? `(${filteredAgreements.length}) Records Found` 
-                  : 'No Records Found'}
+                {filteredAgreements.length > 0
+                  ? `(${filteredAgreements.length}) Records Found`
+                  : "No Records Found"}
               </span>
             </div>
           </div>
-          
+
           {/* Conditional loading state only for the table */}
           <div>
             {loading && agreements.length === 0 ? (
-              <TableSkeleton 
-                rows={8} 
-                columns={8} 
-                columnWidths={['20%', '10%', '15%', '15%', '15%', '10%', '10%', '15%']} 
+              <TableSkeleton
+                rows={8}
+                columns={8}
+                columnWidths={[
+                  "20%",
+                  "10%",
+                  "15%",
+                  "15%",
+                  "15%",
+                  "10%",
+                  "10%",
+                  "15%",
+                ]}
               />
             ) : (
               <Table>
@@ -385,61 +438,84 @@ const AgreementList = () => {
                 <TableBody>
                   {filteredAgreements.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                        No agreements found. Click "Create New Agreement" to get started.
+                      <TableCell
+                        colSpan={8}
+                        className="text-center py-8 text-gray-500"
+                      >
+                        No agreements found. Click "Create New Agreement" to get
+                        started.
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredAgreements.map((agreement) => (
                       <TableRow key={agreement.id} className="hover:bg-gray-50">
                         <TableCell>
-                          <div className="text-sm font-medium text-gray-900">{agreement.name || agreement.title}</div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {agreement.name || agreement.title}
+                          </div>
                         </TableCell>
                         <TableCell>
-                          {agreement.period === 'annual' ? 'Annual Review' : 
-                          agreement.period === 'probation' ? 'Probation 6 months' : 
-                          agreement.period}
+                          {agreement.period === "annual"
+                            ? "Annual Review"
+                            : agreement.period === "probation"
+                            ? "Probation 6 months"
+                            : agreement.period}
                         </TableCell>
                         <TableCell>
-                          {agreement.supervisor ? 
-                            `${agreement.supervisor.surname} ${agreement.supervisor.first_name}` : 
-                            agreement.supervisorName || 'Not assigned'}
+                          {agreement.supervisor
+                            ? `${agreement.supervisor.surname} ${agreement.supervisor.first_name}`
+                            : agreement.supervisorName || "Not assigned"}
                         </TableCell>
                         <TableCell>
-                          {agreement.hod ? 
-                            `${agreement.hod.surname} ${agreement.hod.first_name}` : 
-                            agreement.hodName || 'Not assigned'}
+                          {agreement.hod
+                            ? `${agreement.hod.surname} ${agreement.hod.first_name}`
+                            : agreement.hodName || "Not assigned"}
                         </TableCell>
                         <TableCell>
                           <div>
-                            {formatDate(agreement.created_at || agreement.createdDate)}
+                            {formatDate(
+                              agreement.created_at || agreement.createdDate
+                            )}
                             <span className="block text-xs text-gray-500 mt-1">
-                              {getTimeAgo(agreement.created_at || agreement.createdDate)}
+                              {getTimeAgo(
+                                agreement.created_at || agreement.createdDate
+                              )}
                             </span>
                           </div>
                         </TableCell>
                         <TableCell>
                           {agreement.submitted_at || agreement.submittedDate ? (
                             <div>
-                              {formatDate(agreement.submitted_at || agreement.submittedDate)}
+                              {formatDate(
+                                agreement.submitted_at ||
+                                  agreement.submittedDate
+                              )}
                               <span className="block text-xs text-gray-500 mt-1">
-                                {getTimeAgo(agreement.submitted_at || agreement.submittedDate)}
+                                {getTimeAgo(
+                                  agreement.submitted_at ||
+                                    agreement.submittedDate
+                                )}
                               </span>
                             </div>
                           ) : (
-                            <span className="text-xs text-gray-500">Not submitted yet</span>
+                            <span className="text-xs text-gray-500">
+                              Not submitted yet
+                            </span>
                           )}
                         </TableCell>
                         <TableCell>
                           <StatusBadge status={agreement.status} />
                         </TableCell>
                         <TableCell>
-                          {agreement.status === 'draft' || agreement.status === 'rejected' ? (
+                          {agreement.status === "draft" ||
+                          agreement.status === "rejected" ? (
                             <AgreementActions
                               agreement={agreement}
                               onEdit={() => handleEdit(agreement)}
                               onSubmit={() => handleSubmit(agreement)}
-                              onDelete={() => handleDeleteConfirmation(agreement)}
+                              onDelete={() =>
+                                handleDeleteConfirmation(agreement)
+                              }
                               onAddKPI={() => handleAddKPIs(agreement)}
                             />
                           ) : (
@@ -474,7 +550,7 @@ const AgreementList = () => {
           closeModal={() => setIsAddModalOpen(false)}
           onSubmit={handleAddSubmit}
         />
-        
+
         {selectedAgreement && (
           <EditAgreement
             isOpen={isEditModalOpen}
@@ -486,7 +562,7 @@ const AgreementList = () => {
             agreement={selectedAgreement}
           />
         )}
-        
+
         {selectedAgreement && (
           <SubmitAgreementModal
             isOpen={isSubmitModalOpen}
@@ -495,7 +571,7 @@ const AgreementList = () => {
             onSubmit={handleConfirmSubmit}
           />
         )}
-        
+
         {/* Add Delete Agreement Modal */}
         {selectedAgreement && (
           <DeleteAgreementModal

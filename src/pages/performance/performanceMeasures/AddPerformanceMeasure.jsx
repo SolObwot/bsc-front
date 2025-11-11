@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   fetchDepartmentObjectives,
   fetchAllDashboardPerformanceMeasures,
+  fetchAgreementById,
 } from "../../../redux/performanceMeasureSlice";
 import ObjectiveHeader from "../../../components/balancescorecard/Header";
 import ObjectiveTabs from "../../../components/balancescorecard/Tabs";
@@ -38,6 +39,7 @@ const AddPerformanceMeasure = () => {
       allDashboardMeasures: isDashboardLoading,
     },
     error: { department: error, allDashboardMeasures: dashboardError },
+    selectedAgreement: agreement, // Use selectedAgreement
   } = useSelector((state) => state.performanceMeasure);
 
   const { user } = useAuth();
@@ -48,28 +50,48 @@ const AddPerformanceMeasure = () => {
   });
 
   const [dashboardMeasures, setDashboardMeasures] = useState([]);
-  // Add localAgreement state
-  const [localAgreement, setLocalAgreement] = useState(null);
-
   const formRef = useRef();
+  const lastAgreementIdRef = useRef(null);
+  const departmentFetchedRef = useRef(false);
+  const dashboardFetchRef = useRef(null);
 
   useEffect(() => {}, [selectedPerformanceMeasure]);
 
   useEffect(() => {
-    dispatch(fetchDepartmentObjectives())
-      .unwrap()
-      .then(() => {})
-      .catch((error) => {
-        toast({
-          title: "Error",
-          description:
-            "Failed to load department objectives. Please try again.",
-          variant: "destructive",
-        });
-      });
-  }, [dispatch]);
+    if (!agreementId) return;
+    if (lastAgreementIdRef.current === agreementId) {
+      return;
+    }
+    lastAgreementIdRef.current = agreementId;
+    dispatch(fetchAgreementById(agreementId));
+  }, [dispatch, agreementId]);
 
   useEffect(() => {
+    if (departmentFetchedRef.current) {
+      return;
+    }
+    departmentFetchedRef.current = true;
+    dispatch(fetchDepartmentObjectives())
+      .unwrap()
+      .then(() => {
+        // Only show error if dashboard measures also failed (indicating a broader issue)
+        if (dashboardFetchRef.current && !dashboardMeasures.length) {
+          toast({
+            title: "Error",
+            description:
+              "Failed to load department objectives. Please try again.",
+            variant: "destructive",
+          });
+        }
+      });
+  }, [dispatch, toast, dashboardMeasures.length]);
+
+  useEffect(() => {
+    if (!agreementId) return;
+    if (dashboardFetchRef.current === agreementId) {
+      return;
+    }
+    dashboardFetchRef.current = agreementId;
     setFetchingMeasures(true);
     dispatch(
       fetchAllDashboardPerformanceMeasures({ agreement_id: agreementId })
@@ -77,10 +99,6 @@ const AddPerformanceMeasure = () => {
       .unwrap()
       .then((measures) => {
         setDashboardMeasures(measures);
-        // Set localAgreement if available
-        if (measures && measures.length > 0 && measures[0].agreement) {
-          setLocalAgreement(measures[0].agreement);
-        }
       })
       .catch((error) => {
         toast({
@@ -94,7 +112,7 @@ const AddPerformanceMeasure = () => {
       .finally(() => {
         setFetchingMeasures(false);
       });
-  }, [dispatch, agreementId]);
+  }, [dispatch, agreementId, toast]);
 
   useEffect(() => {
     if (department && perspectives) {
@@ -381,7 +399,7 @@ const AddPerformanceMeasure = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 shadow-md rounded-lg">
-      <ObjectiveHeader perspective={localAgreement?.name || "Annual"} />
+      <ObjectiveHeader perspective={agreement?.name || "Annual"} />
       <div className="flex justify-between">
         <ObjectiveTabs activeTab={activeTab} setActiveTab={setActiveTab} />
       </div>

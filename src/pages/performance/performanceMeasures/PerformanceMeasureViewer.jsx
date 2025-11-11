@@ -1,7 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchDepartmentObjectives, fetchAllPerformanceMeasuresByAgreement } from "../../../redux/performanceMeasureSlice";
+import {
+  fetchDepartmentObjectives,
+  fetchAllPerformanceMeasuresByAgreement,
+  fetchAgreementById,
+} from "../../../redux/performanceMeasureSlice";
 import ObjectiveHeader from "../../../components/balancescorecard/Header";
 import ObjectiveTabs from "../../../components/balancescorecard/Tabs";
 import ObjectiveListHeader from "../../../components/balancescorecard/ListHeader";
@@ -18,7 +22,8 @@ export const PerformanceMeasureViewer = () => {
   const [activeTab, setActiveTab] = useState("active");
   const [fetchingMeasures, setFetchingMeasures] = useState(false);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
-  const [selectedPerformanceMeasure, setSelectedPerformanceMeasure] = useState(null);
+  const [selectedPerformanceMeasure, setSelectedPerformanceMeasure] =
+    useState(null);
   const [currentIndicatorIndex, setCurrentIndicatorIndex] = useState(0);
   const [currentIndicators, setCurrentIndicators] = useState([]);
 
@@ -30,7 +35,7 @@ export const PerformanceMeasureViewer = () => {
       allDashboardMeasures: isDashboardLoading,
     },
     error: { department: error, allDashboardMeasures: dashboardError },
-    agreement
+    selectedAgreement: agreement, // Use selectedAgreement from state
   } = useSelector((state) => state.performanceMeasure);
 
   const [objectives, setObjectives] = useState({
@@ -41,10 +46,11 @@ export const PerformanceMeasureViewer = () => {
   const [dashboardMeasures, setDashboardMeasures] = useState([]);
 
   const formRef = useRef();
-  
-  const [localAgreement, setLocalAgreement] = useState(null);
 
   useEffect(() => {
+    // Fetch agreement details first
+    dispatch(fetchAgreementById(agreementId));
+
     dispatch(fetchDepartmentObjectives())
       .unwrap()
       .then(() => {})
@@ -56,7 +62,7 @@ export const PerformanceMeasureViewer = () => {
           variant: "destructive",
         });
       });
-  }, [dispatch]);
+  }, [dispatch, agreementId]);
 
   useEffect(() => {
     setFetchingMeasures(true);
@@ -66,10 +72,6 @@ export const PerformanceMeasureViewer = () => {
       .unwrap()
       .then((measures) => {
         setDashboardMeasures(measures);
-
-        if (measures && measures.length > 0 && measures[0].agreement) {
-          setLocalAgreement(measures[0].agreement);
-        }
       })
       .catch((error) => {
         toast({
@@ -99,11 +101,6 @@ export const PerformanceMeasureViewer = () => {
         creator = dashboardMeasures[0].creator;
       }
 
-      let agreement = null;
-      if (dashboardMeasures.length > 0 && dashboardMeasures[0].agreement) {
-        agreement = dashboardMeasures[0].agreement;
-      }
-
       const transformPerspectiveToObjective = (perspective) => {
         const perspectiveObjectives = perspective.objectives || {};
         const objectivesArray = Array.isArray(perspectiveObjectives)
@@ -128,7 +125,9 @@ export const PerformanceMeasureViewer = () => {
           dueDate: "31 Dec, 2024",
           assignee: creator
             ? {
-                name: `${creator.surname || ""} ${creator.first_name || ""}`.trim(),
+                name: `${creator.surname || ""} ${
+                  creator.first_name || ""
+                }`.trim(),
                 surname: creator.surname || "",
                 lastName: creator.first_name || "",
                 avatar: creator.profile_photo_url || "/placeholder.svg",
@@ -153,7 +152,7 @@ export const PerformanceMeasureViewer = () => {
             name: obj.name,
             weight: `${
               Math.round(
-          (perspective.weight / safeObjectivesArray.length) * 10
+                (perspective.weight / safeObjectivesArray.length) * 10
               ) / 10
             }%`,
             department_objective_id: obj.department_objective_id || obj.id,
@@ -223,10 +222,13 @@ export const PerformanceMeasureViewer = () => {
                   type: measure.type,
                   // Add additional fields needed for performance levels
                   outstanding_threshold: measure.outstanding_threshold,
-                  exceeds_expectations_threshold: measure.exceeds_expectations_threshold,
-                  meets_expectations_threshold: measure.meets_expectations_threshold,
-                  needs_improvement_threshold: measure.needs_improvement_threshold,
-                  unsatisfactory_threshold: measure.unsatisfactory_threshold
+                  exceeds_expectations_threshold:
+                    measure.exceeds_expectations_threshold,
+                  meets_expectations_threshold:
+                    measure.meets_expectations_threshold,
+                  needs_improvement_threshold:
+                    measure.needs_improvement_threshold,
+                  unsatisfactory_threshold: measure.unsatisfactory_threshold,
                 });
               }
             }
@@ -264,12 +266,19 @@ export const PerformanceMeasureViewer = () => {
   };
 
   const handlePreviewModalNavigation = (direction) => {
-    if (direction === 'next' && currentIndicatorIndex < currentIndicators.length - 1) {
-      setCurrentIndicatorIndex(prev => prev + 1);
-      setSelectedPerformanceMeasure(currentIndicators[currentIndicatorIndex + 1]);
-    } else if (direction === 'prev' && currentIndicatorIndex > 0) {
-      setCurrentIndicatorIndex(prev => prev - 1);
-      setSelectedPerformanceMeasure(currentIndicators[currentIndicatorIndex - 1]);
+    if (
+      direction === "next" &&
+      currentIndicatorIndex < currentIndicators.length - 1
+    ) {
+      setCurrentIndicatorIndex((prev) => prev + 1);
+      setSelectedPerformanceMeasure(
+        currentIndicators[currentIndicatorIndex + 1]
+      );
+    } else if (direction === "prev" && currentIndicatorIndex > 0) {
+      setCurrentIndicatorIndex((prev) => prev - 1);
+      setSelectedPerformanceMeasure(
+        currentIndicators[currentIndicatorIndex - 1]
+      );
     }
   };
 
@@ -303,10 +312,15 @@ export const PerformanceMeasureViewer = () => {
       : [];
 
   // Create a custom render function for ObjectiveItem indicators
-  const renderCustomIndicator = (indicator, index, indicators, isQualitative) => {
+  const renderCustomIndicator = (
+    indicator,
+    index,
+    indicators,
+    isQualitative
+  ) => {
     return (
-      <li 
-        key={indicator.id || `temp-${index}`} 
+      <li
+        key={indicator.id || `temp-${index}`}
         className="flex items-center bg-white p-1.5 rounded border border-gray-200 hover:bg-gray-50 cursor-pointer"
         onClick={() => handleIndicatorPreview(indicator, index, indicators)}
       >
@@ -321,13 +335,19 @@ export const PerformanceMeasureViewer = () => {
           <div className="flex items-center space-x-2">
             <div className="flex items-center whitespace-nowrap">
               <span className="text-xs text-gray-700 px-1.5 py-0.5">
-                <span className="text-purple-700">{formatDateIfNeeded(indicator.targetValue, indicator.measurementType)}</span> | <span className="text-teal-700">{indicator.weight}</span>
+                <span className="text-purple-700">
+                  {formatDateIfNeeded(
+                    indicator.targetValue,
+                    indicator.measurementType
+                  )}
+                </span>{" "}
+                | <span className="text-teal-700">{indicator.weight}</span>
               </span>
             </div>
           </div>
         )}
         <div className="flex items-center space-x-1 ml-2">
-          <button 
+          <button
             className="text-xs px-2.5 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded font-medium"
             onClick={(e) => {
               e.stopPropagation(); // Prevent double triggering
@@ -342,33 +362,33 @@ export const PerformanceMeasureViewer = () => {
   };
 
   // Add this helper function to format dates properly
-const formatDateIfNeeded = (value, measurementType) => {
-  if (measurementType === 'date') {
-    try {
-      // Handle Date objects
-      if (value instanceof Date) {
-        return value.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        });
+  const formatDateIfNeeded = (value, measurementType) => {
+    if (measurementType === "date") {
+      try {
+        // Handle Date objects
+        if (value instanceof Date) {
+          return value.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+        }
+
+        // Handle ISO date strings
+        if (typeof value === "string" && !isNaN(Date.parse(value))) {
+          return new Date(value).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+        }
+      } catch (e) {
+        console.error("Error formatting date:", e);
       }
-      
-      // Handle ISO date strings
-      if (typeof value === 'string' && !isNaN(Date.parse(value))) {
-        return new Date(value).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        });
-      }
-    } catch (e) {
-      console.error("Error formatting date:", e);
     }
-  }
-  
-  return value;
-};
+
+    return value;
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 shadow-md rounded-lg">
@@ -409,11 +429,21 @@ const formatDateIfNeeded = (value, measurementType) => {
                 activeTab === "active" ? "standard" : "direct-indicators"
               }
               isQualitative={activeTab !== "active"}
-              onIndicatorClick={(indicator, index, indicators) => 
+              onIndicatorClick={(indicator, index, indicators) =>
                 handleIndicatorPreview(indicator, index, indicators)
               }
-              renderCustomIndicator={(indicator, index, indicators, isQualitative) => 
-                renderCustomIndicator(indicator, index, indicators, isQualitative)
+              renderCustomIndicator={(
+                indicator,
+                index,
+                indicators,
+                isQualitative
+              ) =>
+                renderCustomIndicator(
+                  indicator,
+                  index,
+                  indicators,
+                  isQualitative
+                )
               }
               renderStrategicModal={false}
               renderIndicatorModal={false}

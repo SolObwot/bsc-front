@@ -1,9 +1,14 @@
-import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import React, {
+  useState,
+  useEffect,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   createPerformanceMeasure,
   updatePerformanceMeasure,
-  fetchAllDashboardPerformanceMeasures,
+  fetchAllPerformanceMeasuresByAgreement,
 } from "../../../redux/performanceMeasureSlice";
 import PerformanceIndicatorModal from "../../../components/balancescorecard/modals/PerformanceIndicatorModal";
 import DeletePerformanceMeasure from "./DeletePerformanceMeasure";
@@ -11,15 +16,26 @@ import { useToast } from "../../../hooks/useToast";
 import QualitativeRubricModal from "../../../components/balancescorecard/modals/QualitativeRubricModal";
 
 const PerformanceMeasureForm = forwardRef(
-  ({ objectives, isQualitative: initialIsQualitative, onDataChange, agreementId }, ref) => {
+  (
+    {
+      objectives,
+      isQualitative: initialIsQualitative,
+      onDataChange,
+      agreementId,
+    },
+    ref
+  ) => {
     const dispatch = useDispatch();
     const { toast } = useToast();
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [selectedPerformanceMeasure, setSelectedPerformanceMeasure] = useState(null);
+    const [selectedPerformanceMeasure, setSelectedPerformanceMeasure] =
+      useState(null);
     const [isRubricModalOpen, setIsRubricModalOpen] = useState(false);
     const [rubricMeasureId, setRubricMeasureId] = useState(null);
     const [rubricInitialLevels, setRubricInitialLevels] = useState([]);
-    const [isQualitativeState, setIsQualitative] = useState(initialIsQualitative || false);
+    const [isQualitativeState, setIsQualitative] = useState(
+      initialIsQualitative || false
+    );
 
     // Sync with parent's isQualitative prop
     useEffect(() => {
@@ -35,7 +51,8 @@ const PerformanceMeasureForm = forwardRef(
 
     // Selected items for modals
     const [selectedObjective, setSelectedObjective] = useState(null);
-    const [selectedStrategicObjective, setSelectedStrategicObjective] = useState(null);
+    const [selectedStrategicObjective, setSelectedStrategicObjective] =
+      useState(null);
 
     // Editing state
     const [isEditing, setIsEditing] = useState(false);
@@ -95,13 +112,24 @@ const PerformanceMeasureForm = forwardRef(
       // Compose API data
       const apiData = {
         name: formData.name,
-        type: formData.type, 
-        net_weight: formData.type === "quantitative" ? parseFloat(formData.weight || "0") : undefined,
-        measurement_type: formData.type === "quantitative" ? formData.measurementType : undefined,
-        target_value: formData.type === "quantitative" ? formData.targetValue : undefined,
-        qualitative_levels: formData.type === "qualitative" ? formData.qualitative_levels : undefined,
+        type: formData.type,
+        net_weight:
+          formData.type === "quantitative"
+            ? parseFloat(formData.weight || "0")
+            : undefined,
+        measurement_type:
+          formData.type === "quantitative"
+            ? formData.measurementType
+            : undefined,
+        target_value:
+          formData.type === "quantitative" ? formData.targetValue : undefined,
+        qualitative_levels:
+          formData.type === "qualitative"
+            ? formData.qualitative_levels
+            : undefined,
         strategic_objective_id: selectedStrategicObjective.id,
-        department_perspective_objective_id: selectedStrategicObjective.strategy_perspective_id,
+        department_perspective_objective_id:
+          selectedStrategicObjective.strategy_perspective_id,
         agreement_id: agreementId || null,
       };
 
@@ -112,14 +140,12 @@ const PerformanceMeasureForm = forwardRef(
             updatePerformanceMeasure({ id: editingIndicator.id, data: apiData })
           ).unwrap();
         } else {
-          payload = await dispatch(
-            createPerformanceMeasure(apiData)
-          ).unwrap();
+          payload = await dispatch(createPerformanceMeasure(apiData)).unwrap();
         }
 
         // Create a deep copy to avoid reference issues
         const updatedObjectives = JSON.parse(JSON.stringify(objectives));
-        
+
         // Update local state
         for (const objective of updatedObjectives) {
           for (const subObj of objective.subObjectives) {
@@ -153,16 +179,23 @@ const PerformanceMeasureForm = forwardRef(
         }
 
         // Tell parent about the update, with explicit type information
-        onDataChange(updatedObjectives, formData.type === "qualitative" ? "qualitative" : "quantitative");
+        onDataChange(
+          updatedObjectives,
+          formData.type === "qualitative" ? "qualitative" : "quantitative"
+        );
 
         // Also refresh data from server to ensure UI is synchronized
-        await dispatch(fetchAllDashboardPerformanceMeasures({ agreement_id: agreementId }));
+        await dispatch(
+          fetchAllPerformanceMeasuresByAgreement({ agreement_id: agreementId })
+        );
 
         toast({
           title: "Success",
-          description: isEditing 
-            ? "Performance measure updated successfully" 
-            : `${formData.type === "qualitative" ? "Qualitative" : "Quantitative"} performance measure created successfully`,
+          description: isEditing
+            ? "Performance measure updated successfully"
+            : `${
+                formData.type === "qualitative" ? "Qualitative" : "Quantitative"
+              } performance measure created successfully`,
         });
 
         setIsIndicatorModalOpen(false);
@@ -172,7 +205,8 @@ const PerformanceMeasureForm = forwardRef(
         toast({
           title: "Error",
           description:
-            error?.message || "Could not save the performance measure. Please check your input and try again.",
+            error?.message ||
+            "Could not save the performance measure. Please check your input and try again.",
           variant: "destructive",
         });
       }
@@ -196,8 +230,8 @@ const PerformanceMeasureForm = forwardRef(
           perspectiveWeight={parseFloat(selectedObjective?.totalWeight) || 100}
           existingIndicators={
             selectedObjective?.subObjectives
-              ?.flatMap(subObj => subObj.indicators)
-              ?.filter(ind => ind.type === "quantitative") || []
+              ?.flatMap((subObj) => subObj.indicators)
+              ?.filter((ind) => ind.type === "quantitative") || []
           }
         />
 
