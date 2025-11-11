@@ -21,6 +21,7 @@ import regionReducer from './regionSlice';
 import tribeReducer from './tribeSlice';
 import userReducer from './userSlice';
 import employeeReducer from './employeeSlice';
+import appraisalReducer from './appraisalSlice';
 
 const store = configureStore({
   reducer: {
@@ -33,6 +34,7 @@ const store = configureStore({
     strategicObjectives: strategicObjectiveReducer,
     strategyPerspective: strategyPerspectiveReducer,
     agreements: agreementReducer,
+    appraisals: appraisalReducer,
     performanceMeasure: performanceMeasureReducer,
     gradeOrScale: gradeOrScaleReducer,
     employmentStatuses: employmentStatusReducer,
