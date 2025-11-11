@@ -1,8 +1,5 @@
 import axios from 'axios';
 
-// Ensure that you have a .env file in the root of your project with the following variable:
-// VITE_API_URL
-
 const API_URL = import.meta.env.VITE_API_URL;
 
 const axiosInstance = axios.create({
@@ -25,8 +22,7 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Avoid reload loop by not redirecting to /login here
-      console.error('Unauthorized access - 401');
+      localStorage.removeItem('token');
     }
     return Promise.reject(error);
   }

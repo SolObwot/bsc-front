@@ -6,8 +6,13 @@ export const userService = {
     return response;
   },
   getUser: async (id) => {
-    const response = await axios.get(`/users/${id}`);
-    return response;
+    try {
+      const response = await axios.get(`/users/${id}`);
+      return response;
+    } catch (error) {
+      console.error('Error fetching user data:', error.response || error.message);
+      throw error;
+    }
   },
   createUser: async (userData) => {
     try {
@@ -23,8 +28,13 @@ export const userService = {
     }
   },
   updateUser: async (id, userData) => {
-    const response = await axios.put(`/users/${id}`, userData);
-    return response.data;
+    try {
+      const response = await axios.put(`/users/${id}`, userData);
+      return response;
+    } catch (error) {
+      console.error('Error updating user:', error.response || error.message);
+      throw error;
+    }
   },
   deleteUser: async (id) => {
     const response = await axios.delete(`/users/${id}`);

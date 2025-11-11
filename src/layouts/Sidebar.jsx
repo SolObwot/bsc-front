@@ -10,8 +10,8 @@ import {
   UserCircleIcon,
   ChartBarIcon,
   CalendarIcon,
-  DocumentTextIcon, // Added for Annual Execution Undertaking Forms
-  ChatBubbleLeftRightIcon // Added for HR Policy Summarization
+  DocumentTextIcon, 
+  ChatBubbleLeftRightIcon 
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../hooks/useAuth';
 
@@ -174,10 +174,10 @@ const navigationItems = [
   // },
 ];
 
-const Sidebar = ({ isMobile, setMobileMenuOpen }) => {
+const Sidebar = ({ isMobile, setMobileMenuOpen, user, onLogout }) => {
   const location = useLocation();
-  const { user, logout } = useAuth();
   const [openMenus, setOpenMenus] = useState({});
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const toggleSubmenu = (label) => {
     setOpenMenus((prev) => ({
@@ -188,6 +188,27 @@ const Sidebar = ({ isMobile, setMobileMenuOpen }) => {
 
   const isActive = (href) => {
     return location.pathname === href;
+  };
+
+  // Safe user data access
+  const getUserDisplayName = () => {
+    if (!user) return 'User Account';
+    
+    if (user.surname && user.first_name) {
+      return `${user.surname} ${user.first_name}`;
+    } else if (user.name) {
+      return user.name;
+    } else if (user.username) {
+      return user.username;
+    } else if (user.email) {
+      return user.email.split('@')[0];
+    }
+    
+    return 'User Account';
+  };
+
+  const getUserEmail = () => {
+    return user?.email || 'user@example.com';
   };
 
   const NavItem = ({ item }) => {
@@ -206,9 +227,16 @@ const Sidebar = ({ isMobile, setMobileMenuOpen }) => {
           onClick={() => hasChildren ? toggleSubmenu(item.label) : null}
         >
           <Link
-            to={item.href}
+            to={hasChildren ? '#' : item.href}
             className="flex items-center flex-1"
-            onClick={() => isMobile && setMobileMenuOpen(false)}
+            onClick={(e) => {
+              if (!hasChildren && isMobile) {
+                setMobileMenuOpen(false);
+              }
+              if (hasChildren) {
+                e.preventDefault();
+              }
+            }}
           >
             {Icon && <Icon className="w-5 h-5 mr-3" />}
             <span className="text-sm font-medium">{item.label}</span>
@@ -237,9 +265,16 @@ const Sidebar = ({ isMobile, setMobileMenuOpen }) => {
                   }
                 >
                   <Link
-                    to={child.href}
+                    to={child.children ? '#' : child.href}
                     className="flex items-center flex-1"
-                    onClick={() => isMobile && setMobileMenuOpen(false)}
+                    onClick={(e) => {
+                      if (!child.children && isMobile) {
+                        setMobileMenuOpen(false);
+                      }
+                      if (child.children) {
+                        e.preventDefault();
+                      }
+                    }}
                   >
                     <span className="text-sm font-medium">{child.label}</span>
                   </Link>
@@ -278,8 +313,6 @@ const Sidebar = ({ isMobile, setMobileMenuOpen }) => {
     );
   };
 
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-
   return (
     <aside className="fixed inset-y-0 left-0 z-40 w-64 border-r border-gray-200 overflow-y-auto bg-[#08796c]">
       <div className="h-full flex flex-col">
@@ -299,36 +332,69 @@ const Sidebar = ({ isMobile, setMobileMenuOpen }) => {
 
         {/* User Account Section */}
         <div className="border-t border-gray-200 p-4">
-          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>
+          <div 
+            className="flex items-center space-x-3 cursor-pointer" 
+            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+          >
             <div className="flex-shrink-0">
               <UserCircleIcon className="w-8 h-8 text-white" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">
-                {`${user?.surname} ${user?.first_name}` || 'Full Name'}
+                {getUserDisplayName()}
               </p>
               <p className="text-sm text-gray-300 truncate">
-                {user?.email || 'email@example.com'}
+                {getUserEmail()}
               </p>
             </div>
-            <ChevronDownIcon className={`w-5 h-5 text-white transition-transform ${isUserMenuOpen ? 'transform rotate-180' : ''}`} />
+            <ChevronDownIcon 
+              className={`w-5 h-5 text-white transition-transform ${
+                isUserMenuOpen ? 'transform rotate-180' : ''
+              }`} 
+            />
           </div>
+          
           {isUserMenuOpen && (
-            <div className="mt-2 space-y-1 hover:text-[#009a44]">
-              <Link to="/profile" className="block p-2 text-sm text-white hover:bg-gray-100 hover:text-[#009a44] rounded-lg">
+            <div className="mt-2 space-y-1">
+              <Link 
+                to="/profile" 
+                className="block p-2 text-sm text-white hover:bg-gray-100 hover:text-[#009a44] rounded-lg transition-colors"
+                onClick={() => {
+                  setIsUserMenuOpen(false);
+                  if (isMobile) setMobileMenuOpen(false);
+                }}
+              >
                 My Profile
               </Link>
-              <Link to="/info" className="block p-2 text-sm text-white hover:bg-gray-100 hover:text-[#009a44] rounded-lg">
+              <Link 
+                to="/info" 
+                className="block p-2 text-sm text-white hover:bg-gray-100 hover:text-[#009a44] rounded-lg transition-colors"
+                onClick={() => {
+                  setIsUserMenuOpen(false);
+                  if (isMobile) setMobileMenuOpen(false);
+                }}
+              >
                 My Info
               </Link>
-              <Link to="/change-password" className="block p-2 text-sm text-white hover:bg-gray-100 hover:text-[#009a44] rounded-lg">
+              <Link 
+                to="/change-password" 
+                className="block p-2 text-sm text-white hover:bg-gray-100 hover:text-[#009a44] rounded-lg transition-colors"
+                onClick={() => {
+                  setIsUserMenuOpen(false);
+                  if (isMobile) setMobileMenuOpen(false);
+                }}
+              >
                 Change Password
               </Link>
               <button
-                onClick={logout}
-                className="w-full text-left block p-2 text-sm text-white hover:bg-gray-100 hover:text-[#009a44] rounded-lg"
+                onClick={() => {
+                  onLogout();
+                  setIsUserMenuOpen(false);
+                  if (isMobile) setMobileMenuOpen(false);
+                }}
+                className="w-full text-left block p-2 text-sm text-white hover:bg-gray-100 hover:text-[#009a44] rounded-lg transition-colors"
               >
-                <ArrowRightOnRectangleIcon className="w-5 h-5 inline mr-2 text-white hover:text-[#009a44]" />
+                <ArrowRightOnRectangleIcon className="w-5 h-5 inline mr-2" />
                 Sign Out
               </button>
             </div>
