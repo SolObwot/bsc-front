@@ -55,6 +55,7 @@ import HODApproval from './pages/performance/agreement/HODApproval';
 import PerformanceMeasureViewer from './pages/performance/performanceMeasures/PerformanceMeasureViewer.jsx';
 import AddPerformanceMeasure from './pages/performance/performanceMeasures/AddPerformanceMeasure.jsx';
 import EditPerformanceMeasure from './pages/performance/performanceMeasures/EditPerformanceMeasure.jsx';
+import AppraisalList from './pages/performance/appraisals/AppraisalList.jsx';
 import SelfRating from './pages/performance/appraisals/SelfRating.jsx';
 import RateAppraisalPage from './pages/performance/appraisals/RateAppraisalPage.jsx';
 import SupervisorRating from './pages/performance/appraisals/SupervisorRating.jsx';
@@ -157,6 +158,7 @@ function App() {
                 <Route path="measures/edit/:id/:measureId" element={<EditPerformanceMeasure />} />
                 
 
+                <Route path="/performance/appraisals/new" element={<AppraisalList />} />
                 <Route path="rating/self" element={<SelfRating />} />
                 <Route path="rating/self/edit/:id" element={<RateAppraisalPage />} />
                 <Route path="rating/supervisor" element={<SupervisorRating />} />

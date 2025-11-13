@@ -83,15 +83,15 @@ const navigationItems = [
     icon: ChartBarIcon, 
     href: '/',
     children: [
-      { 
-        label: 'Templates', 
-        href: '/',
-        children: [
-          { label: 'Template List', href: '/performance/templates/list' },
-          { label: 'Setup Templates', href: '/performance/templates' },
-        ]
+      // { 
+      //   label: 'Templates', 
+      //   href: '/',
+      //   children: [
+      //     { label: 'Template List', href: '/performance/templates/list' },
+      //     { label: 'Setup Templates', href: '/performance/templates' },
+      //   ]
       
-      },
+      // },
       { 
         label: 'Agreement', 
         href: '/',
@@ -107,6 +107,7 @@ const navigationItems = [
         label: 'Appraisals', 
         href: '/' ,
         children: [
+          { label: 'New', href: '/performance/appraisals/new' },
           { label: 'Self Rating', href: '/performance/rating/self' },
           { label: 'Supervisor Rating', href: '/performance/rating/supervisor' },
           // {label: 'Overall Assessment ', href: '/performance/rating/overall'},

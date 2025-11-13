@@ -1,171 +1,83 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { useDispatch } from "react-redux";
-import { fetchMyAgreements } from "../../../redux/agreementSlice";
-import { useToast } from "../../../hooks/useToast";
-import Modal from "../../../components/ui/Modal";
-import Button from "../../../components/ui/Button";
-import { Select, Label } from "../../../components/ui/FormControls";
+import React, { Fragment } from "react";
+import { Dialog, Transition } from "@headlessui/react";
+import { XMarkIcon,   InformationCircleIcon,
+ } from "@heroicons/react/24/outline";
+import AppraisalForm from "./AppraisalForm";
 
-const StartAppraisalModal = ({ isOpen, closeModal, onSubmit, agreementId }) => {
-  const dispatch = useDispatch();
-  const { toast } = useToast();
-
-  const [selectedAgreementId, setSelectedAgreementId] = useState(
-    agreementId || ""
-  );
-  const [appraisalType, setAppraisalType] = useState("");
-  const [agreements, setAgreements] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      setLoading(true);
-      // We only want to fetch agreements if they are not passed via a direct action
-      if (!agreementId) {
-        dispatch(fetchMyAgreements())
-          .unwrap()
-          .then((fetchedAgreements) => {
-            const currentYear = new Date().getFullYear();
-            const approvedAgreements = fetchedAgreements.filter(
-              (a) =>
-                a.status === "approved" &&
-                new Date(a.created_at).getFullYear() === currentYear
-            );
-            setAgreements(approvedAgreements);
-          })
-          .catch(() => {
-            toast({
-              title: "Error",
-              description: "Could not fetch approved agreements.",
-              variant: "destructive",
-            });
-          })
-          .finally(() => {
-            setLoading(false);
-          });
-      } else {
-        // If an agreement is passed, we can just use it
-        // This assumes the parent component (AgreementList) has the full agreement object
-        // For simplicity, we will still fetch to ensure we have the latest data.
-        dispatch(fetchMyAgreements())
-          .unwrap()
-          .then((fetchedAgreements) => {
-            setAgreements(
-              fetchedAgreements.filter((a) => a.status === "approved")
-            );
-            setSelectedAgreementId(agreementId);
-          })
-          .finally(() => setLoading(false));
-      }
-    }
-  }, [isOpen, dispatch, toast, agreementId]);
-
-  const selectedAgreement = useMemo(() => {
-    return agreements.find(
-      (a) => a.id.toString() === selectedAgreementId.toString()
-    );
-  }, [selectedAgreementId, agreements]);
-
-  const appraisalTypeOptions = useMemo(() => {
-    if (!selectedAgreement) return [];
-    if (selectedAgreement.period === "annual") {
-      return [
-        { value: "mid_term", label: "Mid-Term Review" },
-        { value: "annual", label: "Annual Review" },
-      ];
-    }
-    if (selectedAgreement.period === "probation") {
-      return [{ value: "probation", label: "Probation Review" }];
-    }
-    return [];
-  }, [selectedAgreement]);
-
-  useEffect(() => {
-    if (selectedAgreement) {
-      if (selectedAgreement.period === "probation") {
-        setAppraisalType("probation");
-      } else {
-        // Reset type when agreement changes, unless it's probation
-        setAppraisalType("");
-      }
-    } else {
-      setAppraisalType("");
-    }
-  }, [selectedAgreement]);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!selectedAgreementId || !appraisalType) {
-      toast({
-        title: "Missing Information",
-        description: "Please select an agreement and appraisal type.",
-        variant: "destructive",
-      });
-      return;
-    }
-    onSubmit({
-      agreement_id: parseInt(selectedAgreementId, 10),
-      type: appraisalType,
-    });
+const StartAppraisalModal = ({ isOpen, closeModal, onSubmit, agreements, isEditing = false, initialData = {} }) => {
+  const handleFormSubmit = async (formData) => {
+    await onSubmit(formData);
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      closeModal={closeModal}
-      title="Start New Performance Appraisal"
-    >
-      <form onSubmit={handleSubmit}>
-        <div className="mt-4 space-y-4">
-          <div>
-            <Label htmlFor="agreement">Performance Agreement</Label>
-            <Select
-              id="agreement"
-              value={selectedAgreementId}
-              onChange={(e) => setSelectedAgreementId(e.target.value)}
-              disabled={loading || !!agreementId}
+    <Transition appear show={isOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-50" onClose={closeModal}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black/25" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
             >
-              <option value="">
-                {loading ? "Loading agreements..." : "-- Select Agreement --"}
-              </option>
-              {agreements.map((agreement) => (
-                <option key={agreement.id} value={agreement.id}>
-                  {agreement.name || agreement.title}
-                </option>
-              ))}
-            </Select>
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white text-left align-middle shadow-xl transition-all">
+                <div className="bg-teal-50 px-6 py-5 border-b border-teal-100">
+                  <div className="flex items-center justify-between">
+                    <Dialog.Title className="text-lg font-semibold text-gray-800 capitalize">
+                      {isEditing
+                        ? "Edit Appraisal"
+                        : "Start New Performance Appraisal"}
+                    </Dialog.Title>
+                    <button
+                      onClick={closeModal}
+                      className="hover:bg-teal-100 rounded-full p-2"
+                    >
+                      <XMarkIcon className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="px-6 py-6">
+                  {!isEditing && (
+                    <div className="mb-4 p-3 bg-blue-50 rounded-md border border-blue-100 flex items-start">
+                      <InformationCircleIcon className="h-5 w-5 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
+                      <p className="text-sm text-blue-700">
+                        Select an approved performance agreement from the list
+                        to start your appraisal. Your supervisor and HOD/line manager who approved the agreeement will be automatically added to the appraisal process. 
+                        You can edit this later if it's not correct.
+                      </p>
+                    </div>
+                  )}
+                  <AppraisalForm
+                    initialData={initialData}
+                    onSubmit={handleFormSubmit}
+                    onCancel={closeModal}
+                    agreements={agreements}
+                    isModal={true}
+                    isEditing={isEditing}
+                  />
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
           </div>
-
-          {selectedAgreement && (
-            <div>
-              <Label htmlFor="appraisalType">Appraisal Type</Label>
-              <Select
-                id="appraisalType"
-                value={appraisalType}
-                onChange={(e) => setAppraisalType(e.target.value)}
-                disabled={selectedAgreement.period === "probation"}
-              >
-                <option value="">-- Select Type --</option>
-                {appraisalTypeOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Select>
-            </div>
-          )}
         </div>
-
-        <div className="mt-6 flex justify-end space-x-2">
-          <Button type="button" variant="secondary" onClick={closeModal}>
-            Cancel
-          </Button>
-          <Button type="submit" variant="pride" disabled={loading}>
-            Start Appraisal
-          </Button>
-        </div>
-      </form>
-    </Modal>
+      </Dialog>
+    </Transition>
   );
 };
 

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useToast } from "../../../hooks/useToast";
 import Button from "../../../components/ui/Button";
+import useUserSearch from "../../../hooks/agreements/useUserSearch";
+import SearchableCombobox from "../../../components/ui/SearchableCombobox";
 
 const AppraisalForm = ({
   initialData = null,
@@ -11,9 +13,14 @@ const AppraisalForm = ({
   agreements = [], // Assuming agreements are passed as props
 }) => {
   const { toast } = useToast();
+  const { searchResults, loading, hasMore, searchUsers, loadMoreUsers } =
+    useUserSearch();
+
   const [formData, setFormData] = useState({
     agreement_id: "",
     period: "",
+    supervisor: null,
+    hod: null,
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,6 +30,8 @@ const AppraisalForm = ({
       setFormData({
         agreement_id: initialData.agreement_id || "",
         period: initialData.period || "",
+        supervisor: initialData.supervisor || null,
+        hod: initialData.hod || null,
       });
     }
   }, [initialData]);
@@ -35,11 +44,28 @@ const AppraisalForm = ({
     }
   };
 
+  const handleSupervisorChange = (selectedUser) => {
+    setFormData((prev) => ({ ...prev, supervisor: selectedUser }));
+    if (errors.supervisor) {
+      setErrors((prev) => ({ ...prev, supervisor: null }));
+    }
+  };
+
+  const handleHodChange = (selectedUser) => {
+    setFormData((prev) => ({ ...prev, hod: selectedUser }));
+    if (errors.hod) {
+      setErrors((prev) => ({ ...prev, hod: null }));
+    }
+  };
+
   const validate = () => {
     const newErrors = {};
     if (!formData.agreement_id)
       newErrors.agreement_id = "Performance Agreement is required.";
     if (!formData.period) newErrors.period = "Period is required.";
+    if (isEditing && !formData.supervisor)
+      newErrors.supervisor = "Supervisor is required.";
+    if (isEditing && !formData.hod) newErrors.hod = "HOD is required.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -48,8 +74,14 @@ const AppraisalForm = ({
     e.preventDefault();
     if (validate()) {
       setIsSubmitting(true);
+      const submissionData = {
+        agreement_id: formData.agreement_id,
+        period: formData.period,
+        supervisor_id: formData.supervisor?.id || null,
+        hod_id: formData.hod?.id || null,
+      };
       try {
-        await onSubmit(formData);
+        await onSubmit(submissionData);
       } catch (error) {
         // Error is handled by the parent component
       } finally {
@@ -114,12 +146,42 @@ const AppraisalForm = ({
             <option value="">-- Select Period --</option>
             <option value="mid-year">Mid-year Review</option>
             <option value="annual">Annual Review</option>
-            <option value="probation">Probation 6 months</option>
+            <option value="probation">Probation Review</option>
           </select>
           {errors.period && (
             <p className="mt-1 text-sm text-red-600">{errors.period}</p>
           )}
         </div>
+
+        {isEditing && (
+          <>
+            <SearchableCombobox
+              label="Supervisor"
+              options={searchResults}
+              selected={formData.supervisor}
+              onChange={handleSupervisorChange}
+              onSearch={searchUsers}
+              onLoadMore={loadMoreUsers}
+              hasMore={hasMore}
+              loading={loading}
+              placeholder="Type to search for a supervisor..."
+              error={errors.supervisor}
+            />
+
+            <SearchableCombobox
+              label="HOD / Line Manager"
+              options={searchResults}
+              selected={formData.hod}
+              onChange={handleHodChange}
+              onSearch={searchUsers}
+              onLoadMore={loadMoreUsers}
+              hasMore={hasMore}
+              loading={loading}
+              placeholder="Type to search for a HOD..."
+              error={errors.hod}
+            />
+          </>
+        )}
 
         <div
           className={`flex ${
