@@ -28,6 +28,7 @@ import AddAgreement from "./AddAgreement";
 import EditAgreement from "./EditAgreement";
 import DeleteAgreementModal from "./DeleteAgreementModal";
 import StatusBadge from "./AgreementStatusBadge";
+import { formatTimeAgo } from "../../../utils/formatTimeAgo";
 
 const AgreementList = () => {
   // Navigation hook
@@ -264,30 +265,6 @@ const AgreementList = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
-  // Calculate time ago
-  const getTimeAgo = (dateString) => {
-    if (!dateString) return "";
-
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays < 1) {
-      return "Today";
-    } else if (diffDays === 1) {
-      return "Yesterday";
-    } else if (diffDays < 30) {
-      return `${diffDays} days ago`;
-    } else if (diffDays < 365) {
-      const months = Math.floor(diffDays / 30);
-      return `${months} ${months === 1 ? "month" : "months"} ago`;
-    } else {
-      const years = Math.floor(diffDays / 365);
-      return `${years} ${years === 1 ? "year" : "years"} ago`;
-    }
-  };
-
   // Show error state
   // if (error && agreements.length === 0) {
   //   return (
@@ -477,7 +454,7 @@ const AgreementList = () => {
                               agreement.created_at || agreement.createdDate
                             )}
                             <span className="block text-xs text-gray-500 mt-1">
-                              {getTimeAgo(
+                              {formatTimeAgo(
                                 agreement.created_at || agreement.createdDate
                               )}
                             </span>
@@ -491,7 +468,7 @@ const AgreementList = () => {
                                   agreement.submittedDate
                               )}
                               <span className="block text-xs text-gray-500 mt-1">
-                                {getTimeAgo(
+                                {formatTimeAgo(
                                   agreement.submitted_at ||
                                     agreement.submittedDate
                                 )}

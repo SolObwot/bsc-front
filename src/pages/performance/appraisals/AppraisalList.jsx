@@ -21,6 +21,8 @@ import {
 } from "../../../redux/appraisalSlice";
 import AppraisalStatusBadge from "./AppraisalStatusBadge";
 import FilterBox from "../../../components/ui/FilterBox";
+import AppraisalActions from "./AppraisalActions";
+import { formatTimeAgo } from "../../../utils/formatTimeAgo";
 
 const AppraisalList = () => {
   const dispatch = useDispatch();
@@ -32,6 +34,7 @@ const AppraisalList = () => {
   const [filterYear, setFilterYear] = useState(
     new Date().getFullYear().toString()
   );
+  const [filterText, setFilterText] = useState("");
 
   const {
     myAppraisals: appraisals,
@@ -68,6 +71,13 @@ const AppraisalList = () => {
   useEffect(() => {
     let filtered = appraisals;
 
+    if (filterText) {
+      const searchValue = filterText.toLowerCase();
+      filtered = filtered.filter((appraisal) =>
+        (appraisal.agreement?.name || "").toLowerCase().includes(searchValue)
+      );
+    }
+
     if (filterStatus) {
       filtered = filtered.filter(
         (appraisal) => appraisal.status === filterStatus
@@ -85,7 +95,7 @@ const AppraisalList = () => {
     }
 
     setFilteredAppraisals(filtered);
-  }, [filterStatus, filterYear, appraisals]);
+  }, [filterStatus, filterYear, filterText, appraisals]);
 
   const handleStartNew = () => {
     setIsStartModalOpen(true);
@@ -96,15 +106,14 @@ const AppraisalList = () => {
       await dispatch(createAppraisal(appraisalData)).unwrap();
       setIsStartModalOpen(false);
       toast({
-        title: "Success",
-        description: "Appraisal started successfully!",
+        title: "Success! 🎉",
+        description: "Your appraisal has been started successfully.",
       });
-      // No need to re-dispatch fetchMyAppraisals here if the slice handles the update
     } catch (error) {
       toast({
-        title: "Error",
+        title: "Failed to Start Appraisal",
         description:
-          error.message || "Failed to start appraisal. Please try again.",
+          "Something went wrong while starting the appraisal process.",
         variant: "destructive",
       });
     }
@@ -113,6 +122,7 @@ const AppraisalList = () => {
   const handleReset = () => {
     setFilterStatus("");
     setFilterYear(currentYear.toString());
+    setFilterText("");
   };
 
   const formatDate = (dateString) => {
@@ -120,11 +130,68 @@ const AppraisalList = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
-  const formatType = (type) => {
-    if (type === "mid_term") return "Mid-Term Review";
-    if (type === "annual") return "Annual Review";
-    if (type === "probation") return "Probation Review";
-    return type;
+  const formatType = (typeValue, fallbackPeriod) => {
+    const value = typeValue || fallbackPeriod;
+    if (value === "mid_term") return "Mid-Term Review";
+    if (value === "annual") return "Annual Review";
+    if (value === "probation") return "Probation Review";
+    return value || "—";
+  };
+
+  const handleEditAppraisal = () => {
+    toast({
+      title: "Edit appraisal",
+      description:
+        "Editing appraisals will be available soon. Please check back shortly.",
+    });
+  };
+
+  const handleSubmitAppraisal = () => {
+    toast({
+      title: "Submit appraisal",
+      description:
+        "Submission workflow is not yet configured in this preview build.",
+    });
+  };
+
+  const handleStartRating = () => {
+    toast({
+      title: "Start rating",
+      description:
+        "Rating flow is coming soon. In the meantime, you can continue setting up your appraisal.",
+    });
+  };
+
+  const handleContinueRating = () => {
+    toast({
+      title: "Continue rating",
+      description:
+        "Rating flow is coming soon. In the meantime, you can continue setting up your appraisal.",
+    });
+  };
+
+  const handleOverallAssessment = () => {
+    toast({
+      title: "Overall assessment",
+      description:
+        "Overall assessment reporting is under construction. Stay tuned!",
+    });
+  };
+
+  const handlePreviewAppraisal = () => {
+    toast({
+      title: "Preview appraisal",
+      description: "Preview experience is coming soon.",
+    });
+  };
+
+  const handleDeleteAppraisal = () => {
+    toast({
+      title: "Delete appraisal",
+      description:
+        "Delete functionality will be available in a subsequent update.",
+      variant: "destructive",
+    });
   };
 
   return (
@@ -143,6 +210,14 @@ const AppraisalList = () => {
         <FilterBox
           title="My Appraisals Filters"
           filters={[
+            {
+              id: "filterText",
+              label: "Search",
+              type: "text",
+              placeholder: "Search by agreement title...",
+              value: filterText,
+              onChange: (e) => setFilterText(e.target.value),
+            },
             {
               id: "filterStatus",
               label: "Status",
@@ -218,8 +293,11 @@ const AppraisalList = () => {
                   <TableRow>
                     <TableHeader>Agreement Name</TableHeader>
                     <TableHeader>Appraisal Type</TableHeader>
+                    <TableHeader>Supervisor</TableHeader>
+                    <TableHeader>HOD/Line Manager</TableHeader>
                     <TableHeader>Status</TableHeader>
                     <TableHeader>Started</TableHeader>
+                    <TableHeader>Submitted</TableHeader>
                     <TableHeader>Actions</TableHeader>
                   </TableRow>
                 </TableHead>
@@ -227,7 +305,7 @@ const AppraisalList = () => {
                   {filteredAppraisals.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={5}
+                        colSpan={8}
                         className="text-center py-8 text-gray-500"
                       >
                         No appraisals found. Click "Start New Appraisal" to
@@ -238,20 +316,59 @@ const AppraisalList = () => {
                     filteredAppraisals.map((appraisal) => (
                       <TableRow key={appraisal.id} className="hover:bg-gray-50">
                         <TableCell>
-                          {appraisal.agreement?.name || "N/A"}
+                          <div className="text-sm font-medium text-gray-900">
+                            {appraisal.agreement?.name || "N/A"}
+                          </div>
                         </TableCell>
-                        <TableCell>{formatType(appraisal.period)}</TableCell>
+                        <TableCell>
+                          <span className="text-sm text-gray-900">
+                            {formatType(appraisal.type, appraisal.period)}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          {appraisal.supervisor
+                            ? `${appraisal.supervisor.surname} ${appraisal.supervisor.first_name}`
+                            : "Not assigned"}
+                        </TableCell>
+                        <TableCell>
+                          {appraisal.hod
+                            ? `${appraisal.hod.surname} ${appraisal.hod.first_name}`
+                            : "Not assigned"}
+                        </TableCell>
                         <TableCell>
                           <AppraisalStatusBadge status={appraisal.status} />
                         </TableCell>
                         <TableCell>
-                          {formatDate(appraisal.created_at)}
+                          <div>{formatDate(appraisal.created_at)}</div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {formatTimeAgo(appraisal.created_at) || "—"}
+                          </div>
                         </TableCell>
                         <TableCell>
-                          {/* Actions will be added here */}
-                          <Button variant="outline" size="sm">
-                            View
-                          </Button>
+                          {appraisal.submitted_at ? (
+                            <>
+                              <div>{formatDate(appraisal.submitted_at)}</div>
+                              <div className="text-xs text-gray-500 mt-1">
+                                {formatTimeAgo(appraisal.submitted_at)}
+                              </div>
+                            </>
+                          ) : (
+                            <span className="text-xs text-gray-500">
+                              Not submitted yet
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <AppraisalActions
+                            appraisal={appraisal}
+                            onEdit={handleEditAppraisal}
+                            onSubmit={handleSubmitAppraisal}
+                            onStartRating={handleStartRating}
+                            onContinueRating={handleContinueRating}
+                            onOverallAssessment={handleOverallAssessment}
+                            onPreview={handlePreviewAppraisal}
+                            onDelete={handleDeleteAppraisal}
+                          />
                         </TableCell>
                       </TableRow>
                     ))

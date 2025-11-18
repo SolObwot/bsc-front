@@ -13,15 +13,21 @@ const AppraisalForm = ({
   agreements = [], // Assuming agreements are passed as props
 }) => {
   const { toast } = useToast();
-  const { searchResults, loading, hasMore, searchUsers, loadMoreUsers } =
-    useUserSearch();
+  const {
+    searchResults,
+    loading: searchLoading,
+    hasMore,
+    searchUsers,
+    loadMoreUsers,
+  } = useUserSearch();
 
   const [formData, setFormData] = useState({
     agreement_id: "",
-    period: "",
-    supervisor: null,
-    hod: null,
+    type: "",
   });
+  const [selectedAgreement, setSelectedAgreement] = useState(null);
+  const [supervisor, setSupervisor] = useState(null);
+  const [hod, setHod] = useState(null);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -29,12 +35,22 @@ const AppraisalForm = ({
     if (initialData) {
       setFormData({
         agreement_id: initialData.agreement_id || "",
-        period: initialData.period || "",
-        supervisor: initialData.supervisor || null,
-        hod: initialData.hod || null,
+        type: initialData.type || "",
       });
+      if (initialData.agreement_id) {
+        const agreement = agreements.find(
+          (a) => a.id == initialData.agreement_id
+        );
+        setSelectedAgreement(agreement);
+      }
+      if (initialData.supervisor) {
+        setSupervisor(initialData.supervisor);
+      }
+      if (initialData.hod) {
+        setHod(initialData.hod);
+      }
     }
-  }, [initialData]);
+  }, [initialData, agreements]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -44,30 +60,56 @@ const AppraisalForm = ({
     }
   };
 
-  const handleSupervisorChange = (selectedUser) => {
-    setFormData((prev) => ({ ...prev, supervisor: selectedUser }));
-    if (errors.supervisor) {
-      setErrors((prev) => ({ ...prev, supervisor: null }));
+  const handleAgreementChange = (e) => {
+    const agreementId = e.target.value;
+    const agreement = agreements.find((a) => a.id == agreementId);
+    setSelectedAgreement(agreement);
+    setFormData((prev) => ({
+      ...prev,
+      agreement_id: agreementId,
+      type: agreement?.period === "probation" ? "probation" : prev.type,
+    }));
+    if (!isEditing && agreement) {
+      setSupervisor(agreement.supervisor);
+      setHod(agreement.hod);
     }
-  };
-
-  const handleHodChange = (selectedUser) => {
-    setFormData((prev) => ({ ...prev, hod: selectedUser }));
-    if (errors.hod) {
-      setErrors((prev) => ({ ...prev, hod: null }));
+    if (errors.agreement_id) {
+      setErrors((prev) => ({ ...prev, agreement_id: null }));
     }
   };
 
   const validate = () => {
     const newErrors = {};
     if (!formData.agreement_id)
-      newErrors.agreement_id = "Performance Agreement is required.";
-    if (!formData.period) newErrors.period = "Period is required.";
-    if (isEditing && !formData.supervisor)
-      newErrors.supervisor = "Supervisor is required.";
-    if (isEditing && !formData.hod) newErrors.hod = "HOD is required.";
+      newErrors.agreement_id = "Please select a performance agreement.";
+    if (!formData.type) newErrors.type = "Please select an appraisal type.";
+    if (isEditing && !supervisor)
+      newErrors.supervisor = "Supervisor selection is required.";
+    if (isEditing && !hod) newErrors.hod = "HOD selection is required.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const composePerformanceMeasuresPayload = () => {
+    if (isEditing && initialData?.performance_measures?.length) {
+      return initialData.performance_measures.map((measure) => ({
+        performance_measure_id: measure.performance_measure_id ?? measure.id,
+        self_rating: measure.self_rating ?? null,
+        actual_value: measure.actual_value ?? null,
+        employee_comments: measure.employee_comments ?? "",
+      }));
+    }
+
+    if (selectedAgreement?.performance_measures?.length) {
+      return selectedAgreement.performance_measures.map((measure) => ({
+        performance_measure_id: measure.id,
+        self_rating: null,
+        actual_value: null,
+        employee_comments: "",
+      }));
+    }
+
+    return [];
   };
 
   const handleSubmit = async (e) => {
@@ -76,10 +118,14 @@ const AppraisalForm = ({
       setIsSubmitting(true);
       const submissionData = {
         agreement_id: formData.agreement_id,
-        period: formData.period,
-        supervisor_id: formData.supervisor?.id || null,
-        hod_id: formData.hod?.id || null,
+        type: formData.type,
+        employee_comments: initialData?.employee_comments ?? "",
+        performance_measures: composePerformanceMeasuresPayload(),
       };
+      if (isEditing) {
+        submissionData.supervisor_id = supervisor?.id;
+        submissionData.hod_id = hod?.id;
+      }
       try {
         await onSubmit(submissionData);
       } catch (error) {
@@ -110,7 +156,7 @@ const AppraisalForm = ({
             id="agreement_id"
             name="agreement_id"
             value={formData.agreement_id}
-            onChange={handleChange}
+            onChange={handleAgreementChange}
             className={`mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${
               errors.agreement_id ? "border-red-500" : ""
             }`}
@@ -127,43 +173,53 @@ const AppraisalForm = ({
           )}
         </div>
 
-        <div>
-          <label
-            htmlFor="period"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Period <span className="text-red-500">*</span>
-          </label>
-          <select
-            id="period"
-            name="period"
-            value={formData.period}
-            onChange={handleChange}
-            className={`mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${
-              errors.period ? "border-red-500" : ""
-            }`}
-          >
-            <option value="">-- Select Period --</option>
-            <option value="mid-year">Mid-year Review</option>
-            <option value="annual">Annual Review</option>
-            <option value="probation">Probation Review</option>
-          </select>
-          {errors.period && (
-            <p className="mt-1 text-sm text-red-600">{errors.period}</p>
-          )}
-        </div>
+        {selectedAgreement && (
+          <>
+            {selectedAgreement.period === "annual" ? (
+              <div>
+                <label
+                  htmlFor="type"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Appraisal Type <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="type"
+                  name="type"
+                  value={formData.type}
+                  onChange={handleChange}
+                  className={`mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${
+                    errors.type ? "border-red-500" : ""
+                  }`}
+                >
+                  <option value="">-- Select Type --</option>
+                  <option value="mid_term">Mid-Term Review</option>
+                  <option value="annual">Annual Review</option>
+                </select>
+                {errors.type && (
+                  <p className="mt-1 text-sm text-red-600">{errors.type}</p>
+                )}
+              </div>
+            ) : selectedAgreement.period === "probation" ? (
+              <div className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-gray-50 rounded-md shadow-sm sm:text-sm">
+                Probation Review
+                <input type="hidden" name="type" value="probation" />
+              </div>
+            ) : null}
+          </>
+        )}
 
         {isEditing && (
           <>
             <SearchableCombobox
               label="Supervisor"
               options={searchResults}
-              selected={formData.supervisor}
-              onChange={handleSupervisorChange}
+              selected={supervisor}
+              onChange={setSupervisor}
               onSearch={searchUsers}
               onLoadMore={loadMoreUsers}
               hasMore={hasMore}
-              loading={loading}
+              loading={searchLoading}
               placeholder="Type to search for a supervisor..."
               error={errors.supervisor}
             />
@@ -171,12 +227,12 @@ const AppraisalForm = ({
             <SearchableCombobox
               label="HOD / Line Manager"
               options={searchResults}
-              selected={formData.hod}
-              onChange={handleHodChange}
+              selected={hod}
+              onChange={setHod}
               onSearch={searchUsers}
               onLoadMore={loadMoreUsers}
               hasMore={hasMore}
-              loading={loading}
+              loading={searchLoading}
               placeholder="Type to search for a HOD..."
               error={errors.hod}
             />

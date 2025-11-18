@@ -1,17 +1,52 @@
-import React, { Fragment } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { XMarkIcon,   InformationCircleIcon,
- } from "@heroicons/react/24/outline";
+import {
+  XMarkIcon,
+  InformationCircleIcon,
+  ArrowPathIcon,
+} from "@heroicons/react/24/outline";
 import AppraisalForm from "./AppraisalForm";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchAllAgreements } from "../../../redux/agreementSlice";
 
-const StartAppraisalModal = ({ isOpen, closeModal, onSubmit, agreements, isEditing = false, initialData = {} }) => {
+const StartAppraisalModal = ({
+  isOpen,
+  closeModal,
+  onSubmit,
+  isEditing = false,
+  initialData = {},
+}) => {
+  const dispatch = useDispatch();
+  const { departmentAgreements: agreements, loading: agreementsLoading } =
+    useSelector((state) => state.agreements);
+  const [agreementsFetched, setAgreementsFetched] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && !agreementsFetched) {
+      const currentYear = new Date().getFullYear();
+      dispatch(
+        fetchAllAgreements({
+          status: "approved",
+          year: currentYear,
+          my_agreements: true,
+        })
+      );
+      setAgreementsFetched(true);
+    }
+  }, [isOpen, agreementsFetched, dispatch]);
+
+  const handleClose = () => {
+    closeModal();
+    setAgreementsFetched(false);
+  };
+
   const handleFormSubmit = async (formData) => {
     await onSubmit(formData);
   };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={closeModal}>
+      <Dialog as="div" className="relative z-50" onClose={handleClose}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -44,7 +79,7 @@ const StartAppraisalModal = ({ isOpen, closeModal, onSubmit, agreements, isEditi
                         : "Start New Performance Appraisal"}
                     </Dialog.Title>
                     <button
-                      onClick={closeModal}
+                      onClick={handleClose}
                       className="hover:bg-teal-100 rounded-full p-2"
                     >
                       <XMarkIcon className="h-5 w-5" />
@@ -58,19 +93,58 @@ const StartAppraisalModal = ({ isOpen, closeModal, onSubmit, agreements, isEditi
                       <InformationCircleIcon className="h-5 w-5 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
                       <p className="text-sm text-blue-700">
                         Select an approved performance agreement from the list
-                        to start your appraisal. Your supervisor and HOD/line manager who approved the agreeement will be automatically added to the appraisal process. 
-                        You can edit this later if it's not correct.
+                        to start your appraisal. Your supervisor and HOD/line
+                        manager who approved the agreement will be automatically
+                        added to the appraisal process. You can edit this later
+                        if it's not correct.
                       </p>
                     </div>
                   )}
-                  <AppraisalForm
-                    initialData={initialData}
-                    onSubmit={handleFormSubmit}
-                    onCancel={closeModal}
-                    agreements={agreements}
-                    isModal={true}
-                    isEditing={isEditing}
-                  />
+                  {agreementsLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <ArrowPathIcon className="h-6 w-6 animate-spin text-teal-600 mr-2" />
+                      <span className="text-sm text-gray-600">
+                        Loading agreements...
+                      </span>
+                    </div>
+                  ) : agreements.length === 0 ? (
+                    <div className="text-center py-8">
+                      <div className="mb-4">
+                        <p className="text-sm text-gray-600">
+                          No agreements found for your query. Check the status
+                          of your agreement.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setAgreementsFetched(false);
+                          // Trigger refetch
+                          const currentYear = new Date().getFullYear();
+                          dispatch(
+                            fetchAllAgreements({
+                              status: "approved",
+                              year: currentYear,
+                              my_agreements: true,
+                            })
+                          );
+                          setAgreementsFetched(true);
+                        }}
+                        className="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700"
+                      >
+                        <ArrowPathIcon className="h-4 w-4 mr-2" />
+                        Retry
+                      </button>
+                    </div>
+                  ) : (
+                    <AppraisalForm
+                      initialData={initialData}
+                      onSubmit={handleFormSubmit}
+                      onCancel={handleClose}
+                      agreements={agreements}
+                      isModal={true}
+                      isEditing={isEditing}
+                    />
+                  )}
                 </div>
               </Dialog.Panel>
             </Transition.Child>

@@ -327,8 +327,19 @@ const appraisalSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(createAppraisal.fulfilled, (state) => {
+      .addCase(createAppraisal.fulfilled, (state, action) => {
         state.loading = false;
+        const newAppraisal = action.payload?.data;
+        if (!newAppraisal) return;
+
+        const insertUnique = (list) => {
+          const filtered = list.filter((item) => item.id !== newAppraisal.id);
+          return [newAppraisal, ...filtered];
+        };
+
+        state.myAppraisals = insertUnique(state.myAppraisals);
+        state.appraisals = insertUnique(state.appraisals);
+        state.departmentAppraisals = insertUnique(state.departmentAppraisals);
       })
       .addCase(createAppraisal.rejected, (state, action) => {
         state.error = action.payload;
