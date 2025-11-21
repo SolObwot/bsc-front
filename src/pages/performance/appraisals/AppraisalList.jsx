@@ -154,19 +154,18 @@ const AppraisalList = () => {
     });
   };
 
-  const handleStartRating = () => {
+  const handleSelfRating = () => {
     toast({
-      title: "Start rating",
+      title: "Self rating",
       description:
-        "Rating flow is coming soon. In the meantime, you can continue setting up your appraisal.",
+        "The self-rating workflow is under construction. Please check back soon.",
     });
   };
 
-  const handleContinueRating = () => {
+  const handleApproveAppraisal = () => {
     toast({
-      title: "Continue rating",
-      description:
-        "Rating flow is coming soon. In the meantime, you can continue setting up your appraisal.",
+      title: "Approve appraisal",
+      description: "Approval actions will be available in an upcoming release.",
     });
   };
 
@@ -192,6 +191,77 @@ const AppraisalList = () => {
         "Delete functionality will be available in a subsequent update.",
       variant: "destructive",
     });
+  };
+
+  const normalizeToken = (value) =>
+    (value || "").toString().trim().toLowerCase();
+
+  const getAppraisalActionKeys = (status, action) => {
+    const normalizedStatus = normalizeToken(status);
+    const normalizedAction = normalizeToken(action) || "pending"; // Default to pending if action is missing
+
+    if (normalizedStatus === "draft") {
+      const draftMatrix = {
+        pending: ["edit", "selfRating", "delete"],
+        "in-progress": ["edit", "selfRating"],
+        in_progress: ["edit", "selfRating"],
+        completed: ["edit", "selfRating", "submit"],
+      };
+      return draftMatrix[normalizedAction] || ["edit", "selfRating"];
+    }
+
+    if (normalizedStatus === "employee_review") {
+      const employeeMatrix = {
+        pending: ["overallAssessment", "preview", "approve"],
+        disagree: ["overallAssessment", "preview"],
+        completed: ["overallAssessment", "preview", "approve"],
+      };
+      return (
+        employeeMatrix[normalizedAction] || ["overallAssessment", "preview"]
+      );
+    }
+
+    if (
+      [
+        "supervisor",
+        "hod",
+        "branch_supervisor",
+        "peer_approval",
+        "branch_final_assessment",
+      ].includes(normalizedStatus)
+    ) {
+      return ["edit", "preview", "overallAssessment"];
+    }
+
+    return ["preview"]; // Fallback for unknown statuses
+  };
+
+  const buildActionProps = (appraisal) => {
+    const availableActions = getAppraisalActionKeys(
+      appraisal.status,
+      appraisal.action
+    );
+
+    const handlerEntries = {
+      edit: { prop: "onEdit", handler: handleEditAppraisal },
+      selfRating: { prop: "onSelfRating", handler: handleSelfRating },
+      delete: { prop: "onDelete", handler: handleDeleteAppraisal },
+      submit: { prop: "onSubmit", handler: handleSubmitAppraisal },
+      overallAssessment: {
+        prop: "onOverallAssessment",
+        handler: handleOverallAssessment,
+      },
+      preview: { prop: "onPreview", handler: handlePreviewAppraisal },
+      approve: { prop: "onApprove", handler: handleApproveAppraisal },
+    };
+
+    return availableActions.reduce((accumulator, actionKey) => {
+      const entry = handlerEntries[actionKey];
+      if (entry) {
+        accumulator[entry.prop] = entry.handler;
+      }
+      return accumulator;
+    }, {});
   };
 
   return (
@@ -336,7 +406,10 @@ const AppraisalList = () => {
                             : "Not assigned"}
                         </TableCell>
                         <TableCell>
-                          <AppraisalStatusBadge status={appraisal.status} />
+                          <AppraisalStatusBadge
+                            status={appraisal.status}
+                            action={appraisal.action}
+                          />
                         </TableCell>
                         <TableCell>
                           <div>{formatDate(appraisal.created_at)}</div>
@@ -361,13 +434,7 @@ const AppraisalList = () => {
                         <TableCell>
                           <AppraisalActions
                             appraisal={appraisal}
-                            onEdit={handleEditAppraisal}
-                            onSubmit={handleSubmitAppraisal}
-                            onStartRating={handleStartRating}
-                            onContinueRating={handleContinueRating}
-                            onOverallAssessment={handleOverallAssessment}
-                            onPreview={handlePreviewAppraisal}
-                            onDelete={handleDeleteAppraisal}
+                            {...buildActionProps(appraisal)}
                           />
                         </TableCell>
                       </TableRow>
